@@ -33,8 +33,7 @@ pub fn builtin_schema(canonical_id: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::{
-        ADR_V1_SCHEMA_ID, CONFIG_V1_SCHEMA_ID, MSDD_V1_SCHEMA_ID, MSRS_V1_SCHEMA_ID,
-        builtin_schema,
+        ADR_V1_SCHEMA_ID, CONFIG_V1_SCHEMA_ID, MSDD_V1_SCHEMA_ID, MSRS_V1_SCHEMA_ID, builtin_schema,
     };
     use serde_json::Value;
 
