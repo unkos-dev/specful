@@ -1,0 +1,449 @@
+{
+  "$comment": "SPDX-License-Identifier: CC0-1.0",
+  "schema": "./v1.schema.json",
+  "cases": [
+    {
+      "description": "minimal proposed ADR",
+      "valid": true,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "accepted ADR with optional participants and extension data",
+      "valid": true,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "ACME2-ADR-0042",
+        "title": "Use PostgreSQL",
+        "status": "accepted",
+        "recorded-on": "2026-07-20",
+        "decided-on": "2026-07-19",
+        "decision-makers": [
+          "Architecture group",
+          "Service owner"
+        ],
+        "consulted": [
+          "Database operations"
+        ],
+        "informed": [
+          "Application developers"
+        ],
+        "supersedes": [
+          "ACME2-ADR-0004",
+          "ACME2-ADR-0007"
+        ],
+        "x-acme-approval": {
+          "ticket": "ARCH-42",
+          "exception": null
+        }
+      }
+    },
+    {
+      "description": "accepted brownfield ADR without a known decision date",
+      "valid": true,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "REV-ADR-0012",
+        "title": "Retain the existing deployment model",
+        "status": "accepted",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "superseded ADR that previously superseded another ADR",
+      "valid": true,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0012",
+        "title": "Use repository-local schemas",
+        "status": "superseded",
+        "recorded-on": "2026-07-01",
+        "decided-on": "2026-07-02",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "supersedes": [
+          "SPF-ADR-0003"
+        ],
+        "superseded-by": [
+          "SPF-ADR-0020"
+        ]
+      }
+    },
+    {
+      "description": "missing a required field",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24"
+      }
+    },
+    {
+      "description": "wrong artifact discriminator",
+      "valid": false,
+      "instance": {
+        "kind": "requirement",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "unknown profile version",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 2,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "project key starts with a digit",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "2SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "sequence zero is invalid",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0000",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "sequence wider than four digits is invalid",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-10000",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "title has leading whitespace",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": " Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "title contains a line break",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a\ndatabase",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "unknown status",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "rejected",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "date is not zero padded",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-7-4",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "proposal includes a decision date",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decided-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "decision-maker list is empty",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": []
+      }
+    },
+    {
+      "description": "core field is null",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": null,
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "decision-maker entries are duplicated",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer",
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "optional participant list is empty",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "consulted": []
+      }
+    },
+    {
+      "description": "proposal declares a supersession relationship",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0002",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "supersedes": [
+          "SPF-ADR-0001"
+        ]
+      }
+    },
+    {
+      "description": "accepted ADR declares a successor",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "accepted",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "superseded-by": [
+          "SPF-ADR-0002"
+        ]
+      }
+    },
+    {
+      "description": "superseded ADR omits its successor",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "superseded",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ]
+      }
+    },
+    {
+      "description": "superseded ADR declares multiple successors",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "superseded",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "superseded-by": [
+          "SPF-ADR-0002",
+          "SPF-ADR-0003"
+        ]
+      }
+    },
+    {
+      "description": "relationship list contains duplicates",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0003",
+        "title": "Choose a database",
+        "status": "accepted",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "supersedes": [
+          "SPF-ADR-0001",
+          "SPF-ADR-0001"
+        ]
+      }
+    },
+    {
+      "description": "relationship list is empty",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0003",
+        "title": "Choose a database",
+        "status": "accepted",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "supersedes": []
+      }
+    },
+    {
+      "description": "unknown unprefixed field",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "owner": "Architecture group"
+      }
+    },
+    {
+      "description": "extension key is not lowercase kebab-case",
+      "valid": false,
+      "instance": {
+        "kind": "adr",
+        "profile-version": 1,
+        "id": "SPF-ADR-0001",
+        "title": "Choose a database",
+        "status": "proposed",
+        "recorded-on": "2026-07-24",
+        "decision-makers": [
+          "Project maintainer"
+        ],
+        "x-Acme-owner": "Architecture group"
+      }
+    }
+  ]
+}

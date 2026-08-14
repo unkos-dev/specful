@@ -1,0 +1,53 @@
+# Repository configuration
+
+Every Specful repository has one `.specful.yaml` at its root. The file is
+versioned canonical project state, not an optional command preference.
+
+```yaml
+config-version: 1
+project-key: EXAMPLE
+specful-version: "0.1.0"
+next-adr-sequence: 1
+next-msrs-sequence: 1
+next-requirement-sequence: 1
+next-msdd-sequence: 1
+```
+
+The project key contains 2 to 10 uppercase ASCII letters or digits and starts
+with a letter. It is immutable after the first valid snapshot. Every stable
+identifier within the selected root uses that key.
+
+The `specful-version` field records the Specful release that last initialized
+or migrated the repository, as a plain `MAJOR.MINOR.PATCH` string. Tooling
+reads it to know the repository's vintage and never interprets it as policy.
+
+Each counter ranges from `1` through `10000`, is strictly greater than every
+corresponding sequence in the current snapshot, and never decreases. The value
+`10000` is the exhausted sentinel and is not allocated.
+
+## Loading and root selection
+
+Configuration is restricted YAML without Markdown frontmatter or a body.
+Duplicate keys, explicit tags, anchors, aliases, merge keys, complex keys,
+empty unquoted scalars, and invalid UTF-8 are rejected. Exact lowercase JSON
+primitives and RFC 8259 numbers resolve to their JSON values; other non-empty
+scalars are strings.
+
+Library operations receive the root explicitly. Command operations accept an
+explicit root or search upward from the working directory and select the
+nearest ancestor containing `.specful.yaml`. Traversal remains within that
+root. A descendant `.specful.yaml` begins a separate repository and excludes
+its complete subtree from its parent.
+
+Canonical paths are relative UTF-8 paths using `/`. Absolute paths, drive
+prefixes, backslashes, empty segments, and `.` or `..` segments are invalid.
+
+## Snapshot and transition rules
+
+A snapshot is invalid when configuration is missing or malformed, its version
+is unsupported, project keys are mixed, or a counter lags an allocated
+identifier.
+
+A transition is invalid when the project key changes, a counter decreases, an
+identifier is reused, or the after snapshot is not independently valid.
+Reading, validation, and indexing do not rewrite configuration.

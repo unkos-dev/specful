@@ -1,0 +1,110 @@
+{
+  "$comment": "SPDX-License-Identifier: CC0-1.0",
+  "schema": "./v1.schema.json",
+  "cases": [
+    {
+      "description": "new repository configuration",
+      "valid": true,
+      "instance": {
+        "config-version": 1,
+        "project-key": "SPF",
+        "specful-version": "0.1.0",
+        "next-adr-sequence": 1,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1
+      }
+    },
+    {
+      "description": "exhausted counters remain representable",
+      "valid": true,
+      "instance": {
+        "config-version": 1,
+        "project-key": "ACME2",
+        "specful-version": "1.4.0",
+        "next-adr-sequence": 10000,
+        "next-msrs-sequence": 10000,
+        "next-requirement-sequence": 10000,
+        "next-msdd-sequence": 10000
+      }
+    },
+    {
+      "description": "unsupported configuration version",
+      "valid": false,
+      "instance": {
+        "config-version": 2,
+        "project-key": "SPF",
+        "specful-version": "0.1.0",
+        "next-adr-sequence": 1,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1
+      }
+    },
+    {
+      "description": "project key is too short",
+      "valid": false,
+      "instance": {
+        "config-version": 1,
+        "project-key": "S",
+        "specful-version": "0.1.0",
+        "next-adr-sequence": 1,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1
+      }
+    },
+    {
+      "description": "counter beyond exhausted sentinel",
+      "valid": false,
+      "instance": {
+        "config-version": 1,
+        "project-key": "SPF",
+        "specful-version": "0.1.0",
+        "next-adr-sequence": 10001,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1
+      }
+    },
+    {
+      "description": "missing specful version",
+      "valid": false,
+      "instance": {
+        "config-version": 1,
+        "project-key": "SPF",
+        "next-adr-sequence": 1,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1
+      }
+    },
+    {
+      "description": "prefixed specful version is invalid",
+      "valid": false,
+      "instance": {
+        "config-version": 1,
+        "project-key": "SPF",
+        "specful-version": "v0.1.0",
+        "next-adr-sequence": 1,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1
+      }
+    },
+    {
+      "description": "validation policy block is not part of configuration",
+      "valid": false,
+      "instance": {
+        "config-version": 1,
+        "project-key": "SPF",
+        "specful-version": "0.1.0",
+        "next-adr-sequence": 1,
+        "next-msrs-sequence": 1,
+        "next-requirement-sequence": 1,
+        "next-msdd-sequence": 1,
+        "validation": { "rules": {} }
+      }
+    }
+  ]
+}
