@@ -40,8 +40,8 @@ By making a contribution to this project, I certify that:
 
 Contributions land under the license that governs the touched files: the
 Apache License 2.0 for implementation and general repository content, and
-CC0 1.0 for templates, schemas, and examples. The nearest license file and
-any SPDX identifier on a file determine which applies.
+CC0 1.0 for templates and schemas. The nearest license file and any SPDX
+identifier on a file determine which applies.
 
 ## Process
 
@@ -50,9 +50,8 @@ any SPDX identifier on a file determine which applies.
 - Commit subjects and pull request titles follow Conventional Commits:
   `<type>(<scope>): <description>` with one of `build`, `chore`, `ci`,
   `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, or `test`
-  (for example `feat: trace requirements to designs`). A check enforces
-  this on every pull request title. Explain the why in the body, not a
-  changelog of the what.
+  (for example `feat: trace requirements to designs`). Explain the why in
+  the body, not a changelog of the what.
 - No releases are cut yet. When they are, versions follow Semantic
   Versioning, derived from the commit types by release automation;
   versions are never edited by hand, in `Cargo.toml` or anywhere else.
@@ -62,8 +61,8 @@ any SPDX identifier on a file determine which applies.
 
 ## Local checks
 
-Continuous integration runs formatting, tests, and the DCO check on every
-pull request. Before pushing:
+Every pull request runs formatting and tests in continuous integration,
+and the DCO app verifies the sign-off on every commit. Before pushing:
 
 ```
 cargo fmt
