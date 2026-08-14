@@ -3,11 +3,19 @@
 Specful is early and its contracts are still settling, but issues and pull
 requests are welcome.
 
+Report suspected security vulnerabilities privately through GitHub's
+private vulnerability reporting on this repository, never in a public
+issue.
+
 ## Developer Certificate of Origin
 
-Every commit must carry a `Signed-off-by` trailer with your real name and
-email, added with `git commit -s`. The sign-off certifies the Developer
-Certificate of Origin, version 1.1 (https://developercertificate.org/):
+Every commit must carry a `Signed-off-by` trailer matching the commit's
+author name and email, added with `git commit -s`; the DCO check verifies
+this on every pull request. Because squash merging composes the landed
+commit from the pull request title and body, the durable sign-off record
+is each pull request's verified commits, not the history on `main`. The
+sign-off certifies the Developer Certificate of Origin, version 1.1
+(https://developercertificate.org/):
 
 ```
 Developer Certificate of Origin
@@ -50,14 +58,17 @@ identifier on a file determine which applies.
 - Commit subjects and pull request titles follow Conventional Commits:
   `<type>(<scope>): <description>` with one of `build`, `chore`, `ci`,
   `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, or `test`
-  (for example `feat: trace requirements to designs`). Explain the why in
-  the body, not a changelog of the what.
+  (for example `feat: trace requirements to designs`). A breaking change
+  appends `!` after the type or scope in the title and carries a
+  `BREAKING CHANGE:` footer in the body. Explain the why in the body, not
+  a changelog of the what.
 - No releases are cut yet. When they are, versions follow Semantic
-  Versioning, derived from the commit types by release automation;
-  versions are never edited by hand, in `Cargo.toml` or anywhere else.
-- Documentation follows the writing model in
-  [docs/project-charter.md](docs/project-charter.md): current state only,
-  no history, no em dashes.
+  Versioning, derived from the commit types by release automation; while
+  versions remain 0.x, a breaking change bumps the minor version.
+  Versions are never edited by hand, in `Cargo.toml` or anywhere else.
+- Repository prose describes current state without history and contains
+  no em dashes. Specification artifacts additionally follow the writing
+  model in [docs/project-charter.md](docs/project-charter.md).
 
 ## Local checks
 
@@ -67,7 +78,7 @@ and the DCO app verifies the sign-off on every commit. Before pushing:
 ```
 cargo fmt
 cargo clippy --all-targets
-cargo test
+cargo test --locked
 ```
 
 Tests accompany behaviour changes in the same pull request.
