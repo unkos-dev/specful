@@ -1,0 +1,7 @@
+config-version: 1
+project-key: BAD
+specful-version: "0.1.0"
+next-adr-sequence: 1
+next-msrs-sequence: 1
+next-requirement-sequence: 1
+next-msdd-sequence: 1
