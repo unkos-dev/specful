@@ -19,8 +19,32 @@ const COUNTER_KINDS: [(&str, &str); 4] = [
 #[derive(Debug, Clone)]
 pub struct Config {
     pub project_key: String,
+    pub specful_version: String,
     /// Allocation counters keyed by identifier kind (ADR, MSRS, REQ, MSDD).
     pub counters: BTreeMap<String, i64>,
+}
+
+impl Config {
+    /// Canonical serialized form written by `init` and identifier
+    /// allocation. Rewrites are wholesale: comments are not preserved.
+    #[must_use]
+    pub fn render(&self) -> String {
+        format!(
+            "config-version: 1\n\
+             project-key: {}\n\
+             specful-version: {}\n\
+             next-adr-sequence: {}\n\
+             next-msrs-sequence: {}\n\
+             next-requirement-sequence: {}\n\
+             next-msdd-sequence: {}\n",
+            self.project_key,
+            self.specful_version,
+            self.counters.get("ADR").copied().unwrap_or(1),
+            self.counters.get("MSRS").copied().unwrap_or(1),
+            self.counters.get("REQ").copied().unwrap_or(1),
+            self.counters.get("MSDD").copied().unwrap_or(1),
+        )
+    }
 }
 
 /// Loads and schema-validates `.specful.yaml` under `root`.
@@ -85,6 +109,10 @@ pub fn load_config(root: &Path, findings: &mut Vec<Finding>) -> Option<Config> {
 
     Some(Config {
         project_key: value["project-key"]
+            .as_str()
+            .expect("schema guarantees a string")
+            .to_owned(),
+        specful_version: value["specful-version"]
             .as_str()
             .expect("schema guarantees a string")
             .to_owned(),

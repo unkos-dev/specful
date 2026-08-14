@@ -33,6 +33,46 @@ enum Command {
         #[arg(long)]
         check: bool,
     },
+    /// Initialize a Specful repository: configuration and directories.
+    Init {
+        /// Immutable project key for every identifier, e.g. REV.
+        #[arg(long)]
+        project_key: String,
+        /// Repository root; defaults to the current directory.
+        root: Option<PathBuf>,
+    },
+    /// Create an artifact from its scaffold with the next allocated id.
+    New {
+        /// Artifact kind to create.
+        #[arg(value_enum)]
+        kind: NewKindArg,
+        /// Artifact title; also derives the filename slug.
+        #[arg(long)]
+        title: String,
+        /// Architectural scope for msrs and msdd modules, e.g. backend/sync.
+        #[arg(long)]
+        scope: Option<String>,
+        /// Repository root; defaults to the current directory.
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum NewKindArg {
+    Adr,
+    Msrs,
+    Msdd,
+}
+
+impl From<NewKindArg> for specful::authoring::NewKind {
+    fn from(kind: NewKindArg) -> Self {
+        match kind {
+            NewKindArg::Adr => Self::Adr,
+            NewKindArg::Msrs => Self::Msrs,
+            NewKindArg::Msdd => Self::Msdd,
+        }
+    }
 }
 
 fn main() -> ExitCode {
@@ -60,6 +100,44 @@ fn main() -> ExitCode {
                 ExitCode::SUCCESS
             } else {
                 ExitCode::FAILURE
+            }
+        }
+        Command::Init { project_key, root } => {
+            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            match specful::authoring::init(&root, &project_key) {
+                Ok(created) => {
+                    for path in created {
+                        println!("created {path}");
+                    }
+                    ExitCode::SUCCESS
+                }
+                Err(findings) => {
+                    for finding in &findings {
+                        println!("{}", finding.render());
+                    }
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        Command::New {
+            kind,
+            title,
+            scope,
+            root,
+        } => {
+            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            match specful::authoring::new_artifact(&root, kind.into(), scope.as_deref(), &title) {
+                Ok(path) => {
+                    println!("created {path}");
+                    println!("complete the remaining placeholders, then run specful index");
+                    ExitCode::SUCCESS
+                }
+                Err(findings) => {
+                    for finding in &findings {
+                        println!("{}", finding.render());
+                    }
+                    ExitCode::FAILURE
+                }
             }
         }
         Command::Index { root, check } => {

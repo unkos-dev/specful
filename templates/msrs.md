@@ -4,15 +4,14 @@ profile-version: 1
 id: PROJECT-MSRS-NNNN
 title: Module requirements
 requirements:
-  PROJECT-REQ-NNNN:
-    # Choose self-derived, or one or both traced fields. Remove unused choices.
-    self-derived: true
-    # parents:
-    #   - PROJECT-REQ-NNNN
-    # sources:
-    #   - type: artifact
-    #     artifact-id: PROJECT-ADR-NNNN
-    # x-project-field: null
+  # An empty mapping is valid. Optionally record provenance with sources,
+  # or extend with lowercase x- keys.
+  PROJECT-REQ-NNNN: {}
+  # PROJECT-REQ-NNNN:
+  #   sources:
+  #     - type: artifact
+  #       artifact-id: PROJECT-ADR-NNNN
+  #   x-project-field: null
 ---
 
 # Module requirements
@@ -27,7 +26,7 @@ The system MUST describe one coherent, independently verifiable obligation.
 
 #### Rationale
 
-<!-- Required for SHOULD, SHOULD NOT, and self-derived requirements. -->
+<!-- Required for SHOULD and SHOULD NOT. -->
 Explain the current reason or valid exception boundary.
 
 #### Verification
