@@ -48,8 +48,14 @@ any SPDX identifier on a file determine which applies.
 - Branch from `main`; every change lands through a pull request and a
   squash merge, so the pull request title becomes the commit subject.
 - Commit subjects and pull request titles follow Conventional Commits:
-  `<type>: <description>` (for example `feat: trace requirements to
-  designs`). Explain the why in the body, not a changelog of the what.
+  `<type>(<scope>): <description>` with one of `build`, `chore`, `ci`,
+  `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, or `test`
+  (for example `feat: trace requirements to designs`). A check enforces
+  this on every pull request title. Explain the why in the body, not a
+  changelog of the what.
+- Released versions follow Semantic Versioning, derived from the commit
+  types by release automation. Versions are never edited by hand, in
+  `Cargo.toml` or anywhere else.
 - Documentation follows the writing model in
   [docs/project-charter.md](docs/project-charter.md): current state only,
   no history, no em dashes.
