@@ -5,6 +5,12 @@ Both are disposable: they carry no canonical knowledge, and validation
 fails when a committed view disagrees with the documents it derives from.
 `specful index --check` reports that drift without writing.
 
+Generation derives views from conformant artifacts only: a file that fails
+loading or schema validation contributes nothing to the views, and
+reporting its defects is `specful validate`'s job. A generated view whose
+source artifacts have all gone is orphaned; `specful index` deletes it and
+validation reports it.
+
 ## Per-scope indexes
 
 Every architectural scope under `docs/specs/`, including the root, gets an

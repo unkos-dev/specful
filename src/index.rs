@@ -179,14 +179,61 @@ fn render_indexes(artifacts: &[Artifact]) -> BTreeMap<String, String> {
     indexes
 }
 
+/// Committed generated views on disk: the catalog plus every marker-bearing
+/// `index.md` under `docs/specs/`. Unmarked index files are author-owned and
+/// are not ours to manage.
+fn committed_views(root: &Path) -> Vec<String> {
+    let mut views = Vec::new();
+    if root.join(CATALOG_PATH).is_file() {
+        views.push(CATALOG_PATH.to_owned());
+    }
+    let specs_root = root.join(SPECS_DIR);
+    let mut stack = vec![specs_root];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                stack.push(path);
+            } else if path.file_name().is_some_and(|n| n == "index.md")
+                && std::fs::read_to_string(&path)
+                    .is_ok_and(|content| content.starts_with(GENERATED_MARKER))
+            {
+                let relative = path
+                    .strip_prefix(root)
+                    .unwrap_or(&path)
+                    .components()
+                    .map(|c| c.as_os_str().to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join("/");
+                views.push(relative);
+            }
+        }
+    }
+    views.sort();
+    views
+}
+
 /// Compares committed generated views against a fresh render, appending
-/// findings for missing, stale, or author-owned files.
+/// findings for missing, stale, author-owned, or orphaned files.
 pub(crate) fn check_generated_views(
     root: &Path,
     artifacts: &[Artifact],
     findings: &mut Vec<Finding>,
 ) {
-    for (path, expected) in render_views(artifacts) {
+    let expected_views = render_views(artifacts);
+    for committed in committed_views(root) {
+        if !expected_views.contains_key(&committed) {
+            findings.push(Finding::new(
+                &committed,
+                None,
+                "orphaned generated view; run specful index",
+            ));
+        }
+    }
+    for (path, expected) in expected_views {
         match std::fs::read_to_string(root.join(&path)) {
             Err(_) => findings.push(Finding::new(
                 &path,
@@ -220,7 +267,19 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
         check_generated_views(root, &artifacts, &mut findings);
         return findings;
     }
-    for (path, content) in render_views(&artifacts) {
+    let expected_views = render_views(&artifacts);
+    for committed in committed_views(root) {
+        if !expected_views.contains_key(&committed)
+            && let Err(error) = std::fs::remove_file(root.join(&committed))
+        {
+            findings.push(Finding::new(
+                &committed,
+                None,
+                format!("cannot remove orphaned view: {error}"),
+            ));
+        }
+    }
+    for (path, content) in expected_views {
         let target = root.join(&path);
         if path.ends_with("index.md")
             && let Ok(existing) = std::fs::read_to_string(&target)
