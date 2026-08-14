@@ -1,7 +1,10 @@
 name: PR title
 
+# pull_request_target so the enforcing workflow comes from the trusted base
+# branch; the job executes nothing from the pull request, it only reads the
+# title from the event payload.
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, edited, reopened, synchronize]
 
 permissions: {}
