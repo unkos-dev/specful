@@ -58,17 +58,13 @@ identifier on a file determine which applies.
 - Commit subjects and pull request titles follow Conventional Commits:
   `<type>(<scope>): <description>` with one of `build`, `chore`, `ci`,
   `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, or `test`
-  (for example `feat: trace requirements to designs`). A breaking change
-  appends `!` after the type or scope in the title and carries a
-  `BREAKING CHANGE:` footer in the body. Explain the why in the body, not
-  a changelog of the what.
+  (for example `feat: trace requirements to designs`). Explain the why in
+  the body, not a changelog of the what.
 - No releases are cut yet. When they are, versions follow Semantic
-  Versioning, derived from the commit types by release automation; while
-  versions remain 0.x, a breaking change bumps the minor version.
-  Versions are never edited by hand, in `Cargo.toml` or anywhere else.
-- Repository prose describes current state without history and contains
-  no em dashes. Specification artifacts additionally follow the writing
-  model in [docs/project-charter.md](docs/project-charter.md).
+  Versioning, derived from the commit types by release automation;
+  versions are never edited by hand, in `Cargo.toml` or anywhere else.
+- Specification artifacts follow the writing model in
+  [docs/project-charter.md](docs/project-charter.md).
 
 ## Local checks
 
