@@ -1,0 +1,37 @@
+{
+  "artifacts": [
+    {
+      "id": "OK-ADR-0001",
+      "kind": "adr",
+      "path": "docs/adr/0001-store-progress-events.md",
+      "status": "accepted",
+      "title": "Store progress as events"
+    },
+    {
+      "governed-by": [
+        "OK-ADR-0001"
+      ],
+      "id": "OK-MSDD-0001",
+      "kind": "msdd",
+      "path": "docs/specs/backend/msdd/0001-progress-pipeline.md",
+      "satisfies": [
+        "OK-REQ-0001",
+        "OK-REQ-0002"
+      ],
+      "title": "Progress pipeline"
+    },
+    {
+      "governed-by": [
+        "OK-ADR-0001"
+      ],
+      "id": "OK-MSRS-0001",
+      "kind": "msrs",
+      "path": "docs/specs/system/msrs/0001-progress-sync.md",
+      "requirements": [
+        "OK-REQ-0001",
+        "OK-REQ-0002"
+      ],
+      "title": "Progress sync requirements"
+    }
+  ]
+}

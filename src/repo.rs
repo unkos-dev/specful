@@ -11,27 +11,11 @@ use crate::frontmatter::split_frontmatter;
 use crate::schemas::{ADR_V1_SCHEMA_ID, MSDD_V1_SCHEMA_ID, MSRS_V1_SCHEMA_ID, builtin_schema};
 use crate::yaml::load_restricted_yaml;
 
-const ADR_DIR: &str = "docs/adr";
-const SPECS_DIR: &str = "docs/specs";
-
-#[derive(Debug, Default)]
-struct Inventory {
-    /// Artifact id -> repository-relative path of its declaration.
-    artifact_paths: BTreeMap<String, Vec<String>>,
-    /// Requirement id -> declaring paths.
-    requirement_paths: BTreeMap<String, Vec<String>>,
-    /// (path, requirement ids referenced through satisfies).
-    satisfies: Vec<(String, Vec<String>)>,
-    /// (path, ADR ids referenced through governed-by).
-    governed_by: Vec<(String, Vec<String>)>,
-    /// Requirement sources awaiting resolution against the whole repository.
-    sources: Vec<SourceCitation>,
-    /// ADR id -> (path, status, supersedes, superseded-by).
-    adrs: BTreeMap<String, AdrRecord>,
-}
+pub(crate) const ADR_DIR: &str = "docs/adr";
+pub(crate) const SPECS_DIR: &str = "docs/specs";
 
 /// One `sources` entry of one requirement, kept with enough context to
-/// resolve it once the whole inventory is known.
+/// resolve it once the whole repository has been collected.
 #[derive(Debug, Clone)]
 struct SourceCitation {
     /// Repository-relative path of the citing module.
@@ -42,26 +26,56 @@ struct SourceCitation {
     value: serde_json::Value,
 }
 
+/// One conformant artifact, as collected during the repository walk.
+///
+/// Only artifacts that pass frontmatter loading and schema validation are
+/// collected; defective files contribute findings instead.
 #[derive(Debug, Clone)]
-struct AdrRecord {
-    path: String,
-    status: String,
-    supersedes: Vec<String>,
-    superseded_by: Vec<String>,
+pub(crate) struct Artifact {
+    pub kind: ArtifactKind,
+    pub id: String,
+    pub path: String,
+    pub title: String,
+    pub status: Option<String>,
+    pub supersedes: Vec<String>,
+    pub superseded_by: Vec<String>,
+    pub satisfies: Vec<String>,
+    pub governed_by: Vec<String>,
+    /// Requirement identifiers declared by an MSRS module.
+    pub requirements: Vec<String>,
 }
 
 /// Validates the repository rooted at `root` and returns sorted findings.
 pub fn validate_repository(root: &Path) -> Vec<Finding> {
     let mut findings = Vec::new();
     let config = load_config(root, &mut findings);
-    let mut inventory = Inventory::default();
-
-    validate_adr_directory(root, &mut inventory, &mut findings);
-    validate_specs_tree(root, &mut inventory, &mut findings);
-    validate_integrity(root, config.as_ref(), &inventory, &mut findings);
-
+    let mut sources = Vec::new();
+    let artifacts = collect_artifacts_and_sources(root, &mut findings, &mut sources);
+    validate_integrity(root, config.as_ref(), &artifacts, &sources, &mut findings);
+    crate::index::check_generated_views(root, &artifacts, &mut findings);
     sort_findings(&mut findings);
     findings
+}
+
+/// Walks the repository and returns every conformant artifact, appending
+/// findings for each defect encountered on the way.
+pub(crate) fn collect_artifacts(root: &Path, findings: &mut Vec<Finding>) -> Vec<Artifact> {
+    let mut sources = Vec::new();
+    collect_artifacts_and_sources(root, findings, &mut sources)
+}
+
+/// Walks the repository, returning every conformant artifact and every
+/// requirement `sources` citation encountered along the way, appending
+/// findings for each defect.
+fn collect_artifacts_and_sources(
+    root: &Path,
+    findings: &mut Vec<Finding>,
+    sources: &mut Vec<SourceCitation>,
+) -> Vec<Artifact> {
+    let mut artifacts = Vec::new();
+    collect_adr_directory(root, &mut artifacts, findings);
+    collect_specs_tree(root, &mut artifacts, sources, findings);
+    artifacts
 }
 
 fn compile(schema_id: &str) -> jsonschema::Validator {
@@ -274,7 +288,7 @@ fn check_id_matches_filename(
     }
 }
 
-fn validate_adr_directory(root: &Path, inventory: &mut Inventory, findings: &mut Vec<Finding>) {
+fn collect_adr_directory(root: &Path, artifacts: &mut Vec<Artifact>, findings: &mut Vec<Finding>) {
     let validator = compile(ADR_V1_SCHEMA_ID);
     for file in markdown_files(root, &root.join(ADR_DIR), findings) {
         let file_name = file
@@ -303,26 +317,31 @@ fn validate_adr_directory(root: &Path, inventory: &mut Inventory, findings: &mut
             &path,
             body_first_line,
         ));
-        inventory
-            .artifact_paths
-            .entry(id.clone())
-            .or_default()
-            .push(path.clone());
-        inventory.adrs.insert(
+        artifacts.push(Artifact {
+            kind: ArtifactKind::Adr,
             id,
-            AdrRecord {
-                path,
-                status: value["status"].as_str().unwrap_or_default().to_owned(),
-                supersedes: string_array(&value, "supersedes"),
-                superseded_by: string_array(&value, "superseded-by"),
-            },
-        );
+            path,
+            title: value["title"].as_str().unwrap_or_default().to_owned(),
+            status: value["status"].as_str().map(str::to_owned),
+            supersedes: string_array(&value, "supersedes"),
+            superseded_by: string_array(&value, "superseded-by"),
+            satisfies: Vec::new(),
+            governed_by: Vec::new(),
+            requirements: Vec::new(),
+        });
     }
 }
 
-fn validate_specs_tree(root: &Path, inventory: &mut Inventory, findings: &mut Vec<Finding>) {
-    let msrs_validator = compile(MSRS_V1_SCHEMA_ID);
-    let msdd_validator = compile(MSDD_V1_SCHEMA_ID);
+fn collect_specs_tree(
+    root: &Path,
+    artifacts: &mut Vec<Artifact>,
+    sources: &mut Vec<SourceCitation>,
+    findings: &mut Vec<Finding>,
+) {
+    let validators = ConceptValidators {
+        msrs: compile(MSRS_V1_SCHEMA_ID),
+        msdd: compile(MSDD_V1_SCHEMA_ID),
+    };
     let mut stack = vec![root.join(SPECS_DIR)];
     while let Some(dir) = stack.pop() {
         for (file, is_dir) in read_entries(root, &dir, findings) {
@@ -341,27 +360,34 @@ fn validate_specs_tree(root: &Path, inventory: &mut Inventory, findings: &mut Ve
             if file_name == "index.md" || file_name == "log.md" {
                 continue;
             }
-            validate_concept(
+            collect_concept(
                 root,
                 &file,
                 &file_name,
-                inventory,
+                artifacts,
+                sources,
                 findings,
-                &msrs_validator,
-                &msdd_validator,
+                &validators,
             );
         }
     }
 }
 
-fn validate_concept(
+/// Compiled schema validators shared across every concept collected from
+/// the specs tree.
+struct ConceptValidators {
+    msrs: jsonschema::Validator,
+    msdd: jsonschema::Validator,
+}
+
+fn collect_concept(
     root: &Path,
     file: &Path,
     file_name: &str,
-    inventory: &mut Inventory,
+    artifacts: &mut Vec<Artifact>,
+    sources: &mut Vec<SourceCitation>,
     findings: &mut Vec<Finding>,
-    msrs_validator: &jsonschema::Validator,
-    msdd_validator: &jsonschema::Validator,
+    validators: &ConceptValidators,
 ) {
     let Some((path, value, body, body_first_line)) = load_artifact(root, file, findings) else {
         return;
@@ -376,8 +402,8 @@ fn validate_concept(
         return;
     }
     let (kind, validator, kind_dir) = match concept_type.as_str() {
-        "MSRS" => (ArtifactKind::Msrs, msrs_validator, "msrs"),
-        "MSDD" => (ArtifactKind::Msdd, msdd_validator, "msdd"),
+        "MSRS" => (ArtifactKind::Msrs, &validators.msrs, "msrs"),
+        "MSDD" => (ArtifactKind::Msdd, &validators.msdd, "msdd"),
         _ => {
             findings.push(Finding::new(
                 &path,
@@ -403,57 +429,66 @@ fn validate_concept(
     let id = value["id"].as_str().expect("schema requires id").to_owned();
     check_id_matches_filename(&id, sequence, &path, findings);
     findings.extend(check_body(kind, &value, &body, &path, body_first_line));
-    let module_id = id.clone();
-    inventory
-        .artifact_paths
-        .entry(id)
-        .or_default()
-        .push(path.clone());
 
-    let governed = string_array(&value, "governed-by");
-    if !governed.is_empty() {
-        inventory.governed_by.push((path.clone(), governed));
-    }
-    match kind {
-        ArtifactKind::Msrs => {
-            if let Some(requirements) = value["requirements"].as_object() {
-                for (requirement_id, requirement) in requirements {
-                    inventory
-                        .requirement_paths
-                        .entry(requirement_id.clone())
-                        .or_default()
-                        .push(path.clone());
-                    for source in requirement["sources"].as_array().into_iter().flatten() {
-                        inventory.sources.push(SourceCitation {
-                            path: path.clone(),
-                            module_id: module_id.clone(),
-                            requirement_id: requirement_id.clone(),
-                            value: source.clone(),
-                        });
-                    }
-                }
+    if kind == ArtifactKind::Msrs
+        && let Some(requirements) = value["requirements"].as_object()
+    {
+        for (requirement_id, requirement) in requirements {
+            for source in requirement["sources"].as_array().into_iter().flatten() {
+                sources.push(SourceCitation {
+                    path: path.clone(),
+                    module_id: id.clone(),
+                    requirement_id: requirement_id.clone(),
+                    value: source.clone(),
+                });
             }
         }
-        ArtifactKind::Msdd => {
-            let satisfies = string_array(&value, "satisfies");
-            if !satisfies.is_empty() {
-                inventory.satisfies.push((path.clone(), satisfies));
-            }
-        }
-        ArtifactKind::Adr => unreachable!("concepts are MSRS or MSDD"),
     }
+
+    let requirements = value["requirements"]
+        .as_object()
+        .map(|map| map.keys().cloned().collect())
+        .unwrap_or_default();
+    artifacts.push(Artifact {
+        kind,
+        id,
+        path,
+        title: value["title"].as_str().unwrap_or_default().to_owned(),
+        status: None,
+        supersedes: Vec::new(),
+        superseded_by: Vec::new(),
+        satisfies: string_array(&value, "satisfies"),
+        governed_by: string_array(&value, "governed-by"),
+        requirements,
+    });
 }
 
 fn validate_integrity(
     root: &Path,
     config: Option<&Config>,
-    inventory: &Inventory,
+    artifacts: &[Artifact],
+    sources: &[SourceCitation],
     findings: &mut Vec<Finding>,
 ) {
-    for (id, paths) in &inventory.artifact_paths {
+    let mut artifact_paths: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    let mut requirement_paths: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for artifact in artifacts {
+        artifact_paths
+            .entry(&artifact.id)
+            .or_default()
+            .push(&artifact.path);
+        for requirement_id in &artifact.requirements {
+            requirement_paths
+                .entry(requirement_id)
+                .or_default()
+                .push(&artifact.path);
+        }
+    }
+
+    for (id, paths) in &artifact_paths {
         if paths.len() > 1 {
             findings.push(Finding::new(
-                &paths[1],
+                paths[1],
                 None,
                 format!(
                     "artifact identifier {id} is already declared in {}",
@@ -462,10 +497,10 @@ fn validate_integrity(
             ));
         }
     }
-    for (id, paths) in &inventory.requirement_paths {
+    for (id, paths) in &requirement_paths {
         if paths.len() > 1 {
             findings.push(Finding::new(
-                &paths[1],
+                paths[1],
                 None,
                 format!(
                     "requirement identifier {id} is already declared in {}",
@@ -477,16 +512,10 @@ fn validate_integrity(
 
     if let Some(config) = config {
         let prefix = format!("{}-", config.project_key);
-        let all_ids = inventory
-            .artifact_paths
-            .keys()
-            .map(|id| (id, &inventory.artifact_paths[id][0]))
-            .chain(
-                inventory
-                    .requirement_paths
-                    .keys()
-                    .map(|id| (id, &inventory.requirement_paths[id][0])),
-            );
+        let all_ids = artifact_paths
+            .iter()
+            .chain(requirement_paths.iter())
+            .map(|(id, paths)| (*id, paths[0]));
         for (id, path) in all_ids {
             if !id.starts_with(&prefix) {
                 findings.push(Finding::new(
@@ -501,11 +530,7 @@ fn validate_integrity(
         }
 
         let mut max_allocated: BTreeMap<&str, i64> = BTreeMap::new();
-        for id in inventory
-            .artifact_paths
-            .keys()
-            .chain(inventory.requirement_paths.keys())
-        {
+        for id in artifact_paths.keys().chain(requirement_paths.keys()) {
             let mut segments = id.rsplit('-');
             let sequence: i64 = segments.next().and_then(|s| s.parse().ok()).unwrap_or(0);
             let kind = segments.next().unwrap_or_default();
@@ -532,22 +557,27 @@ fn validate_integrity(
         }
     }
 
-    for (path, targets) in &inventory.satisfies {
-        for target in targets {
-            if !inventory.requirement_paths.contains_key(target) {
+    let requirement_ids: BTreeSet<&str> = requirement_paths.keys().copied().collect();
+    let adrs: BTreeMap<&str, &Artifact> = artifacts
+        .iter()
+        .filter(|a| a.kind == ArtifactKind::Adr)
+        .map(|a| (a.id.as_str(), a))
+        .collect();
+
+    for artifact in artifacts {
+        for target in &artifact.satisfies {
+            if !requirement_ids.contains(target.as_str()) {
                 findings.push(Finding::new(
-                    path,
+                    &artifact.path,
                     None,
                     format!("satisfies target {target} does not exist"),
                 ));
             }
         }
-    }
-    for (path, targets) in &inventory.governed_by {
-        for target in targets {
-            if !inventory.adrs.contains_key(target) {
+        for target in &artifact.governed_by {
+            if !adrs.contains_key(target.as_str()) {
                 findings.push(Finding::new(
-                    path,
+                    &artifact.path,
                     None,
                     format!("governed-by target {target} does not exist"),
                 ));
@@ -555,15 +585,20 @@ fn validate_integrity(
         }
     }
 
-    validate_sources(root, inventory, findings);
-    validate_supersession(inventory, findings);
+    validate_sources(root, &artifact_paths, sources, findings);
+    validate_supersession(&adrs, findings);
 }
 
 /// Resolves the `artifact` and `path` source variants. The `uri` and
 /// `citation` variants carry nothing this repository can resolve, so the
 /// published schema is the whole of their contract.
-fn validate_sources(root: &Path, inventory: &Inventory, findings: &mut Vec<Finding>) {
-    for citation in &inventory.sources {
+fn validate_sources(
+    root: &Path,
+    artifact_paths: &BTreeMap<&str, Vec<&str>>,
+    sources: &[SourceCitation],
+    findings: &mut Vec<Finding>,
+) {
+    for citation in sources {
         let requirement = &citation.requirement_id;
         let mut report = |message: String| {
             findings.push(Finding::new(&citation.path, None, message));
@@ -575,7 +610,7 @@ fn validate_sources(root: &Path, inventory: &Inventory, findings: &mut Vec<Findi
                     report(format!(
                         "requirement {requirement} cites its own module {target} as a source"
                     ));
-                } else if !inventory.artifact_paths.contains_key(target) {
+                } else if !artifact_paths.contains_key(target) {
                     report(format!(
                         "requirement {requirement} cites source artifact {target}, which does not exist"
                     ));
@@ -639,8 +674,8 @@ fn resolves_within_root(root: &Path, target: &str) -> bool {
     false
 }
 
-fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
-    for (id, record) in &inventory.adrs {
+fn validate_supersession(adrs: &BTreeMap<&str, &Artifact>, findings: &mut Vec<Finding>) {
+    for (id, record) in adrs {
         for target in &record.supersedes {
             if target == id {
                 findings.push(Finding::new(
@@ -650,17 +685,19 @@ fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
                 ));
                 continue;
             }
-            match inventory.adrs.get(target) {
+            match adrs.get(target.as_str()) {
                 None => findings.push(Finding::new(
                     &record.path,
                     None,
                     format!("supersedes target {target} does not exist"),
                 )),
-                Some(other) if !other.superseded_by.contains(id) => {
+                Some(other) if !other.superseded_by.iter().any(|s| s == id) => {
                     findings.push(Finding::new(
                         &record.path,
                         None,
-                        format!("{id} supersedes {target}, but {target} does not record superseded-by {id}"),
+                        format!(
+                            "{id} supersedes {target}, but {target} does not record superseded-by {id}"
+                        ),
                     ));
                 }
                 Some(_) => {}
@@ -675,30 +712,33 @@ fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
                 ));
                 continue;
             }
-            match inventory.adrs.get(target) {
+            match adrs.get(target.as_str()) {
                 None => findings.push(Finding::new(
                     &record.path,
                     None,
                     format!("superseded-by target {target} does not exist"),
                 )),
-                Some(other) if !other.supersedes.contains(id) => {
+                Some(other) if !other.supersedes.iter().any(|s| s == id) => {
                     findings.push(Finding::new(
                         &record.path,
                         None,
-                        format!("{id} records superseded-by {target}, but {target} does not record supersedes {id}"),
+                        format!(
+                            "{id} records superseded-by {target}, but {target} does not record supersedes {id}"
+                        ),
                     ));
                 }
                 Some(_) => {}
             }
         }
-        if record.status == "superseded" && record.superseded_by.is_empty() {
+        let status = record.status.as_deref().unwrap_or_default();
+        if status == "superseded" && record.superseded_by.is_empty() {
             findings.push(Finding::new(
                 &record.path,
                 None,
                 "a superseded ADR must record superseded-by",
             ));
         }
-        if record.status != "superseded" && !record.superseded_by.is_empty() {
+        if status != "superseded" && !record.superseded_by.is_empty() {
             findings.push(Finding::new(
                 &record.path,
                 None,
@@ -707,17 +747,17 @@ fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
         }
     }
 
-    // Supersession must be acyclic; walk supersedes edges from every node.
-    for start in inventory.adrs.keys() {
-        let mut current = start;
-        let mut seen = BTreeSet::from([start]);
-        while let Some(record) = inventory.adrs.get(current) {
+    // Supersession must be acyclic; walk superseded-by edges from every node.
+    for start in adrs.keys() {
+        let mut current = *start;
+        let mut seen = BTreeSet::from([*start]);
+        while let Some(record) = adrs.get(current) {
             let Some(next) = record.superseded_by.first() else {
                 break;
             };
             if !seen.insert(next) {
                 findings.push(Finding::new(
-                    &inventory.adrs[start].path,
+                    &adrs[*start].path,
                     None,
                     format!("supersession cycle detected involving {start}"),
                 ));

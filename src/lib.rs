@@ -4,6 +4,7 @@ pub mod body;
 pub mod config;
 pub mod diagnostics;
 pub mod frontmatter;
+pub mod index;
 pub mod repo;
 pub mod yaml;
 
