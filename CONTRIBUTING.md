@@ -53,9 +53,9 @@ any SPDX identifier on a file determine which applies.
   (for example `feat: trace requirements to designs`). A check enforces
   this on every pull request title. Explain the why in the body, not a
   changelog of the what.
-- Released versions follow Semantic Versioning, derived from the commit
-  types by release automation. Versions are never edited by hand, in
-  `Cargo.toml` or anywhere else.
+- No releases are cut yet. When they are, versions follow Semantic
+  Versioning, derived from the commit types by release automation;
+  versions are never edited by hand, in `Cargo.toml` or anywhere else.
 - Documentation follows the writing model in
   [docs/project-charter.md](docs/project-charter.md): current state only,
   no history, no em dashes.
