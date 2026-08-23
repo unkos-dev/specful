@@ -1,0 +1,123 @@
+name: Bug report
+description: Report a bug or unexpected behaviour in Specful
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. The information below
+        helps maintainers reproduce the issue quickly. Please fill in every
+        required field. Bug reports without enough environment detail
+        usually can't be acted on.
+
+        **Security issues do not belong here.** If you've found a vulnerability,
+        report it privately via [GitHub Security Advisories](https://github.com/unkos-dev/specful/security/advisories/new).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checklist
+      options:
+        - label: I have searched [existing issues](https://github.com/unkos-dev/specful/issues?q=is%3Aissue) and confirmed this is not a duplicate
+          required: true
+        - label: I have confirmed this is not a security issue (security issues go via [private advisory](https://github.com/unkos-dev/specful/security/advisories/new))
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Clear and concise description of the bug.
+      placeholder: When I do X, Y happens instead of Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Numbered steps a maintainer can follow to reproduce the bug.
+      placeholder: |
+        1. Run '...'
+        2. In a repository with '...'
+        3. Observe '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What actually happened. Include error messages verbatim.
+    validations:
+      required: true
+
+  - type: input
+    id: specful-version
+    attributes:
+      label: specful --version output
+      description: Output of `specful --version`.
+      placeholder: specful 0.1.0 (789e575)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Install method
+      options:
+        - Release binary
+        - cargo install
+        - Built from source
+        - Other (specify in additional context)
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS and architecture
+      description: Output of `uname -a` or equivalent.
+      placeholder: Linux 6.8.0-... x86_64 / macOS 14.5 arm64 / Windows Server 2022 x86_64
+    validations:
+      required: true
+
+  - type: input
+    id: shell
+    attributes:
+      label: Shell
+      description: Shell you ran the command from, if relevant.
+      placeholder: bash 5.2, zsh 5.9, PowerShell 7.4
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Command output
+      description: |
+        Paste the relevant command output, including any error or backtrace.
+
+        **REDACT before pasting:** file system paths that reveal private
+        information, project or repository names you don't want public, and
+        the contents of specification documents. The maintainer doesn't need
+        any of these to debug.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant: recent changes, related issues, theories about the cause.
+    validations:
+      required: false
