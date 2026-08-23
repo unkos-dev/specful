@@ -1,17 +1,7 @@
 name: Lint
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-  merge_group:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: lint-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  workflow_call:
 
 jobs:
   # zizmor runs with no SARIF upload, so a finding is a hard failure rather

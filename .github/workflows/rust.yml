@@ -1,18 +1,10 @@
 name: Rust
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-  merge_group:
-
-permissions:
-  contents: read
-
-# PR runs cancel freely; a main run completes so the cache it saves is whole.
-concurrency:
-  group: rust-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  workflow_call:
+    secrets:
+      CODACY_PROJECT_TOKEN:
+        required: false
 
 env:
   CARGO_INCREMENTAL: 0

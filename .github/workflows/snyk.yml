@@ -4,17 +4,10 @@ name: Snyk
 # the check. Snyk Code (SAST) only. Snyk Open Source cannot read Cargo.lock,
 # so a Rust dependency scan here would report an empty project as clean.
 on:
-  push:
-    branches: [main]
-  pull_request:
-  merge_group:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: snyk-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  workflow_call:
+    secrets:
+      SNYK_TOKEN:
+        required: false
 
 jobs:
   code:
