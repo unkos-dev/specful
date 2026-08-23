@@ -1,0 +1,78 @@
+name: Lint
+
+on:
+  workflow_call:
+
+jobs:
+  # zizmor runs with no SARIF upload, so a finding is a hard failure rather
+  # than a Security-tab entry.
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Without it zizmor degrades to offline mode with a warning instead of
+      # failing. contents: read is scope enough: the token-gated audits query
+      # public data about referenced actions, not privileged data on this repo.
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          mise-install-args: just actionlint zizmor
+
+      - name: Lint workflow files
+        run: just actionlint
+
+      - name: Workflow security audit (zizmor)
+        run: just zizmor
+
+  prose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          mise-install-args: just typos rumdl
+
+      - name: Spell check (typos)
+        run: just typos
+
+      - name: Markdown lint (rumdl)
+        run: just markdownlint
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history so the pull_request scan below can walk the whole
+          # branch range, not just the tip commit.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          mise-install-args: just gitleaks
+
+      # On a pull_request, scan every commit the branch introduces: a secret
+      # added and later removed within the branch is gone from the working tree
+      # but stays readable in the pushed history. push/merge_group runs the
+      # justfile recipe's full-history scan.
+      - name: Scan for secrets
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "${PR_BASE_SHA}" ]; then
+            gitleaks git . --no-banner --redact --log-opts "${PR_BASE_SHA}..HEAD"
+          else
+            just gitleaks
+          fi

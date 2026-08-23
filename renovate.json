@@ -1,0 +1,87 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":gitSignOff",
+    "helpers:pinGitHubActionDigests",
+    "mergeConfidence:all-badges"
+  ],
+  "configMigration": true,
+  "timezone": "Australia/Perth",
+  "dependencyDashboardTitle": "Dependency dashboard: Renovate",
+  "labels": ["dependencies"],
+  "prHourlyLimit": 4,
+  "prConcurrentLimit": 10,
+  "minimumReleaseAge": "3 days",
+  "abandonmentThreshold": "1 year",
+  "osvVulnerabilityAlerts": true,
+  "lockFileMaintenance": {
+    "description": "Label the weekly whole-tree refresh so it is distinguishable from a targeted update. The release-age hold is nulled here: regeneration lets cargo pick transitive versions, so the hold cannot be enforced and would sit pending on nearly every run. Green required checks automerge the refresh; a red one stays open for diagnosis.",
+    "enabled": true,
+    "schedule": ["before 6am on monday"],
+    "addLabels": ["lockfile-maintenance"],
+    "minimumReleaseAge": null,
+    "automerge": true
+  },
+  "vulnerabilityAlerts": {
+    "description": "minimumReleaseAge restates Renovate's own default for this block; without it the 3-day hold above reads as applying to security fixes.",
+    "enabled": true,
+    "schedule": ["at any time"],
+    "addLabels": ["security:{{{lowercase vulnerabilitySeverity}}}"],
+    "prCreation": "immediate",
+    "minimumReleaseAge": null
+  },
+  "packageRules": [
+    {
+      "description": "Update the lockfile within compatible cargo ranges; replace ranges for incompatible releases.",
+      "matchManagers": ["cargo"],
+      "rangeStrategy": "update-lockfile"
+    },
+    {
+      "description": "Hold major upgrades for dashboard approval and process them after lower-risk updates.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "prPriority": -10
+    },
+    {
+      "description": "Treat GitHub-owned actions as platform dependencies and automerge patch, pin, and digest updates after required checks pass.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["actions/**", "github/**"],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge third-party action patch and pin updates; require manual review when a pinned tag moves to a new digest.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "pin"],
+      "automerge": true
+    },
+    {
+      "description": "Exempt action digest updates from the release-age hold. The hold earns its keep against a newly published version that has not been in the wild long enough to be trusted. A digest update is not that: it re-pins an action to the commit its already-pinned major tag now names, which is the version this repo has been trusting by tag all along. Holding it only means carrying a knowingly stale pin for three days and occupying a prConcurrentLimit slot while it waits.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["digest"],
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "Automerge stable cargo patch updates; keep pre-1.0 updates manual.",
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0\\./",
+      "automerge": true
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Track annotated version pins in workflows and composite action files: a renovate comment above a version key. File patterns are the customManagers:githubActionsVersions preset's verbatim, because the preset would double-claim these annotations.",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)(workflow-templates|\\.(?:github|gitea|forgejo)/(?:workflows|actions))/.+\\.ya?ml$/",
+        "/(^|/)action\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+version:\\s*\"(?<currentValue>[^\"]+)\""
+      ]
+    }
+  ]
+}

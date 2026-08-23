@@ -1,0 +1,65 @@
+name: Snyk
+
+# Advisory: findings upload to the dashboard and annotate PRs, but never fail
+# the check. Snyk Code (SAST) only. Snyk Open Source cannot read Cargo.lock,
+# so a Rust dependency scan here would report an empty project as clean.
+on:
+  workflow_call:
+    secrets:
+      SNYK_TOKEN:
+        required: false
+
+jobs:
+  code:
+    # Fork PRs run without secrets, so the scan can only fail on auth; skip
+    # rather than hand every external contribution a red check.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Upload the SARIF result into the code-scanning dashboard.
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # A job-level `if:` cannot read secrets, so the token check is a step;
+      # every later step keys off its output.
+      - name: Detect Snyk token
+        id: snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${SNYK_TOKEN}" ]; then
+            echo 'has_token=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'has_token=false' >> "$GITHUB_OUTPUT"
+            echo '::notice title=Snyk scan skipped::SNYK_TOKEN is not configured.'
+          fi
+
+      - uses: ./.github/actions/setup
+        if: steps.snyk.outputs.has_token == 'true'
+        with:
+          mise-install-args: snyk
+
+      # Exit 1 (findings) is tolerated while advisory; anything above 1 is a
+      # scan failure and fails loud rather than reporting an empty scan.
+      - name: Snyk Code scan
+        if: steps.snyk.outputs.has_token == 'true'
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          set -euo pipefail
+          rc=0
+          snyk code test --sarif-file-output=snyk-code.sarif || rc=$?
+          if [ "$rc" -gt 1 ]; then exit "$rc"; fi
+
+      - name: Upload to code-scanning
+        if: steps.snyk.outputs.has_token == 'true'
+        uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code

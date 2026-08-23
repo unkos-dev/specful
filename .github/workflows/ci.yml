@@ -4,16 +4,36 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
 
 permissions:
   contents: read
 
+# PR runs cancel freely; a main run completes so the cache it saves is whole.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
+  # No caller ever gains an `if:`. A skipped caller reports a check run named
+  # after itself, while the ruleset requires `<caller> / <job>`, which would then
+  # never report and leave every pull request pending. Filtering lives inside
+  # each called workflow.
   rust:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check formatting
-        run: cargo fmt --check
-      - name: Run tests
-        run: cargo test --locked
+    uses: ./.github/workflows/rust.yml
+    secrets:
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  deps:
+    uses: ./.github/workflows/deps.yml
+
+  snyk:
+    uses: ./.github/workflows/snyk.yml
+    permissions:
+      contents: read
+      security-events: write
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
