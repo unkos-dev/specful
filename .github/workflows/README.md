@@ -8,9 +8,13 @@ the job names directly.
 
 ## The justfile is canonical
 
-Every check CI runs is a recipe in the repository-root `justfile`, and a job
-invokes it as `just <recipe>`. Workflows never restate a command inline, so a
-gate changes in one place and `just preflight` locally runs what CI runs.
+Every locally runnable gate is a recipe in the repository-root `justfile`, and
+a job invokes it by name from CI, so a gate changes in one place. `just
+preflight` does not fully match CI: CI also runs the MSRV compile inline
+(inline because it asserts the `RUSTUP_TOOLCHAIN` override took effect), a
+gitleaks scan narrowed to the PR commit range (`preflight` scans full
+history), coverage instrumentation via `just cov` (`preflight` runs plain
+`test`), and a Snyk Code scan (needs `SNYK_TOKEN`, so it cannot run locally).
 Non-cargo tools are pinned in `.mise.toml` and installed through the
 `.github/actions/setup` composite action; the Rust toolchain comes from
 `rust-toolchain.toml` through `.github/actions/rust-toolchain`. A tool appears

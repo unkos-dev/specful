@@ -118,18 +118,24 @@ jobs:
             echo '::notice title=Codacy upload skipped::CODACY_PROJECT_TOKEN is not configured.'
           fi
 
-      # Advisory upload. The SHA pins the wrapper, not the reporter: v1.3.0
-      # fetches Codacy's bootstrap script from master on every run; no released
-      # revision accepts a reporter version. That script verifies the SHA512 of
-      # the binary it installs.
+      # Advisory upload of the pinned reporter binary, checksummed against a
+      # hash embedded here rather than fetched at run time. Update the hash
+      # alongside the version.
       - name: Upload coverage to Codacy
         if: steps.codacy.outputs.has_token == 'true'
-        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
         continue-on-error: true
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: lcov.info
-          language: Rust
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          # renovate: datasource=github-releases depName=codacy/codacy-coverage-reporter
+          version: "14.1.3"
+          sha512: 73a6c93fc5db509fd0423d6e545759c3f61d8360ee12054e32a9277daab6add0da6c6639248f6ed6c0042366440293ebc0b6144325aef52c5d3d4b230d65eb17
+        run: |
+          set -euo pipefail
+          curl -fsSL -o codacy-coverage-reporter \
+            "https://github.com/codacy/codacy-coverage-reporter/releases/download/${version}/codacy-coverage-reporter-linux"
+          echo "${sha512}  codacy-coverage-reporter" | sha512sum -c -
+          chmod +x codacy-coverage-reporter
+          ./codacy-coverage-reporter report -r lcov.info
 
   # Compiles on exactly the declared rust-version, so a dependency bump or new
   # syntax that silently raises the real minimum fails here instead of for

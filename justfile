@@ -88,6 +88,6 @@ gitleaks:
 [group('aggregate')]
 check: fmt-check clippy doc-lint test
 
-# Everything CI runs that can run locally (Snyk needs an account token).
+# Local gates CI also runs; see .github/workflows/README.md for the CI-only differences.
 [group('aggregate')]
 preflight: check doctests machete deny typos markdownlint actionlint zizmor gitleaks
