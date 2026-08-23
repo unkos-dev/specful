@@ -56,6 +56,22 @@ enum Command {
         #[arg(long)]
         root: Option<PathBuf>,
     },
+    /// Show the catalog record for an identifier.
+    Show {
+        /// Identifier to look up, e.g. OK-MSDD-0001.
+        id: String,
+        /// Repository root; defaults to the current directory.
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
+    /// Trace requirement-to-design links for an identifier.
+    Trace {
+        /// Identifier to trace, e.g. OK-MSRS-0001.
+        id: String,
+        /// Repository root; defaults to the current directory.
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -156,6 +172,36 @@ fn main() -> ExitCode {
                 Ok(path) => {
                     println!("created {path}");
                     println!("complete the remaining placeholders, then run specful index");
+                    ExitCode::SUCCESS
+                }
+                Err(findings) => {
+                    for finding in &findings {
+                        println!("{}", finding.render());
+                    }
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        Command::Show { id, root } => {
+            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            match specful::query::show(&root, &id) {
+                Ok(rendered) => {
+                    print!("{rendered}");
+                    ExitCode::SUCCESS
+                }
+                Err(findings) => {
+                    for finding in &findings {
+                        println!("{}", finding.render());
+                    }
+                    ExitCode::FAILURE
+                }
+            }
+        }
+        Command::Trace { id, root } => {
+            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            match specful::query::trace(&root, &id) {
+                Ok(rendered) => {
+                    print!("{rendered}");
                     ExitCode::SUCCESS
                 }
                 Err(findings) => {

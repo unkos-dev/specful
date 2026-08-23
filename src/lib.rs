@@ -6,6 +6,7 @@ pub mod config;
 pub mod diagnostics;
 pub mod frontmatter;
 pub mod index;
+pub mod query;
 pub mod repo;
 pub mod yaml;
 
