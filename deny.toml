@@ -1,0 +1,41 @@
+# cargo-deny configuration: supply-chain policy for the crate. `cargo deny
+# check` (the `just deny` recipe, run by the cargo-deny job in
+# .github/workflows/deps.yml) runs all four sections below.
+
+[graph]
+all-features = true
+
+[advisories]
+# Vulnerabilities always error. `unmaintained` is scoped to direct
+# dependencies: deep-transitive unmaintained crates are noise nobody here can
+# act on.
+unmaintained = "workspace"
+yanked = "warn"
+
+[licenses]
+# Permissive-only allowlist, derived from the licenses actually present in the
+# dependency tree. A new dependency carrying a license outside this set fails
+# CI, which is the gate that keeps copyleft or unknown licenses from entering
+# unreviewed.
+allow = [
+  "Apache-2.0",
+  "MIT",
+  # borrow-or-share, reached through jsonschema's `referencing` crate.
+  "MIT-0",
+  "BSD-2-Clause",
+  "Unicode-3.0",
+  "Zlib",
+]
+
+[bans]
+# Duplicate versions are reported, not fatal: transitional duplicates arrive
+# with dependency bumps outside this repository's control. Wildcard version
+# requirements defeat the lockfile and are denied.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+# crates.io only. A git dependency bypasses the registry's immutability and
+# yank semantics and must be a reviewed, deliberate choice.
+unknown-registry = "deny"
+unknown-git = "deny"

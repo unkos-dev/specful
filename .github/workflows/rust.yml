@@ -1,0 +1,185 @@
+name: Rust
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+# PR runs cancel freely; a main run completes so the cache it saves is whole.
+concurrency:
+  group: rust-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  CARGO_INCREMENTAL: 0
+  # A captured runner log is never a terminal, so cargo needs colour forced.
+  CARGO_TERM_COLOR: always
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          mise-install-args: just github:bnjbvr/cargo-machete
+
+      # Components are per-job: this one lints, so clippy and rustfmt.
+      - uses: ./.github/actions/rust-toolchain
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          # Restore-only on PR branches: per-branch copies would evict each
+          # other from the repository cache quota.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Check formatting
+        run: just fmt-check
+
+      - name: Lint
+        run: just clippy
+
+      - name: Doc lint (broken intra-doc links)
+        run: just doc-lint
+
+      - name: Unused dependencies (cargo-machete)
+        run: just machete
+
+      # nextest does not run doctests, so they live here rather than in tests.
+      - name: Doctests
+        run: just doctests
+
+  # Kept off the checks job's serial path: instrumentation makes this the
+  # slowest compile, and a lint failure should not wait for it.
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          mise-install-args: just github:nextest-rs/nextest github:taiki-e/cargo-llvm-cov
+
+      # Coverage instrumentation is read back by llvm-tools, so it's this job's alone.
+      - uses: ./.github/actions/rust-toolchain
+        with:
+          components: llvm-tools-preview
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          shared-key: llvm-cov
+          # Restore-only on PR branches; see the checks job's cache step.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Test (with coverage)
+        run: just cov
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage
+          path: lcov.info
+          if-no-files-found: error
+          retention-days: 1
+
+      # A job-level `if:` cannot read secrets, so the presence test is a step
+      # that maps the secret into env and publishes a boolean output. Forks and
+      # bot PRs carry no token and are skipped outright rather than failing.
+      - name: Detect Codacy token
+        id: codacy
+        if: >-
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'renovate[bot]' &&
+          (github.event_name != 'pull_request' ||
+           (github.event.pull_request.head.repo.full_name == github.repository &&
+            !startsWith(github.head_ref, 'renovate/') &&
+            !startsWith(github.head_ref, 'dependabot/')))
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${CODACY_PROJECT_TOKEN}" ]; then
+            echo 'has_token=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'has_token=false' >> "$GITHUB_OUTPUT"
+            echo '::notice title=Codacy upload skipped::CODACY_PROJECT_TOKEN is not configured.'
+          fi
+
+      # Advisory upload. The SHA pins the wrapper, not the reporter: v1.3.0
+      # fetches Codacy's bootstrap script from master on every run; no released
+      # revision accepts a reporter version. That script verifies the SHA512 of
+      # the binary it installs.
+      - name: Upload coverage to Codacy
+        if: steps.codacy.outputs.has_token == 'true'
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
+        continue-on-error: true
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: lcov.info
+          language: Rust
+
+  # Compiles on exactly the declared rust-version, so a dependency bump or new
+  # syntax that silently raises the real minimum fails here instead of for
+  # someone building from source on the documented floor.
+  msrv:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Resolve declared MSRV
+        id: msrv
+        run: |
+          set -euo pipefail
+          version=$(grep -m1 '^rust-version' Cargo.toml | sed -E 's/^rust-version[^"]*"([0-9.]+)".*/\1/' || true)
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Could not extract a valid rust-version from Cargo.toml (got: '${version}')" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      # The one caller that overrides the pinned channel with the declared floor.
+      - uses: ./.github/actions/rust-toolchain
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          shared-key: msrv
+          # Restore-only on PR branches; see the checks job's cache step.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      # RUSTUP_TOOLCHAIN is what actually holds this job to the floor: rustup
+      # otherwise honours rust-toolchain.toml, passing while checking nothing.
+      # The assertion below is the regression test for that override taking
+      # effect. rustc reports a full x.y.z while rust-version may be x.y, hence
+      # the patch-suffix match.
+      - name: Check crate builds on MSRV
+        env:
+          RUSTUP_TOOLCHAIN: ${{ steps.msrv.outputs.version }}
+        run: |
+          set -euo pipefail
+          active=$(rustc --version | cut -d' ' -f2)
+          case "${active}" in
+            "${RUSTUP_TOOLCHAIN}" | "${RUSTUP_TOOLCHAIN}".*) ;;
+            *)
+              echo "MSRV job is compiling on rustc ${active}, not the declared floor ${RUSTUP_TOOLCHAIN}: the toolchain override is not in effect" >&2
+              exit 1
+              ;;
+          esac
+          cargo check --all-targets --locked

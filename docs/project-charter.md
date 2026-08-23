@@ -47,7 +47,7 @@ requirements.
 Specification paths follow architectural scope rather than a fixed
 capability taxonomy:
 
-```
+```text
 docs/specs/<architectural-scope...>/<artifact-kind>/<subject...>.md
 ```
 
