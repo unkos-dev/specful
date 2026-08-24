@@ -62,7 +62,12 @@ pub fn load_restricted_yaml(
         }
     }
 
-    let value = match next_node(&mut parser, &mut findings, path, first_line) {
+    let mut ctx = Ctx {
+        findings: &mut findings,
+        path,
+        first_line,
+    };
+    let value = match next_node(&mut parser, &mut ctx, 0) {
         Ok(value) => value,
         Err(()) => return Err(findings),
     };
@@ -121,6 +126,18 @@ fn scan_error_finding(path: &str, first_line: usize, err: &ScanError) -> Finding
     )
 }
 
+/// Node builders recurse once per nesting level; this bounds that recursion
+/// so a pathologically deep document cannot overflow the stack.
+const MAX_NESTING_DEPTH: usize = 64;
+
+/// Bundles the per-load state threaded through the recursive node builders
+/// so their signatures do not grow one parameter per new check.
+struct Ctx<'f> {
+    findings: &'f mut Vec<Finding>,
+    path: &'f str,
+    first_line: usize,
+}
+
 /// Pulls the next event from the parser and builds the value it introduces.
 ///
 /// Returns `Err(())` only when the event stream itself broke down (a scan
@@ -129,18 +146,22 @@ fn scan_error_finding(path: &str, first_line: usize, err: &ScanError) -> Finding
 /// produce a best-effort value so that sibling problems keep surfacing.
 fn next_node<T: saphyr_parser::Input>(
     parser: &mut Parser<'_, T>,
-    findings: &mut Vec<Finding>,
-    path: &str,
-    first_line: usize,
+    ctx: &mut Ctx<'_>,
+    depth: usize,
 ) -> Result<serde_json::Value, ()> {
     match parser.next() {
-        Some(Ok((event, span))) => build_node(event, span, parser, findings, path, first_line),
+        Some(Ok((event, span))) => build_node(event, span, parser, ctx, depth),
         Some(Err(err)) => {
-            findings.push(scan_error_finding(path, first_line, &err));
+            ctx.findings
+                .push(scan_error_finding(ctx.path, ctx.first_line, &err));
             Err(())
         }
         None => {
-            findings.push(Finding::new(path, None, "unexpected end of yaml document"));
+            ctx.findings.push(Finding::new(
+                ctx.path,
+                None,
+                "unexpected end of yaml document",
+            ));
             Err(())
         }
     }
@@ -151,41 +172,53 @@ fn build_node<T: saphyr_parser::Input>(
     event: Event<'_>,
     span: Span,
     parser: &mut Parser<'_, T>,
-    findings: &mut Vec<Finding>,
-    path: &str,
-    first_line: usize,
+    ctx: &mut Ctx<'_>,
+    depth: usize,
 ) -> Result<serde_json::Value, ()> {
-    let line = file_line(span.start, first_line);
+    let line = file_line(span.start, ctx.first_line);
     match event {
         Event::Scalar(value, style, anchor_id, tag) => {
-            check_anchor_and_tag(anchor_id, &tag, path, line, findings);
-            Ok(resolve_scalar(&value, style, path, line, findings))
+            check_anchor_and_tag(anchor_id, &tag, ctx.path, line, ctx.findings);
+            Ok(resolve_scalar(&value, style, ctx.path, line, ctx.findings))
         }
         Event::Alias(_) => {
-            findings.push(Finding::new(
-                path,
+            ctx.findings.push(Finding::new(
+                ctx.path,
                 Some(line),
                 "aliases are not part of restricted yaml",
             ));
             Ok(serde_json::Value::Null)
         }
         Event::SequenceStart(anchor_id, tag) => {
-            check_anchor_and_tag(anchor_id, &tag, path, line, findings);
+            check_anchor_and_tag(anchor_id, &tag, ctx.path, line, ctx.findings);
+            if depth >= MAX_NESTING_DEPTH {
+                ctx.findings.push(Finding::new(
+                    ctx.path,
+                    Some(line),
+                    "nesting deeper than 64 levels",
+                ));
+                skip_to_matching_end(parser, ctx)?;
+                return Ok(serde_json::Value::Null);
+            }
             let mut items = Vec::new();
             loop {
                 match parser.next() {
                     Some(Ok((Event::SequenceEnd, _))) => break,
                     Some(Ok((item_event, item_span))) => {
-                        let item =
-                            build_node(item_event, item_span, parser, findings, path, first_line)?;
+                        let item = build_node(item_event, item_span, parser, ctx, depth + 1)?;
                         items.push(item);
                     }
                     Some(Err(err)) => {
-                        findings.push(scan_error_finding(path, first_line, &err));
+                        ctx.findings
+                            .push(scan_error_finding(ctx.path, ctx.first_line, &err));
                         return Err(());
                     }
                     None => {
-                        findings.push(Finding::new(path, None, "unexpected end of yaml sequence"));
+                        ctx.findings.push(Finding::new(
+                            ctx.path,
+                            None,
+                            "unexpected end of yaml sequence",
+                        ));
                         return Err(());
                     }
                 }
@@ -193,23 +226,67 @@ fn build_node<T: saphyr_parser::Input>(
             Ok(serde_json::Value::Array(items))
         }
         Event::MappingStart(anchor_id, tag) => {
-            check_anchor_and_tag(anchor_id, &tag, path, line, findings);
-            build_mapping(parser, findings, path, first_line)
+            check_anchor_and_tag(anchor_id, &tag, ctx.path, line, ctx.findings);
+            if depth >= MAX_NESTING_DEPTH {
+                ctx.findings.push(Finding::new(
+                    ctx.path,
+                    Some(line),
+                    "nesting deeper than 64 levels",
+                ));
+                skip_to_matching_end(parser, ctx)?;
+                return Ok(serde_json::Value::Null);
+            }
+            build_mapping(parser, ctx, depth + 1)
         }
         // These events cannot appear where a node is expected; the parser's
         // own structure guarantees this branch is unreachable in practice.
         _ => {
-            findings.push(Finding::new(path, Some(line), "unexpected yaml structure"));
+            ctx.findings.push(Finding::new(
+                ctx.path,
+                Some(line),
+                "unexpected yaml structure",
+            ));
             Err(())
         }
     }
 }
 
+/// Drains events up to and including the End matching the Start/MappingStart
+/// event already consumed by the caller, without recursing into further
+/// nested structure. Used once the recursion depth cap is reached so the
+/// event stream stays in sync without growing the call stack.
+fn skip_to_matching_end<T: saphyr_parser::Input>(
+    parser: &mut Parser<'_, T>,
+    ctx: &mut Ctx<'_>,
+) -> Result<(), ()> {
+    let mut open = 1usize;
+    while open > 0 {
+        match parser.next() {
+            Some(Ok((Event::SequenceStart(..) | Event::MappingStart(..), _))) => open += 1,
+            Some(Ok((Event::SequenceEnd | Event::MappingEnd, _))) => open -= 1,
+            Some(Ok(_)) => {}
+            Some(Err(err)) => {
+                ctx.findings
+                    .push(scan_error_finding(ctx.path, ctx.first_line, &err));
+                return Err(());
+            }
+            None => {
+                ctx.findings.push(Finding::new(
+                    ctx.path,
+                    None,
+                    "unexpected end of yaml document",
+                ));
+                return Err(());
+            }
+        }
+    }
+    Ok(())
+}
+
 fn build_mapping<T: saphyr_parser::Input>(
     parser: &mut Parser<'_, T>,
-    findings: &mut Vec<Finding>,
-    path: &str,
-    first_line: usize,
+    ctx: &mut Ctx<'_>,
+    depth: usize,
 ) -> Result<serde_json::Value, ()> {
     let mut map = serde_json::Map::new();
     loop {
@@ -217,25 +294,28 @@ fn build_mapping<T: saphyr_parser::Input>(
             Some(Ok((Event::MappingEnd, _))) => break,
             Some(Ok(pair)) => pair,
             Some(Err(err)) => {
-                findings.push(scan_error_finding(path, first_line, &err));
+                ctx.findings
+                    .push(scan_error_finding(ctx.path, ctx.first_line, &err));
                 return Err(());
             }
             None => {
-                findings.push(Finding::new(path, None, "unexpected end of yaml mapping"));
+                ctx.findings.push(Finding::new(
+                    ctx.path,
+                    None,
+                    "unexpected end of yaml mapping",
+                ));
                 return Err(());
             }
         };
-        let key_line = file_line(key_span.start, first_line);
-        let key = resolve_key(
-            key_event, key_span, parser, findings, path, first_line, key_line,
-        )?;
+        let key_line = file_line(key_span.start, ctx.first_line);
+        let key = resolve_key(key_event, key_span, parser, ctx, key_line, depth)?;
 
-        let value = next_node(parser, findings, path, first_line)?;
+        let value = next_node(parser, ctx, depth)?;
 
         if let Some(key) = key {
             if map.contains_key(&key) {
-                findings.push(Finding::new(
-                    path,
+                ctx.findings.push(Finding::new(
+                    ctx.path,
                     Some(key_line),
                     format!("duplicate key {key:?} in mapping"),
                 ));
@@ -257,28 +337,27 @@ fn resolve_key<T: saphyr_parser::Input>(
     key_event: Event<'_>,
     key_span: Span,
     parser: &mut Parser<'_, T>,
-    findings: &mut Vec<Finding>,
-    path: &str,
-    first_line: usize,
+    ctx: &mut Ctx<'_>,
     key_line: usize,
+    depth: usize,
 ) -> Result<Option<String>, ()> {
     match key_event {
         Event::Scalar(value, style, anchor_id, tag) => {
-            check_anchor_and_tag(anchor_id, &tag, path, key_line, findings);
+            check_anchor_and_tag(anchor_id, &tag, ctx.path, key_line, ctx.findings);
             if style == ScalarStyle::Plain && value.as_ref() == "<<" {
-                findings.push(Finding::new(
-                    path,
+                ctx.findings.push(Finding::new(
+                    ctx.path,
                     Some(key_line),
                     "merge keys are not part of restricted yaml",
                 ));
                 return Ok(None);
             }
-            let resolved = resolve_scalar(&value, style, path, key_line, findings);
+            let resolved = resolve_scalar(&value, style, ctx.path, key_line, ctx.findings);
             match resolved {
                 serde_json::Value::String(s) => Ok(Some(s)),
                 other => {
-                    findings.push(Finding::new(
-                        path,
+                    ctx.findings.push(Finding::new(
+                        ctx.path,
                         Some(key_line),
                         format!("mapping key must be a string, found {}", kind_of(&other)),
                     ));
@@ -287,27 +366,27 @@ fn resolve_key<T: saphyr_parser::Input>(
             }
         }
         Event::Alias(_) => {
-            findings.push(Finding::new(
-                path,
+            ctx.findings.push(Finding::new(
+                ctx.path,
                 Some(key_line),
                 "aliases are not part of restricted yaml",
             ));
             Ok(None)
         }
         Event::SequenceStart(..) | Event::MappingStart(..) => {
-            findings.push(Finding::new(
-                path,
+            ctx.findings.push(Finding::new(
+                ctx.path,
                 Some(key_line),
                 "complex keys are not part of restricted yaml",
             ));
             // Consume the complex key structure so parsing of the value
             // that follows stays aligned with the event stream.
-            build_node(key_event, key_span, parser, findings, path, first_line)?;
+            build_node(key_event, key_span, parser, ctx, depth)?;
             Ok(None)
         }
         _ => {
-            findings.push(Finding::new(
-                path,
+            ctx.findings.push(Finding::new(
+                ctx.path,
                 Some(key_line),
                 "unexpected yaml structure",
             ));
@@ -601,6 +680,16 @@ mod tests {
         let err = load_restricted_yaml("a: 1\na: 2\n", "test.yaml", 5).unwrap_err();
         assert_eq!(err.len(), 1);
         assert_eq!(err[0].line, Some(6));
+    }
+
+    #[test]
+    fn deeply_nested_sequences_are_bounded_not_stack_overflowed() {
+        let source = format!("{}1{}", "- ".repeat(100), "\n".repeat(0));
+        let err = load(&source).unwrap_err();
+        assert!(
+            err.iter()
+                .any(|f| f.message == "nesting deeper than 64 levels")
+        );
     }
 
     #[test]
