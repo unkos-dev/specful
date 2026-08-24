@@ -6,7 +6,12 @@ title: Progress sync requirements
 governed-by:
   - OK-ADR-0001
 requirements:
-  OK-REQ-0001: {}
+  OK-REQ-0001:
+    sources:
+      - type: artifact
+        artifact-id: OK-ADR-0001
+      - type: path
+        path: docs/adr/0001-store-progress-events.md
   OK-REQ-0002:
     sources:
       - type: citation

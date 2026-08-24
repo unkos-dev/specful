@@ -23,6 +23,10 @@ fn flags_every_planted_defect_in_the_invalid_repository() {
         "satisfies target BAD-REQ-0404 does not exist",
         "next-msrs-sequence 1 lags allocated identifier sequence 2",
         "next-requirement-sequence 1 lags allocated identifier sequence 1",
+        "requirement BAD-REQ-0001 cites source artifact BAD-ADR-0404, which does not exist",
+        "requirement BAD-REQ-0001 cites its own module BAD-MSRS-0002 as a source",
+        "requirement BAD-REQ-0001 cites source path docs/specs/system/msrs/0404-missing.md, which does not exist",
+        "requirement BAD-REQ-0001 cites its own file docs/specs/system/msrs/0001-service.md as a source",
     ];
     for needle in expected {
         assert!(

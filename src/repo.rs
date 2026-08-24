@@ -24,8 +24,22 @@ struct Inventory {
     satisfies: Vec<(String, Vec<String>)>,
     /// (path, ADR ids referenced through governed-by).
     governed_by: Vec<(String, Vec<String>)>,
+    /// Requirement sources awaiting resolution against the whole repository.
+    sources: Vec<SourceCitation>,
     /// ADR id -> (path, status, supersedes, superseded-by).
     adrs: BTreeMap<String, AdrRecord>,
+}
+
+/// One `sources` entry of one requirement, kept with enough context to
+/// resolve it once the whole inventory is known.
+#[derive(Debug, Clone)]
+struct SourceCitation {
+    /// Repository-relative path of the citing module.
+    path: String,
+    /// Identifier of the citing module.
+    module_id: String,
+    requirement_id: String,
+    value: serde_json::Value,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +58,7 @@ pub fn validate_repository(root: &Path) -> Vec<Finding> {
 
     validate_adr_directory(root, &mut inventory, &mut findings);
     validate_specs_tree(root, &mut inventory, &mut findings);
-    validate_integrity(config.as_ref(), &inventory, &mut findings);
+    validate_integrity(root, config.as_ref(), &inventory, &mut findings);
 
     sort_findings(&mut findings);
     findings
@@ -381,6 +395,7 @@ fn validate_concept(
     let id = value["id"].as_str().expect("schema requires id").to_owned();
     check_id_matches_filename(&id, sequence, &path, findings);
     findings.extend(check_body(kind, &value, &body, &path, body_first_line));
+    let module_id = id.clone();
     inventory
         .artifact_paths
         .entry(id)
@@ -394,12 +409,20 @@ fn validate_concept(
     match kind {
         ArtifactKind::Msrs => {
             if let Some(requirements) = value["requirements"].as_object() {
-                for requirement_id in requirements.keys() {
+                for (requirement_id, requirement) in requirements {
                     inventory
                         .requirement_paths
                         .entry(requirement_id.clone())
                         .or_default()
                         .push(path.clone());
+                    for source in requirement["sources"].as_array().into_iter().flatten() {
+                        inventory.sources.push(SourceCitation {
+                            path: path.clone(),
+                            module_id: module_id.clone(),
+                            requirement_id: requirement_id.clone(),
+                            value: source.clone(),
+                        });
+                    }
                 }
             }
         }
@@ -413,7 +436,12 @@ fn validate_concept(
     }
 }
 
-fn validate_integrity(config: Option<&Config>, inventory: &Inventory, findings: &mut Vec<Finding>) {
+fn validate_integrity(
+    root: &Path,
+    config: Option<&Config>,
+    inventory: &Inventory,
+    findings: &mut Vec<Finding>,
+) {
     for (id, paths) in &inventory.artifact_paths {
         if paths.len() > 1 {
             findings.push(Finding::new(
@@ -519,7 +547,60 @@ fn validate_integrity(config: Option<&Config>, inventory: &Inventory, findings: 
         }
     }
 
+    validate_sources(root, inventory, findings);
     validate_supersession(inventory, findings);
+}
+
+/// Resolves the `artifact` and `path` source variants. The `uri` and
+/// `citation` variants carry nothing this repository can resolve, so the
+/// published schema is the whole of their contract.
+fn validate_sources(root: &Path, inventory: &Inventory, findings: &mut Vec<Finding>) {
+    for citation in &inventory.sources {
+        let requirement = &citation.requirement_id;
+        let mut report = |message: String| {
+            findings.push(Finding::new(&citation.path, None, message));
+        };
+        match citation.value["type"].as_str().unwrap_or_default() {
+            "artifact" => {
+                let target = citation.value["artifact-id"].as_str().unwrap_or_default();
+                if target == citation.module_id {
+                    report(format!(
+                        "requirement {requirement} cites its own module {target} as a source"
+                    ));
+                } else if !inventory.artifact_paths.contains_key(target) {
+                    report(format!(
+                        "requirement {requirement} cites source artifact {target}, which does not exist"
+                    ));
+                }
+            }
+            "path" => {
+                let target = citation.value["path"].as_str().unwrap_or_default();
+                if target == citation.path {
+                    report(format!(
+                        "requirement {requirement} cites its own file {target} as a source"
+                    ));
+                } else if escapes_root(target) {
+                    report(format!(
+                        "requirement {requirement} cites source path {target}, which leaves the repository"
+                    ));
+                } else if !root.join(target).is_file() {
+                    report(format!(
+                        "requirement {requirement} cites source path {target}, which does not exist"
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Whether a source path is absolute or climbs out of the repository root.
+/// The published schema already rejects both, so this only keeps resolution
+/// safe if a path ever reaches it by another route.
+fn escapes_root(path: &str) -> bool {
+    !Path::new(path)
+        .components()
+        .all(|component| matches!(component, std::path::Component::Normal(_)))
 }
 
 fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
