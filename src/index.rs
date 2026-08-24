@@ -295,10 +295,14 @@ pub(crate) fn check_generated_views(
 }
 
 /// Writes (or with `check` compares) every generated view. Returns findings;
-/// generation refuses to overwrite an author-owned index.md.
+/// generation stops before comparing or writing views when artifact collection
+/// fails, and refuses to overwrite an author-owned index.md.
 pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
     let mut collection_findings = Vec::new();
     let artifacts = collect_artifacts(root, &mut collection_findings);
+    if !collection_findings.is_empty() {
+        return collection_findings;
+    }
     let mut findings = Vec::new();
     if check {
         check_generated_views(root, &artifacts, &mut findings);
