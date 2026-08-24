@@ -151,31 +151,32 @@ fn markdown_files(root: &Path, dir: &Path, findings: &mut Vec<Finding>) -> Vec<P
 }
 
 fn filename_sequence(path: &str, file_name: &str, findings: &mut Vec<Finding>) -> Option<i64> {
-    let stem = file_name.strip_suffix(".md")?;
-    let (digits, slug) = stem.split_at_checked(4)?;
-    if digits.chars().all(|c| c.is_ascii_digit())
-        && slug.strip_prefix('-').is_some_and(|s| {
-            !s.is_empty()
-                && s.len() <= 64
-                && s.split('-').all(|part| {
-                    !part.is_empty()
-                        && part
-                            .chars()
-                            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+    let sequence = file_name
+        .strip_suffix(".md")
+        .and_then(|stem| stem.split_at_checked(4))
+        .filter(|(digits, slug)| {
+            digits.chars().all(|c| c.is_ascii_digit())
+                && slug.strip_prefix('-').is_some_and(|s| {
+                    !s.is_empty()
+                        && s.len() <= 64
+                        && s.split('-').all(|part| {
+                            !part.is_empty()
+                                && part
+                                    .chars()
+                                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+                        })
                 })
         })
-    {
-        let sequence: i64 = digits.parse().ok()?;
-        if sequence >= 1 {
-            return Some(sequence);
-        }
+        .and_then(|(digits, _)| digits.parse::<i64>().ok())
+        .filter(|sequence| *sequence >= 1);
+    if sequence.is_none() {
+        findings.push(Finding::new(
+            path,
+            None,
+            "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
+        ));
     }
-    findings.push(Finding::new(
-        path,
-        None,
-        "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
-    ));
-    None
+    sequence
 }
 
 fn id_sequence(id: &str) -> Option<i64> {

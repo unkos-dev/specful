@@ -20,6 +20,7 @@ fn flags_every_planted_defect_in_the_invalid_repository() {
         "\"superseded-by\" is a required property",
         "filename sequence 0001 does not match identifier BAD-MSRS-0002",
         "concept type \"WIDGET\" is not MSRS or MSDD",
+        "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
         "governed-by target BAD-ADR-0009 does not exist",
         "satisfies target BAD-REQ-0404 does not exist",
         "next-msrs-sequence 1 lags allocated identifier sequence 2",
