@@ -24,7 +24,7 @@ fn load_catalog(root: &Path) -> Result<Vec<Entry>, Vec<Finding>> {
         vec![Finding::new(
             CATALOG_PATH,
             None,
-            "missing catalog; run specful index",
+            "catalog is not valid JSON; run specful index",
         )]
     })?;
     Ok(catalog["artifacts"].as_array().cloned().unwrap_or_default())
@@ -156,8 +156,12 @@ pub fn trace(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
             let Some(entry) = find(&entries, id) else {
                 return Err(unknown(id));
             };
+            let requirements = array_field(entry, "requirements");
+            if requirements.is_empty() {
+                return Ok("(no requirements)\n".to_owned());
+            }
             let mut out = String::new();
-            for req_id in array_field(entry, "requirements") {
+            for req_id in requirements {
                 let mut satisfiers: Vec<&str> = entries
                     .iter()
                     .filter(|e| {

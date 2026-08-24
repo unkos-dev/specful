@@ -593,6 +593,118 @@ fn traces_an_msdd_module_with_no_satisfies_links() {
 }
 
 #[test]
+fn traces_an_msrs_module_with_no_requirements() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-MSRS-0001",
+                "kind": "msrs",
+                "path": "docs/specs/system/msrs/0001-x.md",
+                "title": "X",
+                "requirements": []
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "trace",
+        "T-MSRS-0001",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(out, "(no requirements)\n");
+}
+
+#[test]
+fn show_of_unknown_identifier_fails() {
+    let root = fixture("valid-repo");
+    let (ok, out) = run_specful(&[
+        "show",
+        "OK-MSDD-9999",
+        "--root",
+        root.to_str().expect("utf8 path"),
+    ]);
+    assert!(!ok, "show of an unknown id must fail");
+    assert!(
+        out.contains("unknown identifier OK-MSDD-9999"),
+        "unexpected output:\n{out}"
+    );
+}
+
+#[test]
+fn show_of_unknown_requirement_identifier_fails() {
+    let root = fixture("valid-repo");
+    let (ok, out) = run_specful(&[
+        "show",
+        "OK-REQ-9999",
+        "--root",
+        root.to_str().expect("utf8 path"),
+    ]);
+    assert!(!ok, "show of an unknown requirement id must fail");
+    assert!(
+        out.contains("unknown identifier OK-REQ-9999"),
+        "unexpected output:\n{out}"
+    );
+}
+
+#[test]
+fn shows_an_adr_record_with_supersession_links() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-ADR-0002",
+                "kind": "adr",
+                "path": "docs/adr/0002-adopt-x.md",
+                "title": "Adopt X",
+                "status": "accepted",
+                "supersedes": ["T-ADR-0001"],
+                "superseded-by": ["T-ADR-0003"]
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "show",
+        "T-ADR-0002",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "show should succeed:\n{out}");
+    assert_eq!(
+        out,
+        "id: T-ADR-0002\n\
+kind: adr\n\
+title: Adopt X\n\
+path: docs/adr/0002-adopt-x.md\n\
+status: accepted\n\
+supersedes: T-ADR-0001\n\
+superseded-by: T-ADR-0003\n"
+    );
+}
+
+#[test]
+fn show_with_a_corrupt_catalog_reports_a_json_error() {
+    let root = tempfile::tempdir().expect("create scratch");
+    std::fs::create_dir_all(root.path().join(".specful/generated")).expect("create catalog dir");
+    std::fs::write(
+        root.path().join(".specful/generated/catalog.json"),
+        "not valid json",
+    )
+    .expect("write corrupt catalog");
+
+    let (ok, out) = run_specful(&[
+        "show",
+        "OK-MSDD-0001",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(!ok, "show with a corrupt catalog must fail");
+    assert!(
+        out.contains("catalog is not valid JSON; run specful index"),
+        "unexpected output:\n{out}"
+    );
+}
+
+#[test]
 fn show_without_a_catalog_reports_the_run_index_message() {
     let scratch = Path::new(env!("CARGO_TARGET_TMPDIR")).join("no-catalog-repo");
     if scratch.exists() {
