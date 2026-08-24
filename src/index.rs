@@ -9,7 +9,7 @@ use serde_json::json;
 
 use crate::body::ArtifactKind;
 use crate::diagnostics::Finding;
-use crate::repo::{Artifact, SPECS_DIR, collect_artifacts};
+use crate::repo::{Artifact, SPECS_DIR, collect_artifacts, read_entries};
 
 /// First line of every generated index file. Its absence marks a file as
 /// author-owned, which generation refuses to overwrite.
@@ -179,23 +179,57 @@ fn render_indexes(artifacts: &[Artifact]) -> BTreeMap<String, String> {
     indexes
 }
 
+fn output_path_is_safe(root: &Path, path: &str, findings: &mut Vec<Finding>) -> bool {
+    let mut current = root.to_path_buf();
+    for component in Path::new(path).components() {
+        current.push(component);
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                let unsafe_path = current
+                    .strip_prefix(root)
+                    .unwrap_or(&current)
+                    .components()
+                    .map(|c| c.as_os_str().to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join("/");
+                if !findings
+                    .iter()
+                    .any(|f| f.path == unsafe_path && f.message == "symlink not allowed")
+                {
+                    findings.push(Finding::new(&unsafe_path, None, "symlink not allowed"));
+                }
+                return false;
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return true,
+            Err(error) => {
+                findings.push(Finding::new(
+                    path,
+                    None,
+                    format!("cannot inspect generated view path: {error}"),
+                ));
+                return false;
+            }
+        }
+    }
+    true
+}
+
 /// Committed generated views on disk: the catalog plus every marker-bearing
 /// `index.md` under `docs/specs/`. Unmarked index files are author-owned and
 /// are not ours to manage.
-fn committed_views(root: &Path) -> Vec<String> {
+///
+/// The walk and catalog check never follow symlinks, so only paths physically
+/// beneath the repository are eligible for orphan removal.
+fn committed_views(root: &Path, findings: &mut Vec<Finding>) -> Vec<String> {
     let mut views = Vec::new();
-    if root.join(CATALOG_PATH).is_file() {
+    if output_path_is_safe(root, CATALOG_PATH, findings) && root.join(CATALOG_PATH).is_file() {
         views.push(CATALOG_PATH.to_owned());
     }
-    let specs_root = root.join(SPECS_DIR);
-    let mut stack = vec![specs_root];
+    let mut stack = vec![root.join(SPECS_DIR)];
     while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() {
+        for (path, is_dir) in read_entries(root, &dir, findings) {
+            if is_dir {
                 stack.push(path);
             } else if path.file_name().is_some_and(|n| n == "index.md")
                 && std::fs::read_to_string(&path)
@@ -224,7 +258,7 @@ pub(crate) fn check_generated_views(
     findings: &mut Vec<Finding>,
 ) {
     let expected_views = render_views(artifacts);
-    for committed in committed_views(root) {
+    for committed in committed_views(root, findings) {
         if !expected_views.contains_key(&committed) {
             findings.push(Finding::new(
                 &committed,
@@ -234,6 +268,9 @@ pub(crate) fn check_generated_views(
         }
     }
     for (path, expected) in expected_views {
+        if !output_path_is_safe(root, &path, findings) {
+            continue;
+        }
         match std::fs::read_to_string(root.join(&path)) {
             Err(_) => findings.push(Finding::new(
                 &path,
@@ -268,7 +305,7 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
         return findings;
     }
     let expected_views = render_views(&artifacts);
-    for committed in committed_views(root) {
+    for committed in committed_views(root, &mut findings) {
         if !expected_views.contains_key(&committed)
             && let Err(error) = std::fs::remove_file(root.join(&committed))
         {
@@ -280,6 +317,9 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
         }
     }
     for (path, content) in expected_views {
+        if !output_path_is_safe(root, &path, &mut findings) {
+            continue;
+        }
         let target = root.join(&path);
         if path.ends_with("index.md")
             && let Ok(existing) = std::fs::read_to_string(&target)

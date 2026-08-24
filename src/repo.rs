@@ -102,7 +102,11 @@ fn relative(root: &Path, path: &Path) -> String {
 /// A directory that does not exist is not a finding: a repository need not
 /// carry every optional tree. Any other read failure is fail-closed, since
 /// content that cannot be read cannot be validated.
-fn read_entries(root: &Path, dir: &Path, findings: &mut Vec<Finding>) -> Vec<(PathBuf, bool)> {
+pub(crate) fn read_entries(
+    root: &Path,
+    dir: &Path,
+    findings: &mut Vec<Finding>,
+) -> Vec<(PathBuf, bool)> {
     let mut kept = Vec::new();
     let entries = match std::fs::read_dir(dir) {
         Ok(entries) => entries,
