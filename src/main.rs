@@ -91,10 +91,44 @@ impl From<NewKindArg> for specful::authoring::NewKind {
     }
 }
 
+/// Resolves the effective repository root for a command: the explicit
+/// `--root` (or positional root) when given, otherwise the nearest ancestor
+/// of the current directory containing `.specful.yaml`, per the root
+/// discovery contract in `docs/configuration.md`. `init` never calls this:
+/// it initializes the given or current directory as given, without
+/// searching upward.
+fn resolve_root(root: Option<PathBuf>) -> Result<PathBuf, ExitCode> {
+    if let Some(root) = root {
+        return Ok(root);
+    }
+    let cwd = match std::env::current_dir() {
+        Ok(cwd) => cwd,
+        Err(error) => {
+            println!(
+                "{}",
+                specful::diagnostics::Finding::new(
+                    ".",
+                    None,
+                    format!("cannot determine current directory: {error}")
+                )
+                .render()
+            );
+            return Err(ExitCode::FAILURE);
+        }
+    };
+    specful::config::discover_root(&cwd).map_err(|finding| {
+        println!("{}", finding.render());
+        ExitCode::FAILURE
+    })
+}
+
 fn main() -> ExitCode {
     match Cli::parse().command {
         Command::Validate { root, json } => {
-            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            let root = match resolve_root(root) {
+                Ok(root) => root,
+                Err(code) => return code,
+            };
             let findings = specful::repo::validate_repository(&root);
             if json {
                 let listing = json!({
@@ -141,32 +175,9 @@ fn main() -> ExitCode {
             scope,
             root,
         } => {
-            let root = match root {
-                Some(root) => root,
-                None => {
-                    let cwd = match std::env::current_dir() {
-                        Ok(cwd) => cwd,
-                        Err(error) => {
-                            println!(
-                                "{}",
-                                specful::diagnostics::Finding::new(
-                                    ".",
-                                    None,
-                                    format!("cannot determine current directory: {error}")
-                                )
-                                .render()
-                            );
-                            return ExitCode::FAILURE;
-                        }
-                    };
-                    match specful::config::discover_root(&cwd) {
-                        Ok(root) => root,
-                        Err(finding) => {
-                            println!("{}", finding.render());
-                            return ExitCode::FAILURE;
-                        }
-                    }
-                }
+            let root = match resolve_root(root) {
+                Ok(root) => root,
+                Err(code) => return code,
             };
             match specful::authoring::new_artifact(&root, kind.into(), scope.as_deref(), &title) {
                 Ok(path) => {
@@ -213,7 +224,10 @@ fn main() -> ExitCode {
             }
         }
         Command::Index { root, check } => {
-            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            let root = match resolve_root(root) {
+                Ok(root) => root,
+                Err(code) => return code,
+            };
             let findings = specful::index::run_index(&root, check);
             for finding in &findings {
                 println!("{}", finding.render());
