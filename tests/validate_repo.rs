@@ -70,7 +70,8 @@ fn copy_fixture(name: &str, label: &str) -> std::path::PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .expect("clock is after the epoch")
         .as_nanos();
-    let root = std::env::temp_dir().join(format!("specful-{label}-{unique}"));
+    let root = std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
+        .join(format!("specful-{label}-{unique}"));
     let _ = std::fs::remove_dir_all(&root);
     copy_tree(&fixture(name), &root);
     root
@@ -104,7 +105,8 @@ fn rejects_a_path_source_whose_final_component_is_a_symlink_outside_the_reposito
     let cited = root.join("docs/adr/0001-store-progress-events.md");
     std::fs::remove_file(&cited).expect("remove cited file");
 
-    let outside = std::env::temp_dir().join("specful-symlink-final-target");
+    let outside =
+        std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("specful-symlink-final-target");
     std::fs::write(&outside, "outside the repository").expect("write outside file");
     std::os::unix::fs::symlink(&outside, &cited).expect("create symlink");
 
