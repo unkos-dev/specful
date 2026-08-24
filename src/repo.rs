@@ -377,7 +377,14 @@ fn validate_concept(
     let (kind, validator, kind_dir) = match concept_type.as_str() {
         "MSRS" => (ArtifactKind::Msrs, msrs_validator, "msrs"),
         "MSDD" => (ArtifactKind::Msdd, msdd_validator, "msdd"),
-        _ => return,
+        _ => {
+            findings.push(Finding::new(
+                &path,
+                Some(2),
+                format!("concept type \"{concept_type}\" is not MSRS or MSDD"),
+            ));
+            return;
+        }
     };
 
     let parent_dir = path.rsplit('/').nth(1).unwrap_or_default().to_owned();
