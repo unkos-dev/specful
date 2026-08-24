@@ -58,6 +58,7 @@ in both a recipe and a job, or in neither.
 | `deps.yml` | `cargo-deny`, `review` | Advisories, licenses, bans, and sources from `deny.toml`; GitHub dependency review on pull requests. |
 | `snyk.yml` | `code` | Snyk Code SAST, advisory only: findings upload to code scanning and never fail the job. |
 | `label.yml` | `label` | Applies `area/*` and `dependencies` labels from `.github/labeler.yml`. Runs on `pull_request_target` so the config on `main` is authoritative. |
+| `pr-hygiene.yml` | `commits`, `title` | commitlint over the pull request's commit range; Conventional Commits linting of the title, which squash merging makes the commit subject. Standalone rather than a `ci.yml` concern so its `edited` trigger reruns only these jobs. |
 
 Every third-party action is pinned to a full commit SHA with a trailing
 version comment that Renovate keeps current. `.github/zizmor.yml` records the
@@ -75,6 +76,11 @@ Branch protection lists these exact `<caller> / <job>` strings:
 - `lint / secrets`
 - `deps / cargo-deny`
 - `deps / review`
+- `hygiene / commits`
+- `hygiene / title`
+
+The `hygiene` contexts come from `pr-hygiene.yml`'s own `name:` fields rather
+than the composition, faux-namespaced to read the same in this list.
 
 `snyk` is advisory (its findings never fail the job) and `label` runs outside
 the composition, so neither carries a required context.

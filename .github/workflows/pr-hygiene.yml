@@ -1,0 +1,77 @@
+# Server-side gate: specful's DCO app and this workflow are the only checks
+# that enforce commit and PR-title hygiene; there is no local commit-msg hook
+# to fall back on, and none would run on a fork PR anyway. Lints both the PR's
+# commit range and its title (the one subject a squash-merge produces).
+name: PR hygiene
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+  # A required context whose workflow lacks this trigger deadlocks the merge
+  # queue. Both jobs below skip on it, and a skipped required check passes.
+  merge_group:
+
+permissions: {}
+
+# A title edit supersedes the run before it, so the required check can't
+# resolve against a stale title. A cancelled run is not a success (fails closed),
+# which is why the key falls back to the run id: `pull_request.number` is empty
+# on merge_group, and a shared empty key would make queue entries cancel
+# each other.
+concurrency:
+  group: pr-hygiene-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  # Free-text display name, faux-namespaced so the ruleset's required-context
+  # column reads the same as the composed concerns'.
+  commits:
+    name: hygiene / commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Reads the PR's commit list from the GitHub API rather than local git
+      # log, so no particular checkout depth is needed. No commitlint config
+      # is committed here, so the action falls back to its bundled
+      # config-conventional settings, which is the set CONTRIBUTING.md
+      # documents, without a package install of our own.
+      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+
+  title:
+    name: hygiene / title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    steps:
+      # GitHub appends ` (#N)` to the squash subject; the bare title still
+      # matches what commitlint would see on main. The title reaches this
+      # action over the GitHub API, not through a script this workflow
+      # writes, so there is no shell interpolation of the attacker-controlled
+      # PR title to guard against here.
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Mirror CONTRIBUTING.md's accepted types exactly.
+          types: |
+            build
+            chore
+            ci
+            docs
+            feat
+            fix
+            perf
+            refactor
+            revert
+            style
+            test
