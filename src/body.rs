@@ -20,33 +20,50 @@ pub enum ArtifactKind {
 struct Line<'a> {
     file_line: usize,
     text: &'a str,
-    /// Whether this line sits inside a fenced code block. The fence
-    /// delimiter line itself is not marked as fenced, since a delimiter
-    /// can never itself be mistaken for a heading or placeholder.
+    /// Whether this line sits inside a fenced code block, including the
+    /// delimiter line itself: an info string on an opening fence (for
+    /// example ` ```{r} `) can otherwise match a placeholder pattern.
     in_fence: bool,
+}
+
+/// Returns the fence character (backtick or tilde) a line opens or closes
+/// with, or `None` when the line is not a fence delimiter.
+fn fence_char(line: &str) -> Option<char> {
+    let trimmed = line.trim_start();
+    if trimmed.starts_with("```") {
+        Some('`')
+    } else if trimmed.starts_with("~~~") {
+        Some('~')
+    } else {
+        None
+    }
 }
 
 fn scan_lines(body: &str, body_first_line: usize) -> Vec<Line<'_>> {
     let mut lines = Vec::new();
-    let mut in_fence = false;
+    let mut open_fence: Option<char> = None;
     for (i, raw) in body.lines().enumerate() {
         let file_line = body_first_line + i;
-        if raw.trim_start().starts_with("```") {
-            // A fence delimiter toggles state but is scanned as unfenced
-            // content itself; it can never match a heading or placeholder
-            // pattern, so this is a distinction without a difference.
-            in_fence = !in_fence;
+        if let Some(marker) = fence_char(raw) {
+            // A fence only closes with the same character it opened with,
+            // so a mismatched marker inside an open fence is ordinary
+            // fenced content rather than a delimiter.
+            match open_fence {
+                Some(current) if current == marker => open_fence = None,
+                Some(_) => {}
+                None => open_fence = Some(marker),
+            }
             lines.push(Line {
                 file_line,
                 text: raw,
-                in_fence: false,
+                in_fence: true,
             });
             continue;
         }
         lines.push(Line {
             file_line,
             text: raw,
-            in_fence,
+            in_fence: open_fence.is_some(),
         });
     }
     lines
@@ -755,6 +772,26 @@ mod tests {
                 .iter()
                 .any(|f| f.message.contains("placeholder residue"))
         );
+    }
+
+    #[test]
+    fn fence_info_string_is_not_a_placeholder() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n```{r}\ncode\n```\n\nbody content\n";
+        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue"))
+        );
+    }
+
+    #[test]
+    fn heading_inside_tilde_fence_is_ignored() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n~~~\n# heading-looking-text\n~~~\n\nbody content\n";
+        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        assert!(!findings.iter().any(|f| f.message.contains("heading")));
     }
 
     // ---- common: line offset arithmetic ----
