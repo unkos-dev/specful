@@ -171,6 +171,56 @@ fn placeholder_findings(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         .collect()
 }
 
+/// Recursively scans a frontmatter value's string scalars for the same
+/// `{...}` bracket placeholder convention `has_brace_placeholder` checks in
+/// the body, so an unfilled frontmatter field (for example the ADR
+/// `decision-makers` scaffold entry) is not silently accepted just because
+/// placeholder scanning only ever looked at the Markdown body. A YAML flow
+/// mapping such as the MSRS `requirements: ID: {}` scaffold entry parses to
+/// a JSON object, never a string, so it is never mistaken for a
+/// placeholder; only actual string scalars are checked.
+fn frontmatter_placeholder_findings(frontmatter: &serde_json::Value, path: &str) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    collect_frontmatter_placeholders(frontmatter, "", path, &mut findings);
+    findings
+}
+
+fn collect_frontmatter_placeholders(
+    value: &serde_json::Value,
+    pointer: &str,
+    path: &str,
+    findings: &mut Vec<Finding>,
+) {
+    match value {
+        serde_json::Value::String(text) => {
+            if has_brace_placeholder(text) {
+                let location = pointer.strip_prefix('/').unwrap_or(pointer);
+                findings.push(Finding::new(
+                    path,
+                    None,
+                    format!("{location} still contains template placeholder residue"),
+                ));
+            }
+        }
+        serde_json::Value::Array(items) => {
+            for (index, item) in items.iter().enumerate() {
+                collect_frontmatter_placeholders(
+                    item,
+                    &format!("{pointer}/{index}"),
+                    path,
+                    findings,
+                );
+            }
+        }
+        serde_json::Value::Object(map) => {
+            for (key, item) in map {
+                collect_frontmatter_placeholders(item, &format!("{pointer}/{key}"), path, findings);
+            }
+        }
+        _ => {}
+    }
+}
+
 /// Splits a requirement heading's text at the first `": "` into an id and a
 /// title. A heading with no separator is treated as an id-only heading, so
 /// it still participates in id-set comparison rather than being dropped.
@@ -225,6 +275,7 @@ fn check_common(
     }
 
     findings.extend(placeholder_findings(lines, path));
+    findings.extend(frontmatter_placeholder_findings(frontmatter, path));
     findings
 }
 
@@ -783,6 +834,43 @@ mod tests {
             !findings
                 .iter()
                 .any(|f| f.message.contains("placeholder residue"))
+        );
+    }
+
+    #[test]
+    fn frontmatter_string_scalar_placeholder_is_flagged() {
+        let fm = json!({
+            "title": "T",
+            "decision-makers": ["{Decision maker}"],
+        });
+        let body = "# T\n\nbody content\n";
+        let findings = findings_for(ArtifactKind::Adr, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("decision-makers")
+                    && f.message.contains("placeholder residue")
+                    && f.line.is_none()),
+            "expected a line-less frontmatter placeholder finding naming decision-makers, got {findings:?}"
+        );
+    }
+
+    #[test]
+    fn frontmatter_flow_mapping_braces_are_not_a_placeholder() {
+        // `requirements: ID: {}` parses to a JSON object, not a string
+        // scalar, so the empty-mapping syntax must never be mistaken for
+        // `{...}` placeholder residue.
+        let fm = json!({
+            "title": "T",
+            "requirements": {"OK-REQ-0001": {}},
+        });
+        let body = "# T\n\n## Requirements\n\n### OK-REQ-0001: Title\n\nThe system MUST do it.\n";
+        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "an empty flow mapping must not be flagged, got {findings:?}"
         );
     }
 

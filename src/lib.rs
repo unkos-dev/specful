@@ -1,5 +1,6 @@
 //! Core Specful domain logic.
 
+pub mod authoring;
 pub mod body;
 pub mod config;
 pub mod diagnostics;

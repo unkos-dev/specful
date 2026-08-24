@@ -1,13 +1,36 @@
 //! Repository configuration loading.
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::diagnostics::Finding;
 use crate::schemas::{CONFIG_V1_SCHEMA_ID, builtin_schema};
 use crate::yaml::load_restricted_yaml;
 
 pub const CONFIG_FILE: &str = ".specful.yaml";
+
+/// Searches `start` and its ancestors for the nearest directory containing
+/// `.specful.yaml`, the root-selection rule command operations use when no
+/// explicit root is given. Library operations always receive a root
+/// explicitly and never call this.
+pub fn discover_root(start: &Path) -> Result<PathBuf, Finding> {
+    let mut current = start;
+    loop {
+        if current.join(CONFIG_FILE).is_file() {
+            return Ok(current.to_path_buf());
+        }
+        match current.parent() {
+            Some(parent) => current = parent,
+            None => {
+                return Err(Finding::new(
+                    CONFIG_FILE,
+                    None,
+                    "no .specful.yaml found in this directory or any ancestor",
+                ));
+            }
+        }
+    }
+}
 
 const COUNTER_KINDS: [(&str, &str); 4] = [
     ("next-adr-sequence", "ADR"),
@@ -19,8 +42,32 @@ const COUNTER_KINDS: [(&str, &str); 4] = [
 #[derive(Debug, Clone)]
 pub struct Config {
     pub project_key: String,
+    pub specful_version: String,
     /// Allocation counters keyed by identifier kind (ADR, MSRS, REQ, MSDD).
     pub counters: BTreeMap<String, i64>,
+}
+
+impl Config {
+    /// Canonical serialized form written by `init` and identifier
+    /// allocation. Rewrites are wholesale: comments are not preserved.
+    #[must_use]
+    pub fn render(&self) -> String {
+        format!(
+            "config-version: 1\n\
+             project-key: {}\n\
+             specful-version: {}\n\
+             next-adr-sequence: {}\n\
+             next-msrs-sequence: {}\n\
+             next-requirement-sequence: {}\n\
+             next-msdd-sequence: {}\n",
+            self.project_key,
+            self.specful_version,
+            self.counters.get("ADR").copied().unwrap_or(1),
+            self.counters.get("MSRS").copied().unwrap_or(1),
+            self.counters.get("REQ").copied().unwrap_or(1),
+            self.counters.get("MSDD").copied().unwrap_or(1),
+        )
+    }
 }
 
 /// Loads and schema-validates `.specful.yaml` under `root`.
@@ -85,6 +132,10 @@ pub fn load_config(root: &Path, findings: &mut Vec<Finding>) -> Option<Config> {
 
     Some(Config {
         project_key: value["project-key"]
+            .as_str()
+            .expect("schema guarantees a string")
+            .to_owned(),
+        specful_version: value["specful-version"]
             .as_str()
             .expect("schema guarantees a string")
             .to_owned(),

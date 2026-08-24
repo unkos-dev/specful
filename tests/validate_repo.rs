@@ -277,6 +277,88 @@ fn does_not_write_the_catalog_through_a_symlinked_parent() {
 }
 
 #[test]
+fn init_and_new_produce_a_schema_conformant_draft() {
+    let scratch = Path::new(env!("CARGO_TARGET_TMPDIR")).join("authoring-repo");
+    if scratch.exists() {
+        std::fs::remove_dir_all(&scratch).expect("clear scratch");
+    }
+    std::fs::create_dir_all(&scratch).expect("create scratch");
+
+    let created = specful::authoring::init(&scratch, "TST").expect("init succeeds");
+    assert!(created.iter().any(|p| p == ".specful.yaml"));
+    assert!(
+        specful::authoring::init(&scratch, "TST").is_err(),
+        "second init must refuse"
+    );
+    assert!(
+        validate_repository(&scratch).is_empty(),
+        "freshly initialized repository should be clean"
+    );
+
+    use specful::authoring::{NewKind, new_artifact};
+    let adr = new_artifact(&scratch, NewKind::Adr, None, "Adopt event replay").expect("new adr");
+    assert_eq!(adr, "docs/adr/0001-adopt-event-replay.md");
+    let msrs = new_artifact(
+        &scratch,
+        NewKind::Msrs,
+        Some("backend/sync"),
+        "Sync requirements",
+    )
+    .expect("new msrs");
+    assert_eq!(
+        msrs,
+        "docs/specs/backend/sync/msrs/0001-sync-requirements.md"
+    );
+    let msdd = new_artifact(&scratch, NewKind::Msdd, Some("backend/sync"), "Sync design")
+        .expect("new msdd");
+    assert_eq!(msdd, "docs/specs/backend/sync/msdd/0001-sync-design.md");
+    assert!(
+        new_artifact(&scratch, NewKind::Msdd, None, "No scope").is_err(),
+        "module without scope must refuse"
+    );
+
+    let config = std::fs::read_to_string(scratch.join(".specful.yaml")).expect("read config");
+    assert!(config.contains("next-adr-sequence: 2"));
+    assert!(config.contains("next-msrs-sequence: 2"));
+    assert!(config.contains("next-requirement-sequence: 2"));
+    assert!(config.contains("next-msdd-sequence: 2"));
+
+    // Drafts conform to the schemas and integrity rules; every remaining
+    // finding is authoring work (placeholders, missing generated views),
+    // never a schema defect.
+    let combined = validate_repository(&scratch)
+        .iter()
+        .map(|f| f.render())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        !combined.contains("frontmatter"),
+        "drafts must be schema-conformant, got:\n{combined}"
+    );
+    assert!(
+        combined.contains("placeholder"),
+        "drafts should report their unfinished placeholders:\n{combined}"
+    );
+    assert!(
+        combined.contains("decision-makers") && combined.contains("placeholder residue"),
+        "an unfilled ADR decision-makers frontmatter field should be reported, not silently \
+         accepted just because placeholder scanning only looked at the body:\n{combined}"
+    );
+
+    let index_findings = specful::index::run_index(&scratch, false);
+    assert!(index_findings.is_empty(), "index generation should succeed");
+    let after_index = validate_repository(&scratch)
+        .iter()
+        .map(|f| f.render())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        !after_index.contains("generated view"),
+        "views should be current after index:\n{after_index}"
+    );
+}
+
+#[test]
 fn accepts_the_valid_repository() {
     let findings = validate_repository(&fixture("valid-repo"));
     let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
