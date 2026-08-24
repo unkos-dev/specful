@@ -92,6 +92,12 @@ pub enum NewKind {
 
 /// Initializes a Specful repository: configuration plus the artifact
 /// directory skeleton. Refuses to touch an already-initialized root.
+///
+/// If the configuration write fails after the directories were created
+/// (for example because the root was already initialized by a concurrent
+/// or prior run), those directories are left in place rather than rolled
+/// back: they are empty and harmless, and a rerun of `init` completes the
+/// job through `create_dir_verified`'s existing-directory tolerance.
 pub fn init(root: &Path, project_key: &str) -> Result<Vec<String>, Vec<Finding>> {
     if !project_key
         .strip_prefix(|c: char| c.is_ascii_uppercase())
@@ -108,13 +114,6 @@ pub fn init(root: &Path, project_key: &str) -> Result<Vec<String>, Vec<Finding>>
             "project key must be 2 to 10 uppercase letters or digits, starting with a letter",
         )]);
     }
-    if root.join(CONFIG_FILE).exists() {
-        return Err(vec![Finding::new(
-            CONFIG_FILE,
-            None,
-            "repository is already initialized",
-        )]);
-    }
 
     let config = Config {
         project_key: project_key.to_owned(),
@@ -129,21 +128,30 @@ pub fn init(root: &Path, project_key: &str) -> Result<Vec<String>, Vec<Finding>>
 
     let mut created = Vec::new();
     for dir in [ADR_DIR, SPECS_DIR] {
-        if let Err(error) = std::fs::create_dir_all(root.join(dir)) {
-            return Err(vec![Finding::new(
-                dir,
-                None,
-                format!("cannot create directory: {error}"),
-            )]);
-        }
+        create_dir_verified(root, Path::new(dir)).map_err(|finding| vec![finding])?;
         created.push(format!("{dir}/"));
     }
-    if let Err(error) = std::fs::write(root.join(CONFIG_FILE), config.render()) {
-        return Err(vec![Finding::new(
-            CONFIG_FILE,
-            None,
-            format!("cannot write configuration: {error}"),
-        )]);
+    match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(root.join(CONFIG_FILE))
+        .and_then(|mut file| file.write_all(config.render().as_bytes()))
+    {
+        Ok(()) => {}
+        Err(error) if error.kind() == ErrorKind::AlreadyExists => {
+            return Err(vec![Finding::new(
+                CONFIG_FILE,
+                None,
+                "repository is already initialized",
+            )]);
+        }
+        Err(error) => {
+            return Err(vec![Finding::new(
+                CONFIG_FILE,
+                None,
+                format!("cannot write configuration: {error}"),
+            )]);
+        }
     }
     created.push(CONFIG_FILE.to_owned());
     Ok(created)
