@@ -324,18 +324,29 @@ fn check_msrs(lines: &[Line<'_>], frontmatter: &serde_json::Value, path: &str) -
 
     for b in &blocks {
         let block_lines = &lines[b.start..b.end];
-        let has_bcp14 = block_lines
+        // The obligation lives in the normative paragraph, before the first
+        // subsection. Guidance under "#### Verification" or "#### Rationale"
+        // discusses the requirement rather than stating it.
+        let normative_end = block_lines
+            .iter()
+            .position(|l| {
+                !l.in_fence && heading_level_and_text(l.text).is_some_and(|(lvl, _)| lvl >= 4)
+            })
+            .unwrap_or(block_lines.len());
+        let normative = &block_lines[..normative_end];
+
+        let has_bcp14 = normative
             .iter()
             .any(|l| !l.in_fence && contains_bcp14_term(l.text));
         if !has_bcp14 {
             findings.push(Finding::new(
                 path,
                 Some(b.heading_line),
-                "requirement block has no normative BCP 14 term",
+                "requirement block has no normative BCP 14 term before its first subsection",
             ));
         }
 
-        let has_should = block_lines
+        let has_should = normative
             .iter()
             .any(|l| !l.in_fence && contains_word_token(l.text, "SHOULD"));
         if has_should {
@@ -896,6 +907,37 @@ mod tests {
                 .iter()
                 .any(|f| f.message.contains("no normative BCP 14 term"))
         );
+    }
+
+    #[test]
+    fn msrs_bcp14_term_only_in_a_subsection_is_a_finding() {
+        let mut fm = msrs_frontmatter();
+        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
+        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system validates the input.\n\n#### Verification\n\nThe input MUST be rejected in the parser test.\n";
+        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("no normative BCP 14 term"))
+        );
+    }
+
+    #[test]
+    fn msrs_subsections_without_a_bcp14_term_have_no_finding() {
+        let mut fm = msrs_frontmatter();
+        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
+        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST validate the input.\n\n#### Verification\n\nThe parser test covers rejected input.\n";
+        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+        assert!(findings.is_empty(), "unexpected findings: {findings:?}");
+    }
+
+    #[test]
+    fn msrs_should_only_in_a_subsection_needs_no_rationale() {
+        let mut fm = msrs_frontmatter();
+        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
+        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST validate the input.\n\n#### Verification\n\nReviewers SHOULD run the parser test.\n";
+        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+        assert!(findings.is_empty(), "unexpected findings: {findings:?}");
     }
 
     #[test]
