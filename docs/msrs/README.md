@@ -3,6 +3,9 @@
 An MSRS module defines current software obligations for one architectural
 scope. A module need not describe the whole project. Place modules at
 `docs/specs/<scope...>/msrs/NNNN-short-title.md`.
+Each architectural scope directory uses lowercase ASCII kebab-case, such as
+`backend` or `data-plane`. This naming rule applies only to scope segments
+inside `docs/specs/`.
 
 Frontmatter requires `type: MSRS`, `profile-version: 1`, a stable
 `PROJECT-MSRS-NNNN` identifier, a title, and a non-empty `requirements`
@@ -42,6 +45,9 @@ term. `#### Rationale` is required for `SHOULD` and `SHOULD NOT`.
 Atomicity, verifiability, appropriate rationale, architectural placement, and
 accidental history are review concerns. They do not add schema fields or
 change deterministic profile conformance.
+
+Fenced code blocks (backtick or tilde) are the recognised code form; indented
+code blocks are not treated as code.
 
 Moving a module or requirement preserves its stable identifiers. Deleting an
 obligation also updates every inbound typed relationship in the same logical

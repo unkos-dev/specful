@@ -3,6 +3,9 @@
 An MSDD module describes current software design for one architectural scope.
 Place modules at
 `docs/specs/<scope...>/msdd/NNNN-short-title.md`.
+Each architectural scope directory uses lowercase ASCII kebab-case, such as
+`backend` or `data-plane`. This naming rule applies only to scope segments
+inside `docs/specs/`.
 
 Frontmatter requires `type: MSDD`, `profile-version: 1`, a stable
 `PROJECT-MSDD-NNNN` identifier, and a title. The filename number matches the
@@ -29,6 +32,9 @@ in declarative present-tense prose.
 
 Ordinary Markdown links remain optional navigation and create no typed
 relationship. A governing decision belongs in `governed-by`.
+
+Fenced code blocks (backtick or tilde) are the recognised code form; indented
+code blocks are not treated as code.
 
 Moving, renaming, or editing a module preserves its identifier. Deletion or a
 requirement change updates affected typed relationships in the same logical

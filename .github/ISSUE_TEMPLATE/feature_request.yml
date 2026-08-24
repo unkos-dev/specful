@@ -1,0 +1,91 @@
+name: Feature request
+description: Propose a new feature or improvement to Specful
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature. Specful is opinionated, and not every
+        feature fits the project's direction. The fields below help maintainers
+        evaluate the proposal against the project's scope and constraints.
+
+        Before filing, please consider whether your idea is better discussed
+        first. Significant features often benefit from a quick discussion
+        before a formal proposal.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checklist
+      options:
+        - label: I have searched [existing issues](https://github.com/unkos-dev/specful/issues?q=is%3Aissue) and confirmed this is not a duplicate
+          required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: |
+        Concrete user story. Who is the user, what are they trying to do, and
+        what's currently blocking them?
+      placeholder: |
+        As a spec author documenting a component, I want X so that I can Y.
+        Currently I have to Z, which is painful because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What you'd like Specful to do. Include convention, schema, or CLI behaviour details where helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you've thought about, and why the proposed solution is preferred.
+    validations:
+      required: false
+
+  - type: textarea
+    id: convention-impact
+    attributes:
+      label: Convention impact
+      description: |
+        How does this affect the convention itself? Consider:
+        - Does this change the repository layout, templates, schemas,
+          identifiers, or generated views (indexes, catalog)?
+        - Is it backward compatible for repositories that already adopted
+          Specful, or does it require a migration?
+        - Does it belong in the convention (something any tooling must
+          honour), the CLI (something `specful` alone provides), or both?
+      placeholder: |
+        - Layout: no change
+        - Schema: adds an optional field to the MSRS frontmatter, backward
+          compatible
+        - Belongs in: the convention, since agents need to see this field
+          without the CLI
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will we know this is done? Bullet list of testable conditions is ideal.
+      placeholder: |
+        - [ ]
+        - [ ]
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else relevant: references to similar features in other projects, links to relevant standards, mockups.
+    validations:
+      required: false

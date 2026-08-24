@@ -36,8 +36,7 @@ scalars are strings.
 Library operations receive the root explicitly. Command operations accept an
 explicit root or search upward from the working directory and select the
 nearest ancestor containing `.specful.yaml`. Traversal remains within that
-root. A descendant `.specful.yaml` begins a separate repository and excludes
-its complete subtree from its parent.
+root.
 
 Canonical paths are relative UTF-8 paths using `/`. Absolute paths, drive
 prefixes, backslashes, empty segments, and `.` or `..` segments are invalid.
