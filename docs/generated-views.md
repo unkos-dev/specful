@@ -17,6 +17,8 @@ Every architectural scope under `docs/specs/`, including the root, gets an
 `index.md` listing its child scopes and its requirements and design
 modules by identifier and title. An agent can navigate from
 `docs/specs/index.md` to any module by reading, one link at a time.
+Scope directory segments use lowercase ASCII kebab-case so their names are
+safe as generated Markdown labels, headings, and link destinations.
 
 Generated indexes open with a marker comment on their first line. An
 `index.md` without the marker is author-owned: generation refuses to

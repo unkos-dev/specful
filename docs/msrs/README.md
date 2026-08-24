@@ -3,6 +3,9 @@
 An MSRS module defines current software obligations for one architectural
 scope. A module need not describe the whole project. Place modules at
 `docs/specs/<scope...>/msrs/NNNN-short-title.md`.
+Each architectural scope directory uses lowercase ASCII kebab-case, such as
+`backend` or `data-plane`. This naming rule applies only to scope segments
+inside `docs/specs/`.
 
 Frontmatter requires `type: MSRS`, `profile-version: 1`, a stable
 `PROJECT-MSRS-NNNN` identifier, a title, and a non-empty `requirements`

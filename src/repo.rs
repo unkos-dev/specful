@@ -292,6 +292,29 @@ fn check_id_matches_filename(
     }
 }
 
+fn check_scope_segments(path: &str, findings: &mut Vec<Finding>) {
+    let segments: Vec<&str> = path.split('/').collect();
+    let Some(scope_segments) = segments.get(2..segments.len().saturating_sub(2)) else {
+        return;
+    };
+    for segment in scope_segments {
+        let valid = !segment.is_empty()
+            && segment.split('-').all(|part| {
+                !part.is_empty()
+                    && part
+                        .chars()
+                        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+            });
+        if !valid {
+            findings.push(Finding::new(
+                path,
+                None,
+                format!("scope directory segment {segment:?} must be lowercase ASCII kebab-case"),
+            ));
+        }
+    }
+}
+
 fn collect_adr_directory(root: &Path, artifacts: &mut Vec<Artifact>, findings: &mut Vec<Finding>) {
     let validator = compile(ADR_V1_SCHEMA_ID);
     for file in markdown_files(root, &root.join(ADR_DIR), findings) {
@@ -426,6 +449,7 @@ fn collect_concept(
             format!("a {concept_type} module belongs in an {kind_dir}/ directory"),
         ));
     }
+    check_scope_segments(&path, findings);
     let sequence = filename_sequence(&path, file_name, findings);
     if !apply_schema(validator, &value, &path, findings) {
         return;

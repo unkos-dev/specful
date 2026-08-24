@@ -251,6 +251,39 @@ fn accepts_the_valid_repository() {
     );
 }
 
+#[test]
+fn rejects_a_non_kebab_case_specification_scope() {
+    let scratch = copy_fixture("valid-repo", "invalid-scope");
+    std::fs::rename(
+        scratch.join("docs/specs/system"),
+        scratch.join("docs/specs/Data Plane"),
+    )
+    .expect("rename scope");
+
+    let findings = validate_repository(&scratch);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    assert!(
+        rendered.iter().any(|f| f.contains(
+            "docs/specs/Data Plane/msrs/0001-progress-sync.md: scope directory segment \"Data Plane\" must be lowercase ASCII kebab-case"
+        )),
+        "expected an invalid scope finding, got:\n{}",
+        rendered.join("\n")
+    );
+}
+
+#[test]
+fn does_not_apply_scope_naming_rules_outside_docs_specs() {
+    let scratch = copy_fixture("valid-repo", "unrelated-directory");
+    std::fs::create_dir_all(scratch.join("reports/Data Plane"))
+        .expect("create unrelated directory");
+
+    let findings = validate_repository(&scratch);
+    assert!(
+        findings.is_empty(),
+        "unrelated directories must not be treated as specification scopes: {findings:?}"
+    );
+}
+
 /// Copies a fixture tree into a fresh temporary directory and returns it.
 fn copy_fixture(name: &str, label: &str) -> std::path::PathBuf {
     fn copy_tree(from: &Path, to: &Path) {
