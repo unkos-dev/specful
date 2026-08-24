@@ -1,13 +1,36 @@
 //! Repository configuration loading.
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::diagnostics::Finding;
 use crate::schemas::{CONFIG_V1_SCHEMA_ID, builtin_schema};
 use crate::yaml::load_restricted_yaml;
 
 pub const CONFIG_FILE: &str = ".specful.yaml";
+
+/// Searches `start` and its ancestors for the nearest directory containing
+/// `.specful.yaml`, the root-selection rule command operations use when no
+/// explicit root is given. Library operations always receive a root
+/// explicitly and never call this.
+pub fn discover_root(start: &Path) -> Result<PathBuf, Finding> {
+    let mut current = start;
+    loop {
+        if current.join(CONFIG_FILE).is_file() {
+            return Ok(current.to_path_buf());
+        }
+        match current.parent() {
+            Some(parent) => current = parent,
+            None => {
+                return Err(Finding::new(
+                    CONFIG_FILE,
+                    None,
+                    "no .specful.yaml found in this directory or any ancestor",
+                ));
+            }
+        }
+    }
+}
 
 const COUNTER_KINDS: [(&str, &str); 4] = [
     ("next-adr-sequence", "ADR"),

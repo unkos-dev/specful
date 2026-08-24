@@ -125,7 +125,33 @@ fn main() -> ExitCode {
             scope,
             root,
         } => {
-            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            let root = match root {
+                Some(root) => root,
+                None => {
+                    let cwd = match std::env::current_dir() {
+                        Ok(cwd) => cwd,
+                        Err(error) => {
+                            println!(
+                                "{}",
+                                specful::diagnostics::Finding::new(
+                                    ".",
+                                    None,
+                                    format!("cannot determine current directory: {error}")
+                                )
+                                .render()
+                            );
+                            return ExitCode::FAILURE;
+                        }
+                    };
+                    match specful::config::discover_root(&cwd) {
+                        Ok(root) => root,
+                        Err(finding) => {
+                            println!("{}", finding.render());
+                            return ExitCode::FAILURE;
+                        }
+                    }
+                }
+            };
             match specful::authoring::new_artifact(&root, kind.into(), scope.as_deref(), &title) {
                 Ok(path) => {
                     println!("created {path}");
