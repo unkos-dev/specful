@@ -1,22 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::path::Path;
 use std::process::Command;
 
-fn scratch(name: &str) -> std::path::PathBuf {
-    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join(name);
-    if dir.exists() {
-        std::fs::remove_dir_all(&dir).expect("clear scratch");
-    }
-    std::fs::create_dir_all(&dir).expect("create scratch");
-    dir
+fn scratch() -> tempfile::TempDir {
+    tempfile::tempdir().expect("create scratch")
 }
 
 #[test]
 fn new_discovers_the_root_from_a_nested_working_directory() {
-    let root = scratch("nested-root-discovery");
-    specful::authoring::init(&root, "EXAMPLE").expect("init");
-    let nested = root.join("docs/specs/backend/sync");
+    let root = scratch();
+    specful::authoring::init(root.path(), "EXAMPLE").expect("init");
+    let nested = root.path().join("docs/specs/backend/sync");
     std::fs::create_dir_all(&nested).expect("create nested dir");
 
     let output = Command::new(env!("CARGO_BIN_EXE_specful"))
@@ -32,7 +26,8 @@ fn new_discovers_the_root_from_a_nested_working_directory() {
         String::from_utf8_lossy(&output.stderr)
     );
     assert!(
-        root.join("docs/adr/0001-discovered-from-nested-dir.md")
+        root.path()
+            .join("docs/adr/0001-discovered-from-nested-dir.md")
             .exists(),
         "the artifact must land under the discovered ancestor root"
     );
@@ -40,14 +35,15 @@ fn new_discovers_the_root_from_a_nested_working_directory() {
 
 #[test]
 fn new_reports_a_clear_error_with_no_ancestor_configuration() {
-    // Deliberately outside CARGO_TARGET_TMPDIR, which lives inside this
-    // repository's own tree: if this repository ever gains a root
-    // .specful.yaml (e.g. dogfooding), discover_root would find it from a
-    // scratch dir under the repo and this test would create a real
-    // artifact here instead of exercising the no-ancestor error. TempDir
-    // gives an atomically and randomly named directory under the system
-    // temp location, with RAII cleanup on drop.
-    let root = tempfile::tempdir().expect("create scratch");
+    // Deliberately its own TempDir rather than a subdirectory of
+    // CARGO_TARGET_TMPDIR, which lives inside this repository's own tree:
+    // if this repository ever gains a root .specful.yaml (e.g.
+    // dogfooding), discover_root would find it from a scratch dir under
+    // the repo and this test would create a real artifact here instead of
+    // exercising the no-ancestor error. TempDir gives an atomically and
+    // randomly named directory under the system temp location, with RAII
+    // cleanup on drop.
+    let root = scratch();
 
     let output = Command::new(env!("CARGO_BIN_EXE_specful"))
         .args(["new", "adr", "--title", "Nothing here"])
