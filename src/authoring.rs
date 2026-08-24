@@ -267,13 +267,23 @@ pub fn new_artifact(
         .create_new(true)
         .open(&target)
     {
-        Ok(mut file) => file.write_all(content.as_bytes()).map_err(|error| {
-            vec![Finding::new(
-                &path,
-                None,
-                format!("cannot write artifact: {error}"),
-            )]
-        })?,
+        Ok(mut file) => {
+            if let Err(error) = file.write_all(content.as_bytes()) {
+                // `create_new` just claimed this path exclusively; leaving a
+                // truncated file behind on a write failure would strand an
+                // invalid artifact under an already-advanced counter, so
+                // remove it rather than leave the partial write in place. A
+                // hard kill mid-write can still leave a partial file; that
+                // gap is the same accepted class as a skipped identifier.
+                drop(file);
+                let _ = std::fs::remove_file(&target);
+                return Err(vec![Finding::new(
+                    &path,
+                    None,
+                    format!("cannot write artifact: {error}"),
+                )]);
+            }
+        }
         Err(error) if error.kind() == ErrorKind::AlreadyExists => {
             return Err(vec![Finding::new(&path, None, "file already exists")]);
         }
