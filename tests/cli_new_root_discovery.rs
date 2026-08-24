@@ -44,23 +44,16 @@ fn new_reports_a_clear_error_with_no_ancestor_configuration() {
     // repository's own tree: if this repository ever gains a root
     // .specful.yaml (e.g. dogfooding), discover_root would find it from a
     // scratch dir under the repo and this test would create a real
-    // artifact here instead of exercising the no-ancestor error.
-    let root = std::env::temp_dir().join(format!(
-        "specful-no-ancestor-configuration-{}",
-        std::process::id()
-    ));
-    if root.exists() {
-        std::fs::remove_dir_all(&root).expect("clear scratch");
-    }
-    std::fs::create_dir_all(&root).expect("create scratch");
+    // artifact here instead of exercising the no-ancestor error. TempDir
+    // gives an atomically and randomly named directory under the system
+    // temp location, with RAII cleanup on drop.
+    let root = tempfile::tempdir().expect("create scratch");
 
     let output = Command::new(env!("CARGO_BIN_EXE_specful"))
         .args(["new", "adr", "--title", "Nothing here"])
-        .current_dir(&root)
+        .current_dir(root.path())
         .output()
         .expect("run specful new");
-
-    std::fs::remove_dir_all(&root).expect("clean up scratch");
 
     assert!(
         !output.status.success(),
