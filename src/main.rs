@@ -25,6 +25,14 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Regenerate the committed navigation views (indexes and catalog).
+    Index {
+        /// Repository root; defaults to the current directory.
+        root: Option<PathBuf>,
+        /// Report drift without writing anything.
+        #[arg(long)]
+        check: bool,
+    },
 }
 
 fn main() -> ExitCode {
@@ -49,6 +57,23 @@ fn main() -> ExitCode {
                 }
             }
             if findings.is_empty() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            }
+        }
+        Command::Index { root, check } => {
+            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            let findings = specful::index::run_index(&root, check);
+            for finding in &findings {
+                println!("{}", finding.render());
+            }
+            if findings.is_empty() {
+                if check {
+                    println!("generated views are current");
+                } else {
+                    println!("generated views written");
+                }
                 ExitCode::SUCCESS
             } else {
                 ExitCode::FAILURE

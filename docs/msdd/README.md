@@ -3,6 +3,9 @@
 An MSDD module describes current software design for one architectural scope.
 Place modules at
 `docs/specs/<scope...>/msdd/NNNN-short-title.md`.
+Each architectural scope directory uses lowercase ASCII kebab-case, such as
+`backend` or `data-plane`. This naming rule applies only to scope segments
+inside `docs/specs/`.
 
 Frontmatter requires `type: MSDD`, `profile-version: 1`, a stable
 `PROJECT-MSDD-NNNN` identifier, and a title. The filename number matches the
