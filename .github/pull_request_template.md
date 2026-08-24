@@ -27,7 +27,7 @@ apply.
 Reminders:
 
 - Title MUST follow Conventional Commits: <type>(<scope>): <description>
-  Types: feat, fix, refactor, docs, chore, test, perf, ci
+  See CONTRIBUTING.md for the accepted types.
 - Tests are expected for src/ changes: happy path, negative cases, and
   non-obvious edge cases.
 - A maintainer reviews and merges every change.
