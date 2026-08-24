@@ -129,6 +129,42 @@ fn detects_and_removes_orphaned_views() {
 }
 
 #[test]
+fn collection_failures_leave_generated_views_unchanged() {
+    let scratch = copy_fixture("valid-repo", "collection-failure");
+    let view_paths = [
+        ".specful/generated/catalog.json",
+        "docs/specs/index.md",
+        "docs/specs/backend/index.md",
+        "docs/specs/system/index.md",
+    ];
+    let original_views =
+        view_paths.map(|path| std::fs::read(scratch.join(path)).expect("read generated view"));
+
+    std::fs::write(
+        scratch.join("docs/specs/system/msrs/0001-progress-sync.md"),
+        "invalid frontmatter\n",
+    )
+    .expect("corrupt source artifact");
+
+    let findings = specful::index::run_index(&scratch, false);
+    assert!(
+        findings.iter().any(|finding| {
+            finding
+                .render()
+                .contains("frontmatter must open with --- on the first line")
+        }),
+        "index should report the collection failure"
+    );
+    for (path, original) in view_paths.into_iter().zip(original_views) {
+        assert_eq!(
+            std::fs::read(scratch.join(path)).expect("read generated view after failed index"),
+            original,
+            "collection failure changed {path}"
+        );
+    }
+}
+
+#[test]
 #[cfg(unix)]
 fn does_not_delete_a_marker_bearing_file_reached_through_a_symlink() {
     let scratch = Path::new(env!("CARGO_TARGET_TMPDIR")).join("symlink-orphan-repo");
