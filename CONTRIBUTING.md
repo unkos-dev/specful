@@ -3,83 +3,72 @@
 Specful is early and its contracts are still settling, but issues and pull
 requests are welcome.
 
-Report suspected security vulnerabilities privately through GitHub's
-private vulnerability reporting on this repository, never in a public
-issue.
+**Security issues are reported privately, not through issues.** Use
+GitHub's private vulnerability reporting on this repository.
 
 ## Developer Certificate of Origin
 
+Contributions are accepted under the [Developer Certificate of Origin
+v1.1](https://developercertificate.org/) (DCO). You keep the copyright of
+your work; each contribution is licensed to the project under the license
+that governs the files it touches (inbound = outbound): the Apache
+License 2.0 for implementation and general repository content, and CC0
+1.0 for templates and schemas. The nearest license file and any SPDX
+identifier on a file determine which applies. Signing off certifies the
+DCO: that you wrote the contribution, or otherwise have the right to
+submit it under that license.
+
 Every commit must carry a `Signed-off-by` trailer matching the commit's
-author name and email, added with `git commit -s`; the DCO check verifies
-this on every pull request. Because squash merging composes the landed
-commit from the pull request title and body, the durable sign-off record
-is each pull request's verified commits, not the history on `main`. The
-sign-off certifies the Developer Certificate of Origin, version 1.1
-(<https://developercertificate.org/>):
+author name and email, added with `git commit -s`:
 
 ```text
-Developer Certificate of Origin
-Version 1.1
-
-By making a contribution to this project, I certify that:
-
-(a) The contribution was created in whole or in part by me and I
-    have the right to submit it under the open source license
-    indicated in the file; or
-
-(b) The contribution is based upon previous work that, to the best
-    of my knowledge, is covered under an appropriate open source
-    license and I have the right under that license to submit that
-    work with modifications, whether created in whole or in part
-    by me, under the same open source license (unless I am
-    permitted to submit under a different license), as indicated
-    in the file; or
-
-(c) The contribution was provided directly to me by some other
-    person who certified (a), (b) or (c) and I have not modified
-    it.
-
-(d) I understand and agree that this project and the contribution
-    are public and that a record of the contribution (including all
-    personal information I submit with it, including my sign-off) is
-    maintained indefinitely and may be redistributed consistent with
-    this project or the open source license(s) involved.
+Signed-off-by: Your Name <your-email@example.com>
 ```
 
-Contributions land under the license that governs the touched files: the
-Apache License 2.0 for implementation and general repository content, and
-CC0 1.0 for templates and schemas. The nearest license file and any SPDX
-identifier on a file determine which applies.
+The DCO check verifies the trailer on every pull request. Because squash
+merging composes the landed commit from the pull request title and body,
+the durable sign-off record is each pull request's verified commits, not
+the history on `main`.
 
-## Process
+## Commit messages and branches
 
-- Branch from `main`; every change lands through a pull request and a
-  squash merge, so the pull request title becomes the commit subject.
-- Commit subjects and pull request titles follow Conventional Commits:
-  `<type>(<scope>): <description>` with one of `build`, `chore`, `ci`,
-  `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, or `test`
-  (for example `feat: trace requirements to designs`). Explain the why in
-  the body, not a changelog of the what.
-- No releases are cut yet. When they are, versions follow Semantic
-  Versioning, derived from the commit types by release automation;
-  versions are never edited by hand, in `Cargo.toml` or anywhere else.
-- Specification artifacts follow the writing model in
-  [docs/project-charter.md](docs/project-charter.md).
+Commit subjects and pull request titles follow Conventional Commits:
 
-## Local checks
-
-Every pull request runs formatting and tests in continuous integration,
-and the DCO app verifies the sign-off on every commit. Run the same
-recipes CI runs before pushing:
-
-```sh
-just fmt-check
-just clippy
-just test
-just doctests
+```text
+<type>(<scope>): <description>
 ```
 
-See `justfile` for the full local gate, including the lint and
-dependency checks CI also runs.
+The accepted types are `build`, `chore`, `ci`, `docs`, `feat`, `fix`,
+`perf`, `refactor`, `revert`, `style`, and `test` (for example `feat:
+trace requirements to designs`). Explain the why in the body, not a
+changelog of the what.
 
-Tests accompany behaviour changes in the same pull request.
+Branch names use the same type as their prefix (`feat/`, `fix/`, `docs/`,
+and so on through the same list).
+
+Squash merging makes the pull request title the commit subject on `main`,
+so pull request titles follow the same format.
+
+No releases are cut yet. When they are, versions follow Semantic
+Versioning, derived from the commit types by release automation; versions
+are never edited by hand, in `Cargo.toml` or anywhere else.
+
+## Pull request process
+
+1. Branch from `main`.
+2. Write tests alongside any behaviour change. Specification artifacts
+   follow the writing model in
+   [docs/project-charter.md](docs/project-charter.md).
+3. CI runs formatting and tests on every pull request; run the same
+   checks locally before pushing:
+
+   ```sh
+   just fmt-check
+   just clippy
+   just test
+   just doctests
+   ```
+
+   See `justfile` for the full local gate, including the lint and
+   dependency checks CI also runs.
+4. Open the pull request.
