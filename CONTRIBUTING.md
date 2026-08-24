@@ -15,9 +15,9 @@ this on every pull request. Because squash merging composes the landed
 commit from the pull request title and body, the durable sign-off record
 is each pull request's verified commits, not the history on `main`. The
 sign-off certifies the Developer Certificate of Origin, version 1.1
-(https://developercertificate.org/):
+(<https://developercertificate.org/>):
 
-```
+```text
 Developer Certificate of Origin
 Version 1.1
 
@@ -71,7 +71,7 @@ identifier on a file determine which applies.
 Every pull request runs formatting and tests in continuous integration,
 and the DCO app verifies the sign-off on every commit. Before pushing:
 
-```
+```sh
 cargo fmt
 cargo clippy --all-targets
 cargo test --locked
