@@ -21,6 +21,8 @@ fn flags_every_planted_defect_in_the_invalid_repository() {
         "filename sequence 0001 does not match identifier BAD-MSRS-0002",
         "concept type \"WIDGET\" is not MSRS or MSDD",
         "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
+        "BAD-ADR-0002 supersedes BAD-ADR-0003, but BAD-ADR-0003 does not record superseded-by BAD-ADR-0002",
+        "supersession cycle detected involving BAD-ADR-0004",
         "governed-by target BAD-ADR-0009 does not exist",
         "satisfies target BAD-REQ-0404 does not exist",
         "next-msrs-sequence 1 lags allocated identifier sequence 2",

@@ -727,3 +727,62 @@ fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn adr(status: &str, supersedes: &[&str], superseded_by: &[&str]) -> AdrRecord {
+        AdrRecord {
+            path: "docs/adr/0001-example.md".to_string(),
+            status: status.to_string(),
+            supersedes: supersedes.iter().map(|s| s.to_string()).collect(),
+            superseded_by: superseded_by.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+
+    // The ADR schema's allOf already ties status to superseded-by presence
+    // (superseded requires it, every other status forbids it), so no
+    // schema-valid fixture can reach validate_supersession's own status
+    // check. Exercise it directly against a hand-built inventory instead.
+    #[test]
+    fn superseded_by_without_superseded_status_is_a_finding() {
+        let mut inventory = Inventory::default();
+        inventory.adrs.insert(
+            "BAD-ADR-0001".to_string(),
+            adr("accepted", &[], &["BAD-ADR-0002"]),
+        );
+        inventory.adrs.insert(
+            "BAD-ADR-0002".to_string(),
+            adr("accepted", &["BAD-ADR-0001"], &[]),
+        );
+
+        let mut findings = Vec::new();
+        validate_supersession(&inventory, &mut findings);
+
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message == "only a superseded ADR may record superseded-by"),
+            "expected a status/superseded-by finding, got: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn superseded_status_without_superseded_by_is_a_finding() {
+        let mut inventory = Inventory::default();
+        inventory
+            .adrs
+            .insert("BAD-ADR-0001".to_string(), adr("superseded", &[], &[]));
+
+        let mut findings = Vec::new();
+        validate_supersession(&inventory, &mut findings);
+
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message == "a superseded ADR must record superseded-by"),
+            "expected a status/superseded-by finding, got: {findings:?}"
+        );
+    }
+}
