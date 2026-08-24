@@ -30,5 +30,5 @@ Reminders:
   Types: feat, fix, refactor, docs, chore, test, perf, ci
 - Tests are expected for src/ changes: happy path, negative cases, and
   non-obvious edge cases.
-- Maintainer review and approval gate every merge.
+- A maintainer reviews and merges every change.
 -->
