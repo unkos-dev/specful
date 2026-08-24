@@ -6,11 +6,82 @@
 //! `validate` reports them until the document is completed.
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::fs::OpenOptions;
+use std::io::{ErrorKind, Write};
+use std::path::{Path, PathBuf};
 
 use crate::config::{CONFIG_FILE, Config, load_config};
 use crate::diagnostics::Finding;
-use crate::repo::{ADR_DIR, SPECS_DIR};
+use crate::repo::{ADR_DIR, SPECS_DIR, create_dir_verified};
+
+/// Sibling lock file guarding the read-modify-rename of `.specful.yaml`.
+/// Its presence is the allocation lock: a second `specful new` sees
+/// `create_new` fail and reports the collision instead of racing the first.
+const LOCK_FILE: &str = ".specful.yaml.lock";
+
+/// Owns the lock file created for one configuration update. Dropping the
+/// guard without calling [`ConfigLock::commit`] successfully removes the
+/// lock file, so every error path after acquisition releases it.
+struct ConfigLock {
+    path: PathBuf,
+    committed: bool,
+}
+
+impl ConfigLock {
+    /// Acquires the lock by exclusively creating the lock file. An existing
+    /// lock means another process may be running, or a stale lock remains
+    /// from an interrupted run and must be removed manually; either way this
+    /// never removes it itself.
+    fn acquire(root: &Path) -> Result<Self, Vec<Finding>> {
+        let path = root.join(LOCK_FILE);
+        match OpenOptions::new().write(true).create_new(true).open(&path) {
+            Ok(_) => Ok(Self {
+                path,
+                committed: false,
+            }),
+            Err(error) if error.kind() == ErrorKind::AlreadyExists => Err(vec![Finding::new(
+                LOCK_FILE,
+                None,
+                "lock file already exists; another specful process may be running, or a stale lock remains and must be removed manually",
+            )]),
+            Err(error) => Err(vec![Finding::new(
+                LOCK_FILE,
+                None,
+                format!("cannot create lock file: {error}"),
+            )]),
+        }
+    }
+
+    /// Writes `content` to the lock file, then renames it onto
+    /// `.specful.yaml`: an atomic replace that also releases the lock. On
+    /// any error the lock file is left for `Drop` to remove.
+    fn commit(mut self, root: &Path, content: &str) -> Result<(), Vec<Finding>> {
+        if let Err(error) = std::fs::write(&self.path, content) {
+            return Err(vec![Finding::new(
+                CONFIG_FILE,
+                None,
+                format!("cannot write configuration: {error}"),
+            )]);
+        }
+        if let Err(error) = std::fs::rename(&self.path, root.join(CONFIG_FILE)) {
+            return Err(vec![Finding::new(
+                CONFIG_FILE,
+                None,
+                format!("cannot commit configuration: {error}"),
+            )]);
+        }
+        self.committed = true;
+        Ok(())
+    }
+}
+
+impl Drop for ConfigLock {
+    fn drop(&mut self) {
+        if !self.committed {
+            let _ = std::fs::remove_file(&self.path);
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NewKind {
@@ -86,11 +157,6 @@ pub fn new_artifact(
     scope: Option<&str>,
     title: &str,
 ) -> Result<String, Vec<Finding>> {
-    let mut findings = Vec::new();
-    let Some(mut config) = load_config(root, &mut findings) else {
-        return Err(findings);
-    };
-
     let scope = match (kind, scope) {
         (NewKind::Adr, Some(_)) => {
             return Err(vec![Finding::new(
@@ -139,6 +205,20 @@ pub fn new_artifact(
         )]);
     }
 
+    // The lock file is the exclusive right to read, allocate from, and
+    // rewrite `.specful.yaml`, so the whole read-modify-write below is one
+    // critical section: no other allocation can observe or advance these
+    // counters between the read and the rename that commits them. It is
+    // released (via `Drop`) on every path out of this function once
+    // acquired, whether by the atomic rename on success or by an error
+    // return before it.
+    let lock = ConfigLock::acquire(root)?;
+
+    let mut findings = Vec::new();
+    let Some(mut config) = load_config(root, &mut findings) else {
+        return Err(findings);
+    };
+
     let counter_kind = match kind {
         NewKind::Adr => "ADR",
         NewKind::Msrs => "MSRS",
@@ -173,34 +253,37 @@ pub fn new_artifact(
     };
 
     let target = root.join(&path);
-    if target.exists() {
-        return Err(vec![Finding::new(&path, None, "file already exists")]);
-    }
+
     // Persist the advanced counters before the artifact: an interrupted run
     // then leaves an allocation gap, which is permitted, rather than a
     // counter that lags an allocated identifier, which is invalid.
-    if let Err(error) = std::fs::write(root.join(CONFIG_FILE), config.render()) {
-        return Err(vec![Finding::new(
-            CONFIG_FILE,
-            None,
-            format!("cannot write configuration: {error}"),
-        )]);
+    lock.commit(root, &config.render())?;
+
+    if let Some(parent) = Path::new(&path).parent() {
+        create_dir_verified(root, parent).map_err(|finding| vec![finding])?;
     }
-    if let Some(parent) = target.parent()
-        && let Err(error) = std::fs::create_dir_all(parent)
+    match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&target)
     {
-        return Err(vec![Finding::new(
-            &path,
-            None,
-            format!("cannot create directory: {error}"),
-        )]);
-    }
-    if let Err(error) = std::fs::write(&target, content) {
-        return Err(vec![Finding::new(
-            &path,
-            None,
-            format!("cannot write artifact: {error}"),
-        )]);
+        Ok(mut file) => file.write_all(content.as_bytes()).map_err(|error| {
+            vec![Finding::new(
+                &path,
+                None,
+                format!("cannot write artifact: {error}"),
+            )]
+        })?,
+        Err(error) if error.kind() == ErrorKind::AlreadyExists => {
+            return Err(vec![Finding::new(&path, None, "file already exists")]);
+        }
+        Err(error) => {
+            return Err(vec![Finding::new(
+                &path,
+                None,
+                format!("cannot write artifact: {error}"),
+            )]);
+        }
     }
     Ok(path)
 }

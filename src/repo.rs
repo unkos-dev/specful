@@ -718,6 +718,57 @@ fn resolves_within_root(root: &Path, target: &str) -> bool {
     false
 }
 
+/// Creates the directory components of `relative` under `root`, rejecting
+/// any existing component that is a symlink or not a directory. Missing
+/// components are created one at a time with `create_dir`, never
+/// `create_dir_all` through an unverified path, so a repository-controlled
+/// symlink cannot redirect the write outside the root. Mirrors the
+/// symlink-safe walk in `resolves_within_root`, but creates rather than only
+/// inspects.
+pub(crate) fn create_dir_verified(root: &Path, relative: &Path) -> Result<(), Finding> {
+    let mut current = root.to_path_buf();
+    for component in relative.components() {
+        current.push(component);
+        let relative_display = || {
+            current
+                .strip_prefix(root)
+                .unwrap_or(&current)
+                .components()
+                .map(|c| c.as_os_str().to_string_lossy())
+                .collect::<Vec<_>>()
+                .join("/")
+        };
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) => {
+                if metadata.file_type().is_symlink() || !metadata.is_dir() {
+                    return Err(Finding::new(
+                        relative_display(),
+                        None,
+                        "symlink not allowed",
+                    ));
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                if let Err(create_error) = std::fs::create_dir(&current) {
+                    return Err(Finding::new(
+                        relative_display(),
+                        None,
+                        format!("cannot create directory: {create_error}"),
+                    ));
+                }
+            }
+            Err(error) => {
+                return Err(Finding::new(
+                    relative_display(),
+                    None,
+                    format!("cannot inspect directory: {error}"),
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn validate_supersession(adrs: &BTreeMap<&str, &Artifact>, findings: &mut Vec<Finding>) {
     for (id, record) in adrs {
         for target in &record.supersedes {
