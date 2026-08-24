@@ -772,33 +772,33 @@ fn validate_supersession(adrs: &BTreeMap<&str, &Artifact>, findings: &mut Vec<Fi
 mod tests {
     use super::*;
 
-    fn adr(status: &str, supersedes: &[&str], superseded_by: &[&str]) -> AdrRecord {
-        AdrRecord {
-            path: "docs/adr/0001-example.md".to_string(),
-            status: status.to_string(),
+    fn adr(id: &str, status: &str, supersedes: &[&str], superseded_by: &[&str]) -> Artifact {
+        Artifact {
+            kind: ArtifactKind::Adr,
+            id: id.to_string(),
+            path: format!("docs/adr/{}.md", id.to_lowercase()),
+            title: "Example".to_string(),
+            status: Some(status.to_string()),
             supersedes: supersedes.iter().map(|s| s.to_string()).collect(),
             superseded_by: superseded_by.iter().map(|s| s.to_string()).collect(),
+            satisfies: Vec::new(),
+            governed_by: Vec::new(),
+            requirements: Vec::new(),
         }
     }
 
     // The ADR schema's allOf already ties status to superseded-by presence
     // (superseded requires it, every other status forbids it), so no
     // schema-valid fixture can reach validate_supersession's own status
-    // check. Exercise it directly against a hand-built inventory instead.
+    // check. Exercise it directly against a hand-built adrs map instead.
     #[test]
     fn superseded_by_without_superseded_status_is_a_finding() {
-        let mut inventory = Inventory::default();
-        inventory.adrs.insert(
-            "BAD-ADR-0001".to_string(),
-            adr("accepted", &[], &["BAD-ADR-0002"]),
-        );
-        inventory.adrs.insert(
-            "BAD-ADR-0002".to_string(),
-            adr("accepted", &["BAD-ADR-0001"], &[]),
-        );
+        let one = adr("BAD-ADR-0001", "accepted", &[], &["BAD-ADR-0002"]);
+        let two = adr("BAD-ADR-0002", "accepted", &["BAD-ADR-0001"], &[]);
+        let adrs = BTreeMap::from([("BAD-ADR-0001", &one), ("BAD-ADR-0002", &two)]);
 
         let mut findings = Vec::new();
-        validate_supersession(&inventory, &mut findings);
+        validate_supersession(&adrs, &mut findings);
 
         assert!(
             findings
@@ -810,13 +810,11 @@ mod tests {
 
     #[test]
     fn superseded_status_without_superseded_by_is_a_finding() {
-        let mut inventory = Inventory::default();
-        inventory
-            .adrs
-            .insert("BAD-ADR-0001".to_string(), adr("superseded", &[], &[]));
+        let one = adr("BAD-ADR-0001", "superseded", &[], &[]);
+        let adrs = BTreeMap::from([("BAD-ADR-0001", &one)]);
 
         let mut findings = Vec::new();
-        validate_supersession(&inventory, &mut findings);
+        validate_supersession(&adrs, &mut findings);
 
         assert!(
             findings
