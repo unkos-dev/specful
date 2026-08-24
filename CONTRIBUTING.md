@@ -69,12 +69,17 @@ identifier on a file determine which applies.
 ## Local checks
 
 Every pull request runs formatting and tests in continuous integration,
-and the DCO app verifies the sign-off on every commit. Before pushing:
+and the DCO app verifies the sign-off on every commit. Run the same
+recipes CI runs before pushing:
 
 ```sh
-cargo fmt
-cargo clippy --all-targets
-cargo test --locked
+just fmt-check
+just clippy
+just test
+just doctests
 ```
+
+See `justfile` for the full local gate, including the lint and
+dependency checks CI also runs.
 
 Tests accompany behaviour changes in the same pull request.
