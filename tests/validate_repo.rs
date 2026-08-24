@@ -427,6 +427,54 @@ fn traces_an_msrs_module_to_its_designs() {
 }
 
 #[test]
+fn traces_a_requirement_to_its_satisfying_designs() {
+    let root = fixture("valid-repo");
+    let (ok, out) = run_specful(&[
+        "trace",
+        "OK-REQ-0001",
+        "--root",
+        root.to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(
+        out,
+        "OK-MSDD-0001 (docs/specs/backend/msdd/0001-progress-pipeline.md)\n"
+    );
+}
+
+#[test]
+fn traces_an_msdd_module_to_the_requirements_it_satisfies() {
+    let root = fixture("valid-repo");
+    let (ok, out) = run_specful(&[
+        "trace",
+        "OK-MSDD-0001",
+        "--root",
+        root.to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(
+        out,
+        "OK-REQ-0001 -> OK-MSRS-0001\nOK-REQ-0002 -> OK-MSRS-0001\n"
+    );
+}
+
+#[test]
+fn trace_of_an_adr_is_rejected() {
+    let root = fixture("valid-repo");
+    let (ok, out) = run_specful(&[
+        "trace",
+        "OK-ADR-0001",
+        "--root",
+        root.to_str().expect("utf8 path"),
+    ]);
+    assert!(!ok, "trace of an ADR must fail");
+    assert!(
+        out.contains("trace is not defined for ADRs; use specful show"),
+        "unexpected output:\n{out}"
+    );
+}
+
+#[test]
 fn trace_of_unknown_identifier_fails() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
@@ -440,6 +488,108 @@ fn trace_of_unknown_identifier_fails() {
         out.contains("unknown identifier OK-MSRS-9999"),
         "unexpected output:\n{out}"
     );
+}
+
+#[test]
+fn trace_of_an_unrecognized_kind_identifier_fails() {
+    // "FOO" is not ADR, MSRS, MSDD, or REQ: infer_kind returns None before
+    // any catalog lookup, a different path than a well-formed but absent id.
+    let root = fixture("valid-repo");
+    let (ok, out) = run_specful(&[
+        "trace",
+        "OK-FOO-0001",
+        "--root",
+        root.to_str().expect("utf8 path"),
+    ]);
+    assert!(!ok, "trace of an unrecognized-kind id must fail");
+    assert!(
+        out.contains("unknown identifier OK-FOO-0001"),
+        "unexpected output:\n{out}"
+    );
+}
+
+/// Writes a hand-built catalog directly, bypassing `specful index`: query.rs
+/// reads the catalog only, so this is enough to exercise result shapes
+/// (untraced requirements, an MSDD with no satisfies links) that the
+/// `valid-repo` fixture's fully-linked artifacts never produce.
+fn scratch_catalog(artifacts_json: &str) -> tempfile::TempDir {
+    let root = tempfile::tempdir().expect("create scratch");
+    std::fs::create_dir_all(root.path().join(".specful/generated")).expect("create catalog dir");
+    std::fs::write(
+        root.path().join(".specful/generated/catalog.json"),
+        format!("{{\"artifacts\": {artifacts_json}}}"),
+    )
+    .expect("write catalog");
+    root
+}
+
+#[test]
+fn traces_an_msrs_module_with_an_unsatisfied_requirement_as_untraced() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-MSRS-0001",
+                "kind": "msrs",
+                "path": "docs/specs/system/msrs/0001-x.md",
+                "title": "X",
+                "requirements": ["T-REQ-0001"]
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "trace",
+        "T-MSRS-0001",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(out, "T-REQ-0001 <- (untraced)\n");
+}
+
+#[test]
+fn traces_an_unsatisfied_requirement_as_untraced() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-MSRS-0001",
+                "kind": "msrs",
+                "path": "docs/specs/system/msrs/0001-x.md",
+                "title": "X",
+                "requirements": ["T-REQ-0001"]
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "trace",
+        "T-REQ-0001",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(out, "(untraced)\n");
+}
+
+#[test]
+fn traces_an_msdd_module_with_no_satisfies_links() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-MSDD-0001",
+                "kind": "msdd",
+                "path": "docs/specs/system/msdd/0001-y.md",
+                "title": "Y",
+                "satisfies": []
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "trace",
+        "T-MSDD-0001",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(out, "(no satisfies links)\n");
 }
 
 #[test]
