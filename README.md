@@ -36,7 +36,7 @@ with repository configuration in
 
 The v0.1 information model is defined: artifact profiles, JSON Schemas with
 language-neutral conformance cases, and templates. The CLI (`init`, `new`,
-`validate`, `index`, `show`, `trace`) is in progress; no release or
+`validate`, `index`, `show`, `trace`) is implemented; no release or
 installation contract exists yet.
 
 ## Influences
