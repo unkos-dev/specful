@@ -339,6 +339,11 @@ fn init_and_new_produce_a_schema_conformant_draft() {
         combined.contains("placeholder"),
         "drafts should report their unfinished placeholders:\n{combined}"
     );
+    assert!(
+        combined.contains("decision-makers") && combined.contains("placeholder residue"),
+        "an unfilled ADR decision-makers frontmatter field should be reported, not silently \
+         accepted just because placeholder scanning only looked at the body:\n{combined}"
+    );
 
     let index_findings = specful::index::run_index(&scratch, false);
     assert!(index_findings.is_empty(), "index generation should succeed");
