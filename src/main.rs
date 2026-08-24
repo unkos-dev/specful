@@ -194,7 +194,10 @@ fn main() -> ExitCode {
             }
         }
         Command::Show { id, root } => {
-            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            let root = match resolve_root(root) {
+                Ok(root) => root,
+                Err(code) => return code,
+            };
             match specful::query::show(&root, &id) {
                 Ok(rendered) => {
                     print!("{rendered}");
@@ -209,7 +212,10 @@ fn main() -> ExitCode {
             }
         }
         Command::Trace { id, root } => {
-            let root = root.unwrap_or_else(|| PathBuf::from("."));
+            let root = match resolve_root(root) {
+                Ok(root) => root,
+                Err(code) => return code,
+            };
             match specful::query::trace(&root, &id) {
                 Ok(rendered) => {
                     print!("{rendered}");

@@ -53,6 +53,69 @@ fn validate_reports_a_clear_error_with_no_ancestor_configuration() {
 }
 
 #[test]
+fn show_discovers_the_root_from_a_nested_working_directory() {
+    let root = scratch();
+    specful::authoring::init(root.path(), "EXAMPLE").expect("init");
+    specful::authoring::new_artifact(root.path(), specful::authoring::NewKind::Adr, None, "Seed")
+        .expect("new adr");
+    let index_findings = specful::index::run_index(root.path(), false);
+    assert!(index_findings.is_empty(), "index generation should succeed");
+    let nested = root.path().join("docs/specs/backend/sync");
+    std::fs::create_dir_all(&nested).expect("create nested dir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_specful"))
+        .args(["show", "EXAMPLE-ADR-0001"])
+        .current_dir(&nested)
+        .output()
+        .expect("run specful show");
+
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("id: EXAMPLE-ADR-0001"),
+        "expected the discovered root's catalog to be shown, got: {stdout}"
+    );
+}
+
+#[test]
+fn trace_discovers_the_root_from_a_nested_working_directory() {
+    // trace's root resolution goes through the same resolve_root helper as
+    // show, so this only needs to prove the query pipeline ran against the
+    // discovered root (an ADR is a real, meaningful rejection, not a
+    // ".specful.yaml not found" discovery failure) rather than duplicating
+    // full coverage of every trace shape.
+    let root = scratch();
+    specful::authoring::init(root.path(), "EXAMPLE").expect("init");
+    specful::authoring::new_artifact(root.path(), specful::authoring::NewKind::Adr, None, "Seed")
+        .expect("new adr");
+    let index_findings = specful::index::run_index(root.path(), false);
+    assert!(index_findings.is_empty(), "index generation should succeed");
+    let nested = root.path().join("docs/specs/backend/sync");
+    std::fs::create_dir_all(&nested).expect("create nested dir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_specful"))
+        .args(["trace", "EXAMPLE-ADR-0001"])
+        .current_dir(&nested)
+        .output()
+        .expect("run specful trace");
+
+    assert!(
+        !output.status.success(),
+        "trace of an ADR must fail, but root discovery must have succeeded"
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("trace is not defined for ADRs"),
+        "expected the discovered root's catalog to be queried, got: {stdout}"
+    );
+}
+
+#[test]
 fn index_discovers_the_root_from_a_nested_working_directory() {
     let root = scratch();
     specful::authoring::init(root.path(), "EXAMPLE").expect("init");
