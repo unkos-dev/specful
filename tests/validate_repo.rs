@@ -95,6 +95,54 @@ fn reports_symlinks_without_following_them() {
 
 #[cfg(unix)]
 #[test]
+fn rejects_a_path_source_whose_final_component_is_a_symlink_outside_the_repository() {
+    let root = copy_fixture("valid-repo", "symlink-final");
+    let cited = root.join("docs/adr/0001-store-progress-events.md");
+    std::fs::remove_file(&cited).expect("remove cited file");
+
+    let outside = std::env::temp_dir().join("specful-symlink-final-target");
+    std::fs::write(&outside, "outside the repository").expect("write outside file");
+    std::os::unix::fs::symlink(&outside, &cited).expect("create symlink");
+
+    let findings = validate_repository(&root);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    std::fs::remove_dir_all(&root).expect("remove temporary repository");
+    let _ = std::fs::remove_file(&outside);
+
+    assert!(
+        rendered.iter().any(|f| f.contains(
+            "requirement OK-REQ-0001 cites source path docs/adr/0001-store-progress-events.md, which does not exist"
+        )),
+        "expected a finding for the symlinked source, got:\n{}",
+        rendered.join("\n")
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn rejects_a_path_source_through_a_symlinked_intermediate_directory() {
+    let root = copy_fixture("valid-repo", "symlink-intermediate");
+    let real_dir = root.join("docs/adr-real");
+    std::fs::rename(root.join("docs/adr"), &real_dir).expect("rename adr directory");
+    std::os::unix::fs::symlink(&real_dir, root.join("docs/adr")).expect("create symlink");
+
+    let findings = validate_repository(&root);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    std::fs::remove_dir_all(&real_dir).expect("remove real directory");
+    let _ = std::fs::remove_file(root.join("docs/adr"));
+    std::fs::remove_dir_all(&root).expect("remove temporary repository");
+
+    assert!(
+        rendered.iter().any(|f| f.contains(
+            "requirement OK-REQ-0001 cites source path docs/adr/0001-store-progress-events.md, which does not exist"
+        )),
+        "expected a finding for the symlinked intermediate directory, got:\n{}",
+        rendered.join("\n")
+    );
+}
+
+#[cfg(unix)]
+#[test]
 fn reports_unreadable_directories() {
     use std::os::unix::fs::PermissionsExt;
 

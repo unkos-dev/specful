@@ -583,7 +583,7 @@ fn validate_sources(root: &Path, inventory: &Inventory, findings: &mut Vec<Findi
                     report(format!(
                         "requirement {requirement} cites source path {target}, which leaves the repository"
                     ));
-                } else if !root.join(target).is_file() {
+                } else if !resolves_within_root(root, target) {
                     report(format!(
                         "requirement {requirement} cites source path {target}, which does not exist"
                     ));
@@ -601,6 +601,34 @@ fn escapes_root(path: &str) -> bool {
     !Path::new(path)
         .components()
         .all(|component| matches!(component, std::path::Component::Normal(_)))
+}
+
+/// Walks `target` component by component from `root`, rejecting any
+/// intermediate or final component that is a symlink. This never calls
+/// `canonicalize` and never follows a symlink, so a cited path that escapes
+/// the repository through a symlink is reported as unresolved rather than
+/// silently validated. The final component must be a regular file.
+fn resolves_within_root(root: &Path, target: &str) -> bool {
+    let mut current = root.to_path_buf();
+    let components: Vec<_> = Path::new(target).components().collect();
+    for (index, component) in components.iter().enumerate() {
+        current.push(component);
+        let metadata = match std::fs::symlink_metadata(&current) {
+            Ok(metadata) => metadata,
+            Err(_) => return false,
+        };
+        if metadata.file_type().is_symlink() {
+            return false;
+        }
+        let is_last = index == components.len() - 1;
+        if is_last {
+            return metadata.is_file();
+        }
+        if !metadata.is_dir() {
+            return false;
+        }
+    }
+    false
 }
 
 fn validate_supersession(inventory: &Inventory, findings: &mut Vec<Finding>) {
