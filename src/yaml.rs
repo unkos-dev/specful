@@ -376,7 +376,7 @@ fn resolve_scalar(
         return serde_json::Value::String(String::new());
     }
     match value {
-        "null" => return serde_json::Value::Null,
+        "null" | "~" => return serde_json::Value::Null,
         "true" => return serde_json::Value::Bool(true),
         "false" => return serde_json::Value::Bool(false),
         _ => {}
@@ -559,6 +559,18 @@ mod tests {
         // `a:` with a missing value, which the parser fills in as `~`).
         let err = load("a: &x\nb: 1\n").unwrap_err();
         assert!(err.iter().any(|f| f.message.contains("empty plain scalar")));
+    }
+
+    #[test]
+    fn omitted_value_resolves_to_null() {
+        let value = load("a:\nb: 1\n").expect("valid document");
+        assert_eq!(value, serde_json::json!({"a": null, "b": 1}));
+    }
+
+    #[test]
+    fn quoted_tilde_stays_a_string() {
+        let value = load("a: \"~\"\n").expect("valid document");
+        assert_eq!(value, serde_json::json!({"a": "~"}));
     }
 
     #[test]
