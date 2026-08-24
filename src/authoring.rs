@@ -93,11 +93,15 @@ pub enum NewKind {
 /// Initializes a Specful repository: configuration plus the artifact
 /// directory skeleton. Refuses to touch an already-initialized root.
 ///
-/// If the configuration write fails after the directories were created
+/// If configuration creation fails after the directories were created
 /// (for example because the root was already initialized by a concurrent
 /// or prior run), those directories are left in place rather than rolled
 /// back: they are empty and harmless, and a rerun of `init` completes the
-/// job through `create_dir_verified`'s existing-directory tolerance.
+/// job through `create_dir_verified`'s existing-directory tolerance. A
+/// `.specful.yaml` that was exclusively created but then failed to write
+/// in full is not left behind, though: a truncated config would make a
+/// rerun of `init` see "repository is already initialized" against a
+/// corrupt file, so it is removed before returning the finding.
 pub fn init(root: &Path, project_key: &str) -> Result<Vec<String>, Vec<Finding>> {
     if !project_key
         .strip_prefix(|c: char| c.is_ascii_uppercase())
@@ -135,9 +139,23 @@ pub fn init(root: &Path, project_key: &str) -> Result<Vec<String>, Vec<Finding>>
         .write(true)
         .create_new(true)
         .open(root.join(CONFIG_FILE))
-        .and_then(|mut file| file.write_all(config.render().as_bytes()))
     {
-        Ok(()) => {}
+        Ok(mut file) => {
+            if let Err(error) = file.write_all(config.render().as_bytes()) {
+                // create_new just claimed this path exclusively; leaving a
+                // truncated .specful.yaml behind would make a rerun of
+                // init see "repository is already initialized" against a
+                // corrupt config, so remove it rather than leave the
+                // partial write in place.
+                drop(file);
+                let _ = std::fs::remove_file(root.join(CONFIG_FILE));
+                return Err(vec![Finding::new(
+                    CONFIG_FILE,
+                    None,
+                    format!("cannot write configuration: {error}"),
+                )]);
+            }
+        }
         Err(error) if error.kind() == ErrorKind::AlreadyExists => {
             return Err(vec![Finding::new(
                 CONFIG_FILE,
