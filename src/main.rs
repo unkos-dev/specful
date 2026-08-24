@@ -19,7 +19,7 @@ struct Cli {
 enum Command {
     /// Validate the repository against the Specful profiles.
     Validate {
-        /// Repository root; defaults to the current directory.
+        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
         root: Option<PathBuf>,
         /// Emit findings as JSON. The shape is unstable.
         #[arg(long)]
@@ -27,7 +27,7 @@ enum Command {
     },
     /// Regenerate the committed navigation views (indexes and catalog).
     Index {
-        /// Repository root; defaults to the current directory.
+        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
         root: Option<PathBuf>,
         /// Report drift without writing anything.
         #[arg(long)]
@@ -52,7 +52,7 @@ enum Command {
         /// Architectural scope for msrs and msdd modules, e.g. backend/sync.
         #[arg(long)]
         scope: Option<String>,
-        /// Repository root; defaults to the current directory.
+        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
     },
@@ -60,7 +60,7 @@ enum Command {
     Show {
         /// Identifier to look up, e.g. OK-MSDD-0001.
         id: String,
-        /// Repository root; defaults to the current directory.
+        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
     },
@@ -68,7 +68,7 @@ enum Command {
     Trace {
         /// Identifier to trace, e.g. OK-MSRS-0001.
         id: String,
-        /// Repository root; defaults to the current directory.
+        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
     },
