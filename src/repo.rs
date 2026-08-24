@@ -719,12 +719,14 @@ fn resolves_within_root(root: &Path, target: &str) -> bool {
 }
 
 /// Creates the directory components of `relative` under `root`, rejecting
-/// any existing component that is a symlink or not a directory. Missing
-/// components are created one at a time with `create_dir`, never
-/// `create_dir_all` through an unverified path, so a repository-controlled
-/// symlink cannot redirect the write outside the root. Mirrors the
-/// symlink-safe walk in `resolves_within_root`, but creates rather than only
-/// inspects.
+/// any existing component that is a symlink ("symlink not allowed") or a
+/// non-directory such as a plain file ("not a directory") — kept distinct
+/// so the finding does not misreport an ordinary file obstruction as a
+/// symlink escape. Missing components are created one at a time with
+/// `create_dir`, never `create_dir_all` through an unverified path, so a
+/// repository-controlled symlink cannot redirect the write outside the
+/// root. Mirrors the symlink-safe walk in `resolves_within_root`, but
+/// creates rather than only inspects.
 pub(crate) fn create_dir_verified(root: &Path, relative: &Path) -> Result<(), Finding> {
     let mut current = root.to_path_buf();
     for component in relative.components() {
@@ -740,12 +742,15 @@ pub(crate) fn create_dir_verified(root: &Path, relative: &Path) -> Result<(), Fi
         };
         match std::fs::symlink_metadata(&current) {
             Ok(metadata) => {
-                if metadata.file_type().is_symlink() || !metadata.is_dir() {
+                if metadata.file_type().is_symlink() {
                     return Err(Finding::new(
                         relative_display(),
                         None,
                         "symlink not allowed",
                     ));
+                }
+                if !metadata.is_dir() {
+                    return Err(Finding::new(relative_display(), None, "not a directory"));
                 }
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {

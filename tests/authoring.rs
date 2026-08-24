@@ -132,3 +132,23 @@ fn symlinked_scope_directory_is_rejected() {
         "nothing must be written outside the repository root"
     );
 }
+
+#[test]
+fn a_plain_file_blocking_the_scope_path_is_reported_as_not_a_directory() {
+    let root = scratch("plain-file-blocks-scope");
+    init(&root, "EXAMPLE").expect("init");
+
+    std::fs::write(root.join("docs/specs/backend"), "not a directory")
+        .expect("plant blocking file");
+
+    let findings = new_artifact(&root, NewKind::Msrs, Some("backend"), "Blocked module")
+        .expect_err("a plain file blocking the scope path must be rejected");
+    assert!(
+        findings.iter().any(|f| f.message == "not a directory"),
+        "expected a not-a-directory finding, got {findings:?}"
+    );
+    assert!(
+        !findings.iter().any(|f| f.message == "symlink not allowed"),
+        "a plain file is not a symlink and must not be reported as one, got {findings:?}"
+    );
+}
