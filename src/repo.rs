@@ -50,7 +50,7 @@ pub fn validate_repository(root: &Path) -> Vec<Finding> {
     let mut findings = Vec::new();
     let config = load_config(root, &mut findings);
     let mut sources = Vec::new();
-    let artifacts = collect_artifacts_and_sources(root, &mut findings, &mut sources);
+    let (artifacts, _) = collect_artifacts_and_sources(root, &mut findings, &mut sources);
     validate_integrity(root, config.as_ref(), &artifacts, &sources, &mut findings);
     crate::index::check_generated_views(root, &artifacts, &mut findings);
     sort_findings(&mut findings);
@@ -59,7 +59,7 @@ pub fn validate_repository(root: &Path) -> Vec<Finding> {
 
 /// Walks the repository and returns every conformant artifact, appending
 /// findings for each defect encountered on the way.
-pub(crate) fn collect_artifacts(root: &Path, findings: &mut Vec<Finding>) -> Vec<Artifact> {
+pub(crate) fn collect_artifacts(root: &Path, findings: &mut Vec<Finding>) -> (Vec<Artifact>, bool) {
     let mut sources = Vec::new();
     collect_artifacts_and_sources(root, findings, &mut sources)
 }
@@ -71,11 +71,12 @@ fn collect_artifacts_and_sources(
     root: &Path,
     findings: &mut Vec<Finding>,
     sources: &mut Vec<SourceCitation>,
-) -> Vec<Artifact> {
+) -> (Vec<Artifact>, bool) {
     let mut artifacts = Vec::new();
-    collect_adr_directory(root, &mut artifacts, findings);
-    collect_specs_tree(root, &mut artifacts, sources, findings);
-    artifacts
+    let mut complete = true;
+    collect_adr_directory(root, &mut artifacts, findings, &mut complete);
+    collect_specs_tree(root, &mut artifacts, sources, findings, &mut complete);
+    (artifacts, complete)
 }
 
 fn compile(schema_id: &str) -> jsonschema::Validator {
@@ -315,9 +316,17 @@ fn check_scope_segments(path: &str, findings: &mut Vec<Finding>) {
     }
 }
 
-fn collect_adr_directory(root: &Path, artifacts: &mut Vec<Artifact>, findings: &mut Vec<Finding>) {
+fn collect_adr_directory(
+    root: &Path,
+    artifacts: &mut Vec<Artifact>,
+    findings: &mut Vec<Finding>,
+    complete: &mut bool,
+) {
     let validator = compile(ADR_V1_SCHEMA_ID);
-    for file in markdown_files(root, &root.join(ADR_DIR), findings) {
+    let finding_count = findings.len();
+    let files = markdown_files(root, &root.join(ADR_DIR), findings);
+    *complete &= findings.len() == finding_count;
+    for file in files {
         let file_name = file
             .file_name()
             .unwrap_or_default()
@@ -330,9 +339,11 @@ fn collect_adr_directory(root: &Path, artifacts: &mut Vec<Artifact>, findings: &
         let sequence = filename_sequence(&path, &file_name, findings);
         let Some((path, value, body, body_first_line)) = load_artifact(root, &file, findings)
         else {
+            *complete = false;
             continue;
         };
         if !apply_schema(&validator, &value, &path, findings) {
+            *complete = false;
             continue;
         }
         let id = value["id"].as_str().expect("schema requires id").to_owned();
@@ -364,6 +375,7 @@ fn collect_specs_tree(
     artifacts: &mut Vec<Artifact>,
     sources: &mut Vec<SourceCitation>,
     findings: &mut Vec<Finding>,
+    complete: &mut bool,
 ) {
     let validators = ConceptValidators {
         msrs: compile(MSRS_V1_SCHEMA_ID),
@@ -371,7 +383,10 @@ fn collect_specs_tree(
     };
     let mut stack = vec![root.join(SPECS_DIR)];
     while let Some(dir) = stack.pop() {
-        for (file, is_dir) in read_entries(root, &dir, findings) {
+        let finding_count = findings.len();
+        let entries = read_entries(root, &dir, findings);
+        *complete &= findings.len() == finding_count;
+        for (file, is_dir) in entries {
             if is_dir {
                 stack.push(file);
                 continue;
@@ -387,7 +402,7 @@ fn collect_specs_tree(
             if file_name == "index.md" || file_name == "log.md" {
                 continue;
             }
-            collect_concept(
+            *complete &= collect_concept(
                 root,
                 &file,
                 &file_name,
@@ -415,9 +430,9 @@ fn collect_concept(
     sources: &mut Vec<SourceCitation>,
     findings: &mut Vec<Finding>,
     validators: &ConceptValidators,
-) {
+) -> bool {
     let Some((path, value, body, body_first_line)) = load_artifact(root, file, findings) else {
-        return;
+        return false;
     };
     let concept_type = value["type"].as_str().unwrap_or_default().to_owned();
     if concept_type.is_empty() {
@@ -426,7 +441,7 @@ fn collect_concept(
             Some(2),
             "concept frontmatter requires a non-empty type",
         ));
-        return;
+        return false;
     }
     let (kind, validator, kind_dir) = match concept_type.as_str() {
         "MSRS" => (ArtifactKind::Msrs, &validators.msrs, "msrs"),
@@ -437,7 +452,7 @@ fn collect_concept(
                 Some(2),
                 format!("concept type \"{concept_type}\" is not MSRS or MSDD"),
             ));
-            return;
+            return false;
         }
     };
 
@@ -452,7 +467,7 @@ fn collect_concept(
     check_scope_segments(&path, findings);
     let sequence = filename_sequence(&path, file_name, findings);
     if !apply_schema(validator, &value, &path, findings) {
-        return;
+        return false;
     }
     let id = value["id"].as_str().expect("schema requires id").to_owned();
     check_id_matches_filename(&id, sequence, &path, findings);
@@ -489,6 +504,7 @@ fn collect_concept(
         governed_by: string_array(&value, "governed-by"),
         requirements,
     });
+    true
 }
 
 fn validate_integrity(

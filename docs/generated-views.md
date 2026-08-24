@@ -5,10 +5,11 @@ Both are disposable: they carry no canonical knowledge, and validation
 fails when a committed view disagrees with the documents it derives from.
 `specful index --check` reports that drift without writing.
 
-Generation requires every artifact to load and pass schema validation. If
-collection reports a defect, `specful index` reports it and leaves all
-generated views unchanged. A generated view whose source artifacts have all
-gone is orphaned; `specful index` deletes it and validation reports it.
+Generation requires every artifact to load and pass schema validation. If a
+defect prevents an artifact from being collected, `specful index` reports it
+and leaves all generated views unchanged. A generated view whose source
+artifacts have all gone is orphaned; `specful index` deletes it and validation
+reports it.
 
 ## Per-scope indexes
 
