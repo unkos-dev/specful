@@ -30,6 +30,9 @@ in declarative present-tense prose.
 Ordinary Markdown links remain optional navigation and create no typed
 relationship. A governing decision belongs in `governed-by`.
 
+Fenced code blocks (backtick or tilde) are the recognised code form; indented
+code blocks are not treated as code.
+
 Moving, renaming, or editing a module preserves its identifier. Deletion or a
 requirement change updates affected typed relationships in the same logical
 change. Git retains prior design states; the module itself contains no status,

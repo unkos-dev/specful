@@ -1,5 +1,12 @@
 //! Core Specful domain logic.
 
+pub mod body;
+pub mod config;
+pub mod diagnostics;
+pub mod frontmatter;
+pub mod repo;
+pub mod yaml;
+
 mod schemas;
 
 pub use schemas::{

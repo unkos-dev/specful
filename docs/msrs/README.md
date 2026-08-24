@@ -43,6 +43,9 @@ Atomicity, verifiability, appropriate rationale, architectural placement, and
 accidental history are review concerns. They do not add schema fields or
 change deterministic profile conformance.
 
+Fenced code blocks (backtick or tilde) are the recognised code form; indented
+code blocks are not treated as code.
+
 Moving a module or requirement preserves its stable identifiers. Deleting an
 obligation also updates every inbound typed relationship in the same logical
 change. Git retains prior states; current modules contain no status or obsolete
