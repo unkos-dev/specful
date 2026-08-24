@@ -42,3 +42,81 @@ fn accepts_the_valid_repository() {
         rendered.join("\n")
     );
 }
+
+/// Copies a fixture tree into a fresh temporary directory and returns it.
+fn copy_fixture(name: &str, label: &str) -> std::path::PathBuf {
+    fn copy_tree(from: &Path, to: &Path) {
+        std::fs::create_dir_all(to).expect("create directory");
+        for entry in std::fs::read_dir(from).expect("read fixture directory") {
+            let entry = entry.expect("read fixture entry");
+            let target = to.join(entry.file_name());
+            if entry.file_type().expect("entry type").is_dir() {
+                copy_tree(&entry.path(), &target);
+            } else {
+                std::fs::copy(entry.path(), &target).expect("copy fixture file");
+            }
+        }
+    }
+
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("clock is after the epoch")
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!("specful-{label}-{unique}"));
+    let _ = std::fs::remove_dir_all(&root);
+    copy_tree(&fixture(name), &root);
+    root
+}
+
+#[cfg(unix)]
+#[test]
+fn reports_symlinks_without_following_them() {
+    let root = copy_fixture("valid-repo", "symlink");
+    // Points back at an ancestor: following it would never terminate.
+    std::os::unix::fs::symlink("../../..", root.join("docs/specs/system/loop"))
+        .expect("create symlink");
+
+    let findings = validate_repository(&root);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    std::fs::remove_dir_all(&root).expect("remove temporary repository");
+
+    assert!(
+        rendered
+            .iter()
+            .any(|f| f == "docs/specs/system/loop: symlink not allowed"),
+        "expected a symlink finding, got:\n{}",
+        rendered.join("\n")
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn reports_unreadable_directories() {
+    use std::os::unix::fs::PermissionsExt;
+
+    /// Restores readable permissions even when the assertions panic.
+    struct Restore(std::path::PathBuf);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            let _ = std::fs::set_permissions(&self.0, std::fs::Permissions::from_mode(0o755));
+            let _ =
+                std::fs::remove_dir_all(self.0.parent().and_then(Path::parent).unwrap_or(&self.0));
+        }
+    }
+
+    let root = copy_fixture("valid-repo", "unreadable");
+    let locked = root.join("docs/adr");
+    std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o000))
+        .expect("remove directory permissions");
+    let _restore = Restore(locked);
+
+    let findings = validate_repository(&root);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    assert!(
+        rendered
+            .iter()
+            .any(|f| f.starts_with("docs/adr: cannot read directory")),
+        "expected an unreadable directory finding, got:\n{}",
+        rendered.join("\n")
+    );
+}

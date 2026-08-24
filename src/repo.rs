@@ -69,19 +69,71 @@ fn relative(root: &Path, path: &Path) -> String {
         .join("/")
 }
 
-fn markdown_files(dir: &Path) -> Vec<PathBuf> {
-    let mut files = Vec::new();
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return files;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.extension().is_some_and(|e| e == "md") {
-            files.push(path);
+/// Reads `dir`, reporting unreadable directories and rejecting symlinks.
+///
+/// A directory that does not exist is not a finding: a repository need not
+/// carry every optional tree. Any other read failure is fail-closed, since
+/// content that cannot be read cannot be validated.
+fn read_entries(root: &Path, dir: &Path, findings: &mut Vec<Finding>) -> Vec<(PathBuf, bool)> {
+    let mut kept = Vec::new();
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return kept,
+        Err(error) => {
+            findings.push(Finding::new(
+                relative(root, dir),
+                None,
+                format!("cannot read directory: {error}"),
+            ));
+            return kept;
         }
+    };
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(error) => {
+                findings.push(Finding::new(
+                    relative(root, dir),
+                    None,
+                    format!("cannot read directory entry: {error}"),
+                ));
+                continue;
+            }
+        };
+        let path = entry.path();
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(error) => {
+                findings.push(Finding::new(
+                    relative(root, &path),
+                    None,
+                    format!("cannot read directory entry: {error}"),
+                ));
+                continue;
+            }
+        };
+        // `file_type` never follows symlinks, so a symlinked directory is
+        // reported here instead of being walked into.
+        if file_type.is_symlink() {
+            findings.push(Finding::new(
+                relative(root, &path),
+                None,
+                "symlink not allowed",
+            ));
+            continue;
+        }
+        kept.push((path, file_type.is_dir()));
     }
-    files.sort();
-    files
+    kept.sort();
+    kept
+}
+
+fn markdown_files(root: &Path, dir: &Path, findings: &mut Vec<Finding>) -> Vec<PathBuf> {
+    read_entries(root, dir, findings)
+        .into_iter()
+        .filter(|(path, is_dir)| !is_dir && path.extension().is_some_and(|e| e == "md"))
+        .map(|(path, _)| path)
+        .collect()
 }
 
 fn filename_sequence(path: &str, file_name: &str, findings: &mut Vec<Finding>) -> Option<i64> {
@@ -209,7 +261,7 @@ fn check_id_matches_filename(
 
 fn validate_adr_directory(root: &Path, inventory: &mut Inventory, findings: &mut Vec<Finding>) {
     let validator = compile(ADR_V1_SCHEMA_ID);
-    for file in markdown_files(&root.join(ADR_DIR)) {
+    for file in markdown_files(root, &root.join(ADR_DIR), findings) {
         let file_name = file
             .file_name()
             .unwrap_or_default()
@@ -258,12 +310,8 @@ fn validate_specs_tree(root: &Path, inventory: &mut Inventory, findings: &mut Ve
     let msdd_validator = compile(MSDD_V1_SCHEMA_ID);
     let mut stack = vec![root.join(SPECS_DIR)];
     while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let file = entry.path();
-            if file.is_dir() {
+        for (file, is_dir) in read_entries(root, &dir, findings) {
+            if is_dir {
                 stack.push(file);
                 continue;
             }
