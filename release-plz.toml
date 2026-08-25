@@ -2,3 +2,13 @@
 # Labels the rolling release PR so it reads the same as any other automated
 # PR in the repository's label taxonomy.
 pr_labels = ["release"]
+
+# The default (true) publishes on every push to main, which would release
+# 0.1.0 the moment the App secrets exist, bypassing the maintainer-merge
+# approval gate CONTRIBUTING.md documents as the release act. false makes
+# merging the release PR the only path to a release: upstream also
+# recommends false for squash-merge repositories (this one is squash-only),
+# since with true a squash merge can race an in-flight `release-plz release`
+# run on main. Detection relies on the default `release-plz-` PR branch
+# prefix, which this config does not override.
+release_always = false

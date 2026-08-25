@@ -3,8 +3,10 @@
 # .github/workflows/README.md). Two jobs, matching release-plz's own
 # quickstart: release-pr maintains a rolling PR that accumulates the version
 # bump and CHANGELOG.md entry for whatever has landed on main since the last
-# release; release runs after that PR is merged and publishes the version
-# bump that lands with it (crates.io, git tag, GitHub release).
+# release; release runs on every push to main but, per release-plz.toml's
+# release_always = false, only actually publishes (crates.io, git tag,
+# GitHub release) when the push it sees is the release PR's merge. An
+# ordinary push never publishes on its own.
 #
 # Both steps authenticate as a GitHub App installation rather than the
 # default GITHUB_TOKEN. The default token cannot trigger other workflow
