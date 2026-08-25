@@ -1,11 +1,9 @@
-# tests/fixtures holds repositories that are deliberately malformed.
 [global]
 exclude = ["target", "tests/fixtures"]
 
 [MD004]
 style = "dash"
 
-# Front matter `title:` is metadata, not a rendered heading.
 [MD025]
 front-matter-title = ""
 
