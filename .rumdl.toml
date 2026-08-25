@@ -1,18 +1,14 @@
-# Markdown lint: markdownlint/rumdl defaults; no rule is disabled.
-[global]
 # tests/fixtures holds repositories that are deliberately malformed.
+[global]
 exclude = ["target", "tests/fixtures"]
 
-# List markers are dashes throughout the tree.
 [MD004]
 style = "dash"
 
-# Front matter `title:` is metadata, not a second rendered H1.
+# Front matter `title:` is metadata, not a rendered heading.
 [MD025]
 front-matter-title = ""
 
-# 120 is the repository's chosen line-length limit; code blocks carry
-# literal content and are exempt.
 [MD013]
 line-length = 120
 headings = true
