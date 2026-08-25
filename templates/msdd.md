@@ -3,10 +3,6 @@ type: MSDD
 profile-version: 1
 id: PROJECT-MSDD-NNNN
 title: Module design
-# Omit satisfies when this module has no requirement relationship.
-# satisfies:
-#   - PROJECT-REQ-NNNN
-# x-project-field: null
 ---
 
 # Module design

@@ -1,26 +1,21 @@
 ---
-# Frontmatter uses the JSON-compatible YAML 1.2 subset.
 kind: adr
 profile-version: 1
 id: "{PROJECT}-ADR-{NNNN}"
 title: "{Short title naming the problem and chosen solution}"
 status: "{proposed | accepted | deprecated | superseded}"
 recorded-on: "{YYYY-MM-DD}"
-# Remove decided-on when the ADR is proposed or the historical date is unknown.
 decided-on: "{YYYY-MM-DD}"
 decision-makers:
   - "{person or collective role}"
-# Remove optional participant fields that do not apply.
 consulted:
   - "{person or collective role}"
 informed:
   - "{person or collective role}"
-# Remove relationship fields that do not apply.
 supersedes:
   - "{PROJECT}-ADR-{NNNN}"
 superseded-by:
   - "{PROJECT}-ADR-{NNNN}"
-# Add project-specific metadata only with lowercase x- extension keys.
 ---
 
 <!-- SPDX-License-Identifier: CC0-1.0 -->
