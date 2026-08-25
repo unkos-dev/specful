@@ -1,15 +1,14 @@
-# Markdown lint. Line length and inline HTML are left to authors, and code
-# spans may carry significant spaces (the docs name markers such as `# `);
-# list markers are dashes throughout the tree.
 [global]
-# tests/fixtures holds repositories that are deliberately malformed.
-exclude = ["target", "tests/fixtures", ".claude", "CLAUDE.md", "**/CLAUDE.md"]
-disable = ["MD013", "MD033", "MD038"]
+exclude = ["target", "tests/fixtures"]
 
 [MD004]
 style = "dash"
 
-# Front matter `title:` is metadata the CLI reads, not a rendered heading;
-# without this the body's single H1 counts as a second one.
 [MD025]
 front-matter-title = ""
+
+[MD013]
+line-length = 120
+headings = true
+code-blocks = false
+tables = true
