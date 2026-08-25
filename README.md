@@ -36,8 +36,10 @@ with repository configuration in
 
 The v0.1 information model is defined: artifact profiles, JSON Schemas with
 language-neutral conformance cases, and templates. The CLI (`init`, `new`,
-`validate`, `index`, `show`, `trace`) is implemented; no release or
-installation contract exists yet.
+`validate`, `index`, `show`, `trace`) is implemented. Releases are automated
+from conventional commits into a rolling pull request; a maintainer merging
+that PR publishes to crates.io, so `cargo install specful` will work once
+v0.1.0 ships. No version has been released yet.
 
 ## Influences
 
