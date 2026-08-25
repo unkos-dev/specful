@@ -4,14 +4,10 @@ profile-version: 1
 id: PROJECT-MSRS-NNNN
 title: Module requirements
 requirements:
-  # An empty mapping is valid. Optionally record provenance with sources,
-  # or extend with lowercase x- keys.
-  PROJECT-REQ-NNNN: {}
-  # PROJECT-REQ-NNNN:
-  #   sources:
-  #     - type: artifact
-  #       artifact-id: PROJECT-ADR-NNNN
-  #   x-project-field: null
+  PROJECT-REQ-NNNN:
+    sources:
+      - type: artifact
+        artifact-id: PROJECT-ADR-NNNN
 ---
 
 # Module requirements
