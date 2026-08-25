@@ -1,15 +1,18 @@
-# Markdown lint. Line length and inline HTML are left to authors, and code
-# spans may carry significant spaces (the docs name markers such as `# `);
-# list markers are dashes throughout the tree.
+# Markdown lint: markdownlint/rumdl defaults, with narrow deviations below.
 [global]
 # tests/fixtures holds repositories that are deliberately malformed.
 exclude = ["target", "tests/fixtures", ".claude", "CLAUDE.md", "**/CLAUDE.md"]
-disable = ["MD013", "MD033", "MD038"]
+# docs/adr/README.md names the `# ` heading marker; the space is significant.
+disable = ["MD038"]
 
+# List markers are dashes throughout the tree.
 [MD004]
 style = "dash"
 
-# Front matter `title:` is metadata the CLI reads, not a rendered heading;
-# without this the body's single H1 counts as a second one.
+# Front matter `title:` is metadata, not a second rendered H1.
 [MD025]
 front-matter-title = ""
+
+# markdownlint checks tables by default; rumdl's own default does not.
+[MD013]
+tables = true
