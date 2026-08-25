@@ -1,0 +1,4 @@
+[workspace]
+# Labels the rolling release PR so it reads the same as any other automated
+# PR in the repository's label taxonomy.
+pr_labels = ["release"]

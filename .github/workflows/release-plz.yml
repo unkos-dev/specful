@@ -1,0 +1,103 @@
+# Standalone workflow, outside the ci.yml composition: it runs on push to
+# main rather than pull_request, so it carries no required context (see
+# .github/workflows/README.md). Two jobs, matching release-plz's own
+# quickstart: release-pr maintains a rolling PR that accumulates the version
+# bump and CHANGELOG.md entry for whatever has landed on main since the last
+# release; release runs after that PR is merged and publishes the version
+# bump that lands with it (crates.io, git tag, GitHub release).
+#
+# Both steps authenticate as a GitHub App installation rather than the
+# default GITHUB_TOKEN. The default token cannot trigger other workflow
+# runs, so a release PR opened with it would never see the required
+# `rust`/`lint`/`deps`/`hygiene` checks run and could never merge. The App
+# token also gives the release PR a bot author rather than the Actions bot;
+# the DCO app exempts bot-authored commits from the sign-off check by
+# default, so the release PR satisfies `DCO` without a human re-signing
+# commits it did not write.
+name: Release-plz
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  release-pr:
+    name: release-pr
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Mutating calls (opening/updating the PR, pushing its branch) go
+      # through the App token minted below, not this job's default token;
+      # checkout is the only step here that uses it.
+      contents: read
+    # A push to main can land while a previous release-pr run is still
+    # updating the rolling PR; queue rather than cancel so a run is never cut
+    # off mid-update and left with a half-written PR body or branch.
+    concurrency:
+      group: release-plz-release-pr
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/rust-toolchain
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_PLZ_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLZ_APP_PRIVATE_KEY }}
+          # Narrow the minted token below the App's own installation grant:
+          # opening/updating the release PR and pushing its branch needs
+          # both, nothing else.
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Run release-plz release-pr
+        uses: release-plz/action@2eb1d8bcb770b4c48ccfaad919734b38b51958c9 # v0.5.131
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # See release-pr: mutation uses the App token, not this job's default.
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/rust-toolchain
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_PLZ_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLZ_APP_PRIVATE_KEY }}
+          # Narrow the minted token below the App's own installation grant:
+          # tagging and creating the GitHub release needs contents write;
+          # reading the merged PR for the changelog needs pull-requests read.
+          permission-contents: write
+          permission-pull-requests: read
+
+      - name: Run release-plz release
+        uses: release-plz/action@2eb1d8bcb770b4c48ccfaad919734b38b51958c9 # v0.5.131
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
