@@ -53,13 +53,13 @@ in both a recipe and a job, or in neither.
 
 | Workflow | Jobs | Purpose |
 | --- | --- | --- |
-| `rust.yml` | `checks`, `tests`, `msrv` | Formatting, clippy, doc links, unused dependencies, doctests; the test suite under coverage; a compile on the declared `rust-version`. |
-| `lint.yml` | `workflows`, `prose`, `secrets` | actionlint and zizmor over this directory; typos and rumdl over the tree; gitleaks over the PR commit range or the working tree. |
-| `deps.yml` | `cargo-deny`, `review` | Advisories, licenses, bans, and sources from `deny.toml`; GitHub dependency review on pull requests. |
-| `snyk.yml` | `code` | Snyk Code SAST, advisory only: findings upload to code scanning and never fail the job. |
-| `label.yml` | `label` | Applies `area/*` and `dependencies` labels from `.github/labeler.yml`. Runs on `pull_request_target` so the config on `main` is authoritative. |
-| `pr-hygiene.yml` | `commits`, `title` | commitlint over the pull request's commit range; Conventional Commits linting of the title, which squash merging makes the commit subject. Standalone rather than a `ci.yml` concern so its `edited` trigger reruns only these jobs. |
-| `release-plz.yml` | `release-pr`, `release` | Rolling release PR; its merge publishes to crates.io and tags. |
+| `rust.yml` | `checks`, `tests`, `msrv` | Format, clippy, doctests, coverage. |
+| `lint.yml` | `workflows`, `prose`, `secrets` | Static analysis per job. |
+| `deps.yml` | `cargo-deny`, `review` | `deny.toml` checks; dependency review. |
+| `snyk.yml` | `code` | Snyk Code SAST, advisory only. |
+| `label.yml` | `label` | Labels from `.github/labeler.yml`. |
+| `pr-hygiene.yml` | `commits`, `title` | commitlint; title lint. Standalone. |
+| `release-plz.yml` | `release-pr`, `release` | Rolling release PR; publish. |
 
 Every third-party action is pinned to a full commit SHA with a trailing
 version comment that Renovate keeps current. `.github/zizmor.yml` records the
@@ -99,10 +99,11 @@ in `snyk.yml`.
 
 | Secret | Used by | When absent |
 | --- | --- | --- |
-| `CODACY_PROJECT_TOKEN` | `rust` / `tests` | The Codacy upload step is skipped with a notice; the job still passes and the `lcov.info` artifact is still uploaded. The step is also skipped on fork and bot pull requests, which carry no secrets. The upload itself is `continue-on-error`, so a Codacy outage never fails the job. |
-| `SNYK_TOKEN` | `snyk` / `code` | The scan and SARIF upload steps are skipped with a notice and the job passes. The job is skipped entirely on fork pull requests. |
-| `RELEASE_PLZ_APP_ID`, `RELEASE_PLZ_APP_PRIVATE_KEY` | `release-plz` | The App token mint fails; the run fails. |
-| `CARGO_REGISTRY_TOKEN` | `release-plz` / `release` | The publish fails; the rolling PR is unaffected. |
+| `CODACY_PROJECT_TOKEN` | `rust` / `tests` | Upload is skipped; job passes. |
+| `SNYK_TOKEN` | `snyk` / `code` | Scan is skipped; job passes. |
+| `RELEASE_PLZ_APP_ID` | `release-plz` | Token mint fails; run fails. |
+| `RELEASE_PLZ_APP_PRIVATE_KEY` | `release-plz` | Token mint fails; run fails. |
+| `CARGO_REGISTRY_TOKEN` | `release-plz` / `release` | Publish fails. |
 
 `GITHUB_TOKEN` is the only other credential in use: zizmor reads public
 action metadata with it, the labeler writes labels with a job-scoped
