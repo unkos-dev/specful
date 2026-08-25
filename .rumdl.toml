@@ -1,9 +1,7 @@
-# Markdown lint: markdownlint/rumdl defaults, with narrow deviations below.
+# Markdown lint: markdownlint/rumdl defaults; no rule is disabled.
 [global]
 # tests/fixtures holds repositories that are deliberately malformed.
-exclude = ["target", "tests/fixtures", ".claude", "CLAUDE.md", "**/CLAUDE.md"]
-# docs/adr/README.md names the `# ` heading marker; the space is significant.
-disable = ["MD038"]
+exclude = ["target", "tests/fixtures"]
 
 # List markers are dashes throughout the tree.
 [MD004]
@@ -13,6 +11,10 @@ style = "dash"
 [MD025]
 front-matter-title = ""
 
-# markdownlint checks tables by default; rumdl's own default does not.
+# 120 is the repository's chosen line-length limit; code blocks carry
+# literal content and are exempt.
 [MD013]
+line-length = 120
+headings = true
+code-blocks = false
 tables = true

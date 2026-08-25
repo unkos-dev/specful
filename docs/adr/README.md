@@ -72,7 +72,8 @@ allocation.
 Every ADR stores its title in the required frontmatter `title` field and
 repeats it as the document's single level-one Markdown heading. The two
 representations form one logical value. The frontmatter string must exactly
-match the heading text after the `# ` marker is removed.
+match the heading text after the `#` marker and the space following it are
+removed.
 
 A mismatch is invalid, and neither representation takes precedence. This
 parity preserves deterministic metadata access while keeping each ADR useful
