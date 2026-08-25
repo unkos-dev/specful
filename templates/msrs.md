@@ -4,7 +4,10 @@ profile-version: 1
 id: PROJECT-MSRS-NNNN
 title: Module requirements
 requirements:
-  PROJECT-REQ-NNNN: {}
+  PROJECT-REQ-NNNN:
+    sources:
+      - type: artifact
+        artifact-id: PROJECT-ADR-NNNN
 ---
 
 # Module requirements

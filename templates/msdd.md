@@ -3,6 +3,8 @@ type: MSDD
 profile-version: 1
 id: PROJECT-MSDD-NNNN
 title: Module design
+satisfies:
+  - PROJECT-REQ-NNNN
 ---
 
 # Module design
