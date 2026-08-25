@@ -59,6 +59,7 @@ in both a recipe and a job, or in neither.
 | `snyk.yml` | `code` | Snyk Code SAST, advisory only: findings upload to code scanning and never fail the job. |
 | `label.yml` | `label` | Applies `area/*` and `dependencies` labels from `.github/labeler.yml`. Runs on `pull_request_target` so the config on `main` is authoritative. |
 | `pr-hygiene.yml` | `commits`, `title` | commitlint over the pull request's commit range; Conventional Commits linting of the title, which squash merging makes the commit subject. Standalone rather than a `ci.yml` concern so its `edited` trigger reruns only these jobs. |
+| `release-plz.yml` | `release-pr`, `release` | Rolling release PR; its merge publishes to crates.io and tags. |
 
 Every third-party action is pinned to a full commit SHA with a trailing
 version comment that Renovate keeps current. `.github/zizmor.yml` records the
@@ -83,7 +84,9 @@ The `hygiene` contexts come from `pr-hygiene.yml`'s own `name:` fields rather
 than the composition, faux-namespaced to read the same in this list.
 
 `snyk` is advisory (its findings never fail the job) and `label` runs outside
-the composition, so neither carries a required context.
+the composition, so neither carries a required context. `release-plz` carries
+none either: it runs on push to `main` and standalone, outside the
+composition.
 
 ## Permissions and secrets
 
@@ -98,6 +101,8 @@ in `snyk.yml`.
 | --- | --- | --- |
 | `CODACY_PROJECT_TOKEN` | `rust` / `tests` | The Codacy upload step is skipped with a notice; the job still passes and the `lcov.info` artifact is still uploaded. The step is also skipped on fork and bot pull requests, which carry no secrets. The upload itself is `continue-on-error`, so a Codacy outage never fails the job. |
 | `SNYK_TOKEN` | `snyk` / `code` | The scan and SARIF upload steps are skipped with a notice and the job passes. The job is skipped entirely on fork pull requests. |
+| `RELEASE_PLZ_APP_ID`, `RELEASE_PLZ_APP_PRIVATE_KEY` | `release-plz` | The App token mint fails; the run fails. |
+| `CARGO_REGISTRY_TOKEN` | `release-plz` / `release` | The publish fails; the rolling PR is unaffected. |
 
 `GITHUB_TOKEN` is the only other credential in use: zizmor reads public
 action metadata with it, the labeler writes labels with a job-scoped

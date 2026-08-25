@@ -51,7 +51,9 @@ so pull request titles follow the same format.
 
 No releases are cut yet. When they are, versions follow Semantic
 Versioning, derived from the commit types by release automation; versions
-are never edited by hand, in `Cargo.toml` or anywhere else.
+are never edited by hand, in `Cargo.toml` or anywhere else. release-plz
+maintains a rolling release pull request from commits merged to `main`;
+a maintainer merging that pull request is the release act.
 
 ## Pull request process
 
