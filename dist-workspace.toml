@@ -1,0 +1,28 @@
+[workspace]
+members = ["cargo:."]
+
+# Config for 'dist'
+[dist]
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.32.0"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = []
+# Target platforms to build apps for (Rust target-triple syntax); musl only
+# on Linux, honouring the single-static-binary commitment.
+targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-musl", "x86_64-apple-darwin", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
+# Where to host releases
+hosting = "github"
+# release-plz owns the tag and creates the draft release with the changelog
+# body; dist attaches artifacts to that draft and publishes it.
+create-release = false
+# Checksum algorithm for artifacts
+checksum = "sha256"
+
+# Repository policy pins every workflow action to a commit SHA; these pins
+# replace the floating tags in the generated release.yml.
+[dist.github-action-commits]
+"actions/checkout" = "d23441a48e516b6c34aea4fa41551a30e30af803" # v6
+"actions/upload-artifact" = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7
+"actions/download-artifact" = "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8

@@ -12,3 +12,7 @@ pr_labels = ["release"]
 # run on main. Detection relies on the default `release-plz-` PR branch
 # prefix, which this config does not override.
 release_always = false
+
+# The GitHub release stays draft so the tag-triggered dist workflow
+# (release.yml) can attach binary archives before publishing it.
+git_release_draft = true
