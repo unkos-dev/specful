@@ -50,3 +50,26 @@ identifier.
 A transition is invalid when the project key changes, a counter decreases, an
 identifier is reused, or the after snapshot is not independently valid.
 Reading, validation, and indexing do not rewrite configuration.
+
+## Instruction content
+
+`init` also installs `docs/SPECFUL.md`, the full harness-neutral instructions
+for the convention, and a managed block in the root `AGENTS.md` that points to
+it. Both are content, not configuration, but the same command installs them
+and the same rerun rule applies.
+
+`docs/SPECFUL.md` is written once, through an exclusive create. A pre-existing
+copy is left alone and reported as a finding rather than overwritten.
+
+`AGENTS.md` is upserted: a missing file is created containing only the block,
+delimited by `<!-- SPECFUL:START -->` and `<!-- SPECFUL:END -->`. An existing
+file without those markers gets the block appended after a blank line. An
+existing file whose markers are already well-formed, exactly one START then
+one END, gets only the content between them replaced. Content outside the
+markers is never modified. Any other marker arrangement, a lone marker,
+reversed order, or duplicates, is reported as a finding and nothing is
+written.
+
+Rerunning `init` against an initialized repository fails fast with "repository
+is already initialized" before any other check runs. Refreshing installed
+instruction content is not a rerun's job.
