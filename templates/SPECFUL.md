@@ -38,5 +38,6 @@ views with your change.
 
 ## About Specful
 
-For the full convention, its artifact profiles, and the CLI reference, see
-<https://github.com/unkos-dev/specful>.
+For the full convention, its artifact profiles, and the CLI reference matching
+this installation, see
+<https://github.com/unkos-dev/specful/tree/{version}>.

@@ -22,6 +22,11 @@ fn fresh_init_writes_specful_md_and_agents_md() {
     let specful_md =
         std::fs::read_to_string(root.path().join(SPECFUL_MD_FILE)).expect("read docs/SPECFUL.md");
     assert!(specful_md.starts_with("# This repository uses Specful"));
+    assert!(specful_md.contains(concat!(
+        "https://github.com/unkos-dev/specful/tree/v",
+        env!("CARGO_PKG_VERSION")
+    )));
+    assert!(!specful_md.contains("{version}"));
 
     let agents_md = std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read AGENTS.md");
     assert!(agents_md.starts_with(SPECFUL_MARKER_START));

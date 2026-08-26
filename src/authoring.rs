@@ -28,8 +28,14 @@ const SPECFUL_MD_FILE: &str = "docs/SPECFUL.md";
 pub const SPECFUL_MARKER_START: &str = "<!-- SPECFUL:START -->";
 pub const SPECFUL_MARKER_END: &str = "<!-- SPECFUL:END -->";
 
-const AGENTS_BLOCK_BODY: &str = include_str!("authoring/agents-block.md");
-const SPECFUL_MD_CONTENT: &str = include_str!("authoring/SPECFUL.md");
+const AGENTS_BLOCK_BODY: &str = include_str!("../templates/agents-block.md");
+const SPECFUL_MD_CONTENT: &str = include_str!("../templates/SPECFUL.md");
+
+/// The documentation link must match the installed CLI, not a moving
+/// branch, so the release tag is substituted at write time.
+fn specful_md_content() -> String {
+    SPECFUL_MD_CONTENT.replace("{version}", concat!("v", env!("CARGO_PKG_VERSION")))
+}
 
 /// The marker span plus its body, without a trailing newline: the unit
 /// spliced into an existing well-formed span.
@@ -151,7 +157,7 @@ fn write_specful_md(root: &Path) -> Result<(), Vec<Finding>> {
         .open(root.join(SPECFUL_MD_FILE))
     {
         Ok(mut file) => {
-            if let Err(error) = file.write_all(SPECFUL_MD_CONTENT.as_bytes()) {
+            if let Err(error) = file.write_all(specful_md_content().as_bytes()) {
                 drop(file);
                 let _ = std::fs::remove_file(root.join(SPECFUL_MD_FILE));
                 return Err(vec![Finding::new(
