@@ -20,8 +20,10 @@ decision stops execution; a planned divergence from current state does
 not.
 
 All frontmatter fields are optional; a bare title is a valid plan. `status`
-is one of `draft`, `active`, or `complete`. `governed-by` lists ADR
-identifiers only, reusing the spec profiles' field name; plans may cite
+is one of `draft`, `active`, or `complete`. `governed-by` lists accepted
+ADR identifiers only, reusing the spec profiles' field name; a proposed,
+deprecated, or superseded ADR is not authoritative and belongs in
+`relates-to` when it remains useful context. Plans may cite
 other plans and committed specful artifacts, but MSRS, MSDD, and ADR
 artifacts never cite plans. `relates-to` holds specful identifiers or
 paths, uninterpreted. `issue` is one tracker-agnostic string; a
