@@ -12,8 +12,12 @@ part-of: "{path to the umbrella arc plan}"
 
 # {Plan title}
 
-This plan is temporary and subordinate: where it disagrees with a committed
-specification, decision, or the charter, the committed artifact wins.
+This plan is temporary and cannot amend canonical artifacts by itself.
+It may describe an outcome that differs from the current specifications;
+the implementing change updates the corresponding MSRS, MSDD, or ADR
+through its normal lifecycle. An unresolved conflict with a governing
+decision stops execution; a planned divergence from current state does
+not.
 
 All frontmatter fields are optional; a bare title is a valid plan. `status`
 is one of `draft`, `active`, or `complete`. `governed-by` lists ADR

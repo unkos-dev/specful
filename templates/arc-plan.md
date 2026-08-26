@@ -11,9 +11,12 @@ relates-to:
 
 # {Arc plan title}
 
-This plan is temporary and subordinate: where it disagrees with a
-committed specification, decision, or the charter, the committed artifact
-wins.
+This plan is temporary and cannot amend canonical artifacts by itself.
+It may describe an outcome that differs from the current specifications;
+each implementing change updates the corresponding MSRS, MSDD, or ADR
+through its normal lifecycle. An unresolved conflict with a governing
+decision stops execution; a planned divergence from current state does
+not.
 
 All frontmatter fields are optional; a bare title is a valid plan.
 `status` is one of `draft`, `active`, or `complete`. `governed-by` lists
@@ -71,7 +74,16 @@ step without reading the rest of the arc plan.}
 
 - {Task}
 
+Verification: {how this step's outcome is checked, or a reference to the
+step's change plan, whose Verification section then applies.}
+
 Exit criteria: {observable condition that marks this step done.}
+
+## Verification
+
+{How the integrated outcome is proven once the steps complete: the
+end-to-end, compatibility, or cross-step checks that no single step's
+exit criteria cover.}
 
 ## Mutation rule
 
