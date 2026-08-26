@@ -34,9 +34,21 @@ templates. The CLI (`init`, `new`, `validate`, `index`, `show`, `trace`) is impl
 
 ## Install
 
-Install from crates.io with `cargo install specful`, or download a prebuilt binary archive for Linux (static musl),
-macOS, or Windows from the [GitHub releases](https://github.com/unkos-dev/specful/releases); each archive ships with a
-SHA-256 checksum.
+Install from crates.io with `cargo install --locked specful` (requires Rust 1.97.1 or newer), or download a prebuilt
+binary archive for Linux (static musl), macOS, or Windows from the
+[GitHub releases](https://github.com/unkos-dev/specful/releases); each archive ships with a SHA-256 checksum.
+
+## Quick start
+
+Adopt the convention in a repository, then validate it:
+
+```sh
+specful init --project-key MYAPP
+specful validate
+```
+
+The project key (2 to 10 uppercase letters or digits, starting with a letter) prefixes every allocated artifact
+identifier.
 
 ## Influences
 
