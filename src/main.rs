@@ -155,9 +155,12 @@ fn main() -> ExitCode {
         Command::Init { project_key, root } => {
             let root = root.unwrap_or_else(|| PathBuf::from("."));
             match specful::authoring::init(&root, &project_key) {
-                Ok(created) => {
-                    for path in created {
+                Ok(outcome) => {
+                    for path in outcome.created {
                         println!("created {path}");
+                    }
+                    for path in outcome.updated {
+                        println!("updated {path}");
                     }
                     ExitCode::SUCCESS
                 }

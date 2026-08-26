@@ -1,5 +1,5 @@
 [global]
-exclude = ["target", "tests/fixtures"]
+exclude = ["target", "tests/fixtures", "src/authoring/agents-block.md"]
 
 [MD004]
 style = "dash"

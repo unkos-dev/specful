@@ -1,12 +1,196 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use specful::authoring::{NewKind, init, new_artifact};
+use specful::authoring::{NewKind, SPECFUL_MARKER_END, SPECFUL_MARKER_START, init, new_artifact};
 
 fn scratch() -> tempfile::TempDir {
     tempfile::tempdir().expect("create scratch")
 }
 
 const LOCK_FILE: &str = ".specful.yaml.lock";
+const AGENTS_FILE: &str = "AGENTS.md";
+const SPECFUL_MD_FILE: &str = "docs/SPECFUL.md";
+
+#[test]
+fn fresh_init_writes_specful_md_and_agents_md() {
+    let root = scratch();
+    let outcome = init(root.path(), "EXAMPLE").expect("init");
+
+    assert!(outcome.created.iter().any(|p| p == SPECFUL_MD_FILE));
+    assert!(outcome.created.iter().any(|p| p == AGENTS_FILE));
+    assert!(outcome.updated.is_empty());
+
+    let specful_md =
+        std::fs::read_to_string(root.path().join(SPECFUL_MD_FILE)).expect("read docs/SPECFUL.md");
+    assert!(specful_md.starts_with("# This repository uses Specful"));
+
+    let agents_md = std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read AGENTS.md");
+    assert!(agents_md.starts_with(SPECFUL_MARKER_START));
+    assert!(agents_md.contains(SPECFUL_MARKER_END));
+}
+
+#[test]
+fn existing_agents_md_without_markers_gains_appended_block() {
+    let root = scratch();
+    std::fs::write(
+        root.path().join(AGENTS_FILE),
+        "# Existing guidance\n\nDo the thing.\n",
+    )
+    .expect("plant AGENTS.md");
+
+    let outcome = init(root.path(), "EXAMPLE").expect("init");
+    assert!(outcome.updated.iter().any(|p| p == AGENTS_FILE));
+    assert!(!outcome.created.iter().any(|p| p == AGENTS_FILE));
+
+    let agents_md = std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read AGENTS.md");
+    assert!(agents_md.starts_with("# Existing guidance\n\nDo the thing.\n"));
+    assert!(agents_md.contains(SPECFUL_MARKER_START));
+    assert!(agents_md.contains(SPECFUL_MARKER_END));
+    assert_eq!(agents_md.matches(SPECFUL_MARKER_START).count(), 1);
+    assert_eq!(agents_md.matches(SPECFUL_MARKER_END).count(), 1);
+}
+
+#[test]
+fn agents_md_with_well_formed_markers_gets_only_between_content_replaced() {
+    let root = scratch();
+    std::fs::write(
+        root.path().join(AGENTS_FILE),
+        format!(
+            "# Existing guidance\n\n{SPECFUL_MARKER_START}\nstale instructions\n{SPECFUL_MARKER_END}\n\nMore guidance.\n"
+        ),
+    )
+    .expect("plant AGENTS.md");
+
+    let outcome = init(root.path(), "EXAMPLE").expect("init");
+    assert!(outcome.updated.iter().any(|p| p == AGENTS_FILE));
+
+    let agents_md = std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read AGENTS.md");
+    assert!(agents_md.starts_with("# Existing guidance\n\n"));
+    assert!(agents_md.ends_with("\n\nMore guidance.\n"));
+    assert!(!agents_md.contains("stale instructions"));
+    assert_eq!(agents_md.matches(SPECFUL_MARKER_START).count(), 1);
+    assert_eq!(agents_md.matches(SPECFUL_MARKER_END).count(), 1);
+}
+
+fn assert_malformed_markers_block_init(agents_content: &str) {
+    let root = scratch();
+    std::fs::write(root.path().join(AGENTS_FILE), agents_content).expect("plant AGENTS.md");
+
+    let findings = init(root.path(), "EXAMPLE").expect_err("malformed markers must be a finding");
+    assert!(
+        findings.iter().any(|f| f.path == AGENTS_FILE),
+        "expected a finding against AGENTS.md, got {findings:?}"
+    );
+    assert!(
+        !root.path().join(".specful.yaml").exists(),
+        "no write may happen when a precondition fails"
+    );
+    assert_eq!(
+        std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read AGENTS.md"),
+        agents_content,
+        "a rejected AGENTS.md must be left byte-for-byte untouched"
+    );
+
+    // A corrected file then allows a clean rerun.
+    std::fs::write(root.path().join(AGENTS_FILE), "# Fixed\n").expect("fix AGENTS.md");
+    init(root.path(), "EXAMPLE").expect("init succeeds once the file is corrected");
+}
+
+#[test]
+fn single_start_marker_alone_is_malformed() {
+    assert_malformed_markers_block_init(&format!("{SPECFUL_MARKER_START}\nbody\n"));
+}
+
+#[test]
+fn single_end_marker_alone_is_malformed() {
+    assert_malformed_markers_block_init(&format!("body\n{SPECFUL_MARKER_END}\n"));
+}
+
+#[test]
+fn reversed_markers_are_malformed() {
+    assert_malformed_markers_block_init(&format!(
+        "{SPECFUL_MARKER_END}\nbody\n{SPECFUL_MARKER_START}\n"
+    ));
+}
+
+#[test]
+fn duplicate_start_marker_is_malformed() {
+    assert_malformed_markers_block_init(&format!(
+        "{SPECFUL_MARKER_START}\n{SPECFUL_MARKER_START}\nbody\n{SPECFUL_MARKER_END}\n"
+    ));
+}
+
+#[test]
+fn two_complete_marker_pairs_are_malformed() {
+    assert_malformed_markers_block_init(&format!(
+        "{SPECFUL_MARKER_START}\nfirst\n{SPECFUL_MARKER_END}\n\n\
+         {SPECFUL_MARKER_START}\nsecond\n{SPECFUL_MARKER_END}\n"
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn symlinked_agents_md_is_rejected_and_target_untouched() {
+    let root = scratch();
+    let outside = scratch();
+    let target = outside.path().join("real-agents.md");
+    std::fs::write(&target, "original content\n").expect("plant link target");
+    std::os::unix::fs::symlink(&target, root.path().join(AGENTS_FILE)).expect("plant symlink");
+
+    let findings =
+        init(root.path(), "EXAMPLE").expect_err("a symlinked AGENTS.md must be rejected");
+    assert!(
+        findings.iter().any(|f| f.message == "symlink not allowed"),
+        "expected a symlink finding, got {findings:?}"
+    );
+    assert!(
+        !root.path().join(".specful.yaml").exists(),
+        "no write may happen when a precondition fails"
+    );
+    assert_eq!(
+        std::fs::read_to_string(&target).expect("read link target"),
+        "original content\n",
+        "the symlink target must never be modified"
+    );
+}
+
+#[test]
+fn preexisting_docs_specful_md_is_rejected() {
+    let root = scratch();
+    std::fs::create_dir_all(root.path().join("docs")).expect("create docs dir");
+    std::fs::write(root.path().join(SPECFUL_MD_FILE), "local edits\n")
+        .expect("plant docs/SPECFUL.md");
+
+    let findings =
+        init(root.path(), "EXAMPLE").expect_err("a pre-existing docs/SPECFUL.md must be rejected");
+    assert!(
+        findings.iter().any(|f| f.path == SPECFUL_MD_FILE),
+        "expected a finding naming docs/SPECFUL.md, got {findings:?}"
+    );
+    assert!(
+        !root.path().join(".specful.yaml").exists(),
+        "no write may happen when a precondition fails"
+    );
+}
+
+#[test]
+fn installed_content_names_no_harness() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+
+    let specful_md = std::fs::read_to_string(root.path().join(SPECFUL_MD_FILE)).expect("read");
+    let agents_md = std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read");
+
+    for harness in ["claude", "cursor", "copilot", "gemini"] {
+        assert!(
+            !specful_md.to_lowercase().contains(harness),
+            "docs/SPECFUL.md must not name harness {harness}"
+        );
+        assert!(
+            !agents_md.to_lowercase().contains(harness),
+            "AGENTS.md must not name harness {harness}"
+        );
+    }
+}
 
 #[test]
 fn artifact_collision_is_reported_not_overwritten() {
