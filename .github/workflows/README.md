@@ -100,9 +100,11 @@ the tag, and create a draft GitHub release carrying the changelog body
 builds the target archives and checksums, attaches them to the draft, and
 publishes it. The tag reaches the repository via the release-plz App token,
 which unlike `GITHUB_TOKEN` can trigger workflows. Recovery from a failed
-dist run: re-run the workflow for transient failures; for a repository
-defect, fix `main` and recreate the tag (the release is still a draft). No
-secrets beyond the workflow's own `GITHUB_TOKEN` are involved.
+dist run: re-run the workflow for transient failures. For a repository
+defect, never recreate the tag: crates.io already holds the source for that
+version, so the tag must keep pointing at it. Fix `main`, delete the
+binary-less draft, and ship the fix as the next patch release. No secrets
+beyond the workflow's own `GITHUB_TOKEN` are involved.
 
 ## Permissions and secrets
 
