@@ -160,7 +160,8 @@ integration. Specful does not require commit hooks.
 The core schema, templates, lifecycle, and workflow are independent of
 agent harnesses.
 
-Adoption installs a harness-neutral `AGENTS.md` that teaches the
+Adoption installs harness-neutral instructions in `docs/SPECFUL.md` and a
+small managed pointer block in the root `AGENTS.md`, teaching the
 convention: the retrieval recipe and the authoring workflow, including
 which artifact changes for which kind of work. Harness-specific adapters
 may generate native skills, commands, or context files, but those files are

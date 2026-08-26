@@ -276,11 +276,15 @@ fn init_and_new_produce_a_schema_conformant_draft() {
     let scratch = tempfile::tempdir().expect("create scratch");
     let scratch = scratch.path();
 
-    let created = specful::authoring::init(scratch, "TST").expect("init succeeds");
-    assert!(created.iter().any(|p| p == ".specful.yaml"));
+    let outcome = specful::authoring::init(scratch, "TST").expect("init succeeds");
+    assert!(outcome.created.iter().any(|p| p == ".specful.yaml"));
+    let rerun_findings =
+        specful::authoring::init(scratch, "TST").expect_err("second init must refuse");
     assert!(
-        specful::authoring::init(scratch, "TST").is_err(),
-        "second init must refuse"
+        rerun_findings
+            .iter()
+            .any(|f| f.message == "repository is already initialized"),
+        "a rerun must report already-initialized before any instruction-file finding, got {rerun_findings:?}"
     );
     assert!(
         validate_repository(scratch).is_empty(),
