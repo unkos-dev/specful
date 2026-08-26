@@ -3,8 +3,6 @@ type: change-plan
 status: "{draft | active | complete}"
 created: "{YYYY-MM-DD}"
 issue: "{tracker ID, one string}"
-governed-by:
-  - "{PROJECT-ADR-NNNN}"
 relates-to:
   - "{specful identifier or path}"
 part-of: "{path to the umbrella arc plan}"
@@ -20,13 +18,10 @@ decision stops execution; a planned divergence from current state does
 not.
 
 All frontmatter fields are optional; a bare title is a valid plan. `status`
-is one of `draft`, `active`, or `complete`. `governed-by` lists accepted
-ADR identifiers only, reusing the spec profiles' field name; a proposed,
-deprecated, or superseded ADR is not authoritative and belongs in
-`relates-to` when it remains useful context. Plans may cite
-other plans and committed specful artifacts, but MSRS, MSDD, and ADR
-artifacts never cite plans. `relates-to` holds specful identifiers or
-paths, uninterpreted. `issue` is one tracker-agnostic string; a
+is one of `draft`, `active`, or `complete`. `relates-to` holds specful
+identifiers or paths, uninterpreted; plans may cite other plans and
+committed specful artifacts, but MSRS, MSDD, and ADR artifacts never cite
+plans. `issue` is one tracker-agnostic string; a
 repository needing more lists them in prose. `part-of` names this change
 plan's umbrella arc plan; like other path-valued fields, it goes stale
 once a plan moves to `plans/archive/`, accepted for an authoring

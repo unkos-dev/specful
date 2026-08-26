@@ -3,8 +3,6 @@ type: arc-plan
 status: "{draft | active | complete}"
 created: "{YYYY-MM-DD}"
 issue: "{tracker ID, one string}"
-governed-by:
-  - "{PROJECT-ADR-NNNN}"
 relates-to:
   - "{specful identifier or path}"
 ---
@@ -19,13 +17,10 @@ decision stops execution; a planned divergence from current state does
 not.
 
 All frontmatter fields are optional; a bare title is a valid plan.
-`status` is one of `draft`, `active`, or `complete`. `governed-by` lists
-accepted ADR identifiers only, reusing the spec profiles' field name; a
-proposed, deprecated, or superseded ADR is not authoritative and belongs
-in `relates-to` when it remains useful context. Plans may cite other
-plans and committed specful artifacts, but MSRS, MSDD, and ADR
-artifacts never cite plans. `relates-to` holds specful identifiers or
-paths, uninterpreted; like other path-valued fields, an entry goes stale
+`status` is one of `draft`, `active`, or `complete`. `relates-to` holds
+specful identifiers or paths, uninterpreted; plans may cite other plans
+and committed specful artifacts, but MSRS, MSDD, and ADR artifacts never
+cite plans; like other path-valued fields, an entry goes stale
 once the file it names moves to `plans/archive/`, accepted for an
 authoring convention. `issue` is one tracker-agnostic string; a
 repository needing more lists them in prose.
@@ -47,8 +42,9 @@ changelog.
 
 ## Binding inputs
 
-{Each `governed-by` citation and any other binding authority, in prose,
-with what it locks.}
+{Each binding authority, in prose, with what it locks. Cite accepted
+decisions and committed specifications; a proposed or superseded ADR is
+context, not authority.}
 
 ## Dependency graph
 
