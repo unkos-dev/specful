@@ -30,9 +30,25 @@ are documented under [`docs/adr/`](docs/adr/README.md), [`docs/msrs/`](docs/msrs
 ## Status
 
 The v0.1 information model is defined: artifact profiles, JSON Schemas with language-neutral conformance cases, and
-templates. The CLI (`init`, `new`, `validate`, `index`, `show`, `trace`) is implemented. Releases are automated from
-conventional commits into a rolling pull request; a maintainer merging that PR publishes to crates.io, so
-`cargo install specful` will work once v0.1.0 ships. No version has been released yet.
+templates. The CLI (`init`, `new`, `validate`, `index`, `show`, `trace`) is implemented.
+
+## Install
+
+Install from crates.io with `cargo install --locked specful` (requires Rust 1.97.1 or newer), or download a prebuilt
+binary archive for Linux (static musl), macOS, or Windows from the
+[GitHub releases](https://github.com/unkos-dev/specful/releases); each archive ships with a SHA-256 checksum.
+
+## Quick start
+
+Adopt the convention in a repository, then validate it:
+
+```sh
+specful init --project-key MYAPP
+specful validate
+```
+
+The project key (2 to 10 uppercase letters or digits, starting with a letter) prefixes every allocated artifact
+identifier.
 
 ## Influences
 
