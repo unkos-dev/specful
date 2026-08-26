@@ -34,13 +34,14 @@ Specful distinguishes artifacts by responsibility:
 | MSRS | Defines what the software must do now | Rewritten or deleted in place |
 | MSDD | Describes how the software works now | Rewritten or deleted in place |
 | ADR | Records why a durable decision was made | Retained and superseded |
-| Plan | Coordinates an active transition | Private, temporary, then deleted |
+| Plan | Coordinates an active transition | Temporary; archived or deleted on completion |
 | Git | Preserves what used to be true | Repository history |
 
 Requirements and design descriptions are logical collections that may be
 split into multiple Markdown modules. A requirement may be satisfied by
 multiple design modules, and one design module may satisfy multiple
-requirements.
+requirements. A change plan delivers one coherent change; an arc plan
+coordinates a sequence or graph of change-sized deliverables.
 
 ## Architectural organization
 
@@ -174,8 +175,7 @@ The initial product scope includes:
 
 - artifact schemas and metadata conventions for MSRS, MSDD, ADR, and
   repository configuration;
-- templates for requirements, design descriptions, ADRs, and private
-  plans;
+- templates for requirements, design descriptions, ADRs, and plans;
 - stable identifiers and validated relationships;
 - generated per-scope indexes and a machine-readable catalog;
 - a CLI providing `init`, `new`, `validate`, `index`, `show`, and
@@ -197,7 +197,8 @@ Specful does not provide:
 - automatic generation of a complete specification from an undocumented
   codebase;
 - a harness-specific source of truth;
-- permanent archives of private implementation plans;
+- management, validation, or indexing of implementation plans; plan
+  retention is the adopter's choice;
 - historical narrative inside current-state requirements or design
   documents;
 - a diagnostic governance framework: no rule registries, severity

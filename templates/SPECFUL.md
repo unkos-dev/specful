@@ -24,7 +24,11 @@ keyword (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY). A design module declares the
 requirements it `satisfies`; a specification cites its governing ADRs through
 `governed-by`. After editing, run `specful index` to regenerate the navigation
 views, then `specful validate` to check the result, and commit the regenerated
-views with your change.
+views with your change. Coordinate a transition with a plan in `plans/`,
+copied by hand from `templates/change-plan.md` or `templates/arc-plan.md`
+at the versioned repository link below; graduate any durable rationale to
+an ADR, then move the plan out of the active set once the transition
+lands.
 
 ## Which artifact changes
 
@@ -33,7 +37,7 @@ views with your change.
 | Behaviour or constraint | MSRS | Rewrite in place |
 | How the system works | MSDD | Rewrite in place |
 | Durable decision rationale | ADR | New record, old one superseded |
-| Active transition | Private plan | Deleted once the transition lands |
+| Active transition | Plan | Archived or deleted once the transition lands |
 | What used to be true | Git history | Never restated in current-state docs |
 
 ## About Specful
