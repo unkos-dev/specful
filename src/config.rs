@@ -7,11 +7,11 @@ use crate::diagnostics::Finding;
 use crate::schemas::{CONFIG_V1_SCHEMA_ID, builtin_schema};
 use crate::yaml::load_restricted_yaml;
 
-pub const CONFIG_FILE: &str = ".specful.yaml";
+pub const CONFIG_FILE: &str = ".specful/config.yaml";
 
 /// Searches `start` and its ancestors for the nearest directory containing
-/// `.specful.yaml`, the root-selection rule command operations use when no
-/// explicit root is given. Library operations always receive a root
+/// `.specful/config.yaml`, the root-selection rule command operations use
+/// when no explicit root is given. Library operations always receive a root
 /// explicitly and never call this.
 pub fn discover_root(start: &Path) -> Result<PathBuf, Finding> {
     let mut current = start;
@@ -25,7 +25,7 @@ pub fn discover_root(start: &Path) -> Result<PathBuf, Finding> {
                 return Err(Finding::new(
                     CONFIG_FILE,
                     None,
-                    "no .specful.yaml found in this directory or any ancestor",
+                    "no .specful/config.yaml found in this directory or any ancestor",
                 ));
             }
         }
@@ -70,7 +70,7 @@ impl Config {
     }
 }
 
-/// Loads and schema-validates `.specful.yaml` under `root`.
+/// Loads and schema-validates `.specful/config.yaml` under `root`.
 ///
 /// Findings are appended for every problem; `None` means the configuration
 /// is unusable and dependent checks should be skipped.

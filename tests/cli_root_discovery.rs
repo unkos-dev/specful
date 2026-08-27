@@ -32,7 +32,7 @@ fn validate_reports_a_clear_error_with_no_ancestor_configuration() {
     // Its own TempDir, not a subdirectory of CARGO_TARGET_TMPDIR: see
     // tests/cli_new_root_discovery.rs for why that location is unsafe for
     // this exact test (this repository's own tree could grow a root
-    // .specful.yaml and discover_root would find it).
+    // .specful/config.yaml and discover_root would find it).
     let root = scratch();
 
     let output = Command::new(env!("CARGO_BIN_EXE_specful"))
@@ -47,8 +47,8 @@ fn validate_reports_a_clear_error_with_no_ancestor_configuration() {
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains(".specful.yaml"),
-        "expected a clear .specful.yaml discovery error, got: {stdout}"
+        stdout.contains(".specful/config.yaml"),
+        "expected a clear .specful/config.yaml discovery error, got: {stdout}"
     );
 }
 
@@ -87,7 +87,7 @@ fn trace_discovers_the_root_from_a_nested_working_directory() {
     // trace's root resolution goes through the same resolve_root helper as
     // show, so this only needs to prove the query pipeline ran against the
     // discovered root (an ADR is a real, meaningful rejection, not a
-    // ".specful.yaml not found" discovery failure) rather than duplicating
+    // ".specful/config.yaml not found" discovery failure) rather than duplicating
     // full coverage of every trace shape.
     let root = scratch();
     specful::authoring::init(root.path(), "EXAMPLE").expect("init");

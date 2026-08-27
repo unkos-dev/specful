@@ -96,8 +96,8 @@ scaffolds adoption and answers retrieval queries. The CLI is a single static bin
 ## Identifiers
 
 Artifacts and requirements carry allocated sequential identifiers of the form `<PROJECT>-<KIND>-<NNNN>`. Allocation
-state lives in `.specful.yaml` as monotonic per-kind counters, so identifiers are never reused and never depend on
-scanning the tree. Filenames and paths aid navigation; the identifier in metadata is the durable identity.
+state lives in `.specful/config.yaml` as monotonic per-kind counters, so identifiers are never reused and never depend
+on scanning the tree. Filenames and paths aid navigation; the identifier in metadata is the durable identity.
 
 ## Generated navigation
 

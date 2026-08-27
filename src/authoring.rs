@@ -14,10 +14,14 @@ use crate::config::{CONFIG_FILE, Config, load_config};
 use crate::diagnostics::Finding;
 use crate::repo::{ADR_DIR, SPECS_DIR, create_dir_verified};
 
-/// Sibling lock file guarding the read-modify-rename of `.specful.yaml`.
+/// Sibling lock file guarding the read-modify-rename of `.specful/config.yaml`.
 /// Its presence is the allocation lock: a second `specful new` sees
 /// `create_new` fail and reports the collision instead of racing the first.
-const LOCK_FILE: &str = ".specful.yaml.lock";
+const LOCK_FILE: &str = ".specful/config.yaml.lock";
+
+/// Root-discovery sentinel directory holding both canonical configuration
+/// and generated views.
+const CONFIG_DIR: &str = ".specful";
 
 const AGENTS_FILE: &str = "AGENTS.md";
 const SPECFUL_MD_FILE: &str = "docs/SPECFUL.md";
@@ -214,7 +218,7 @@ fn create_agents_md(root: &Path) -> Result<(), Vec<Finding>> {
 /// Stages `content` in a sibling temporary file, then renames it onto
 /// `target`: an interrupted run leaves either the old or the new content,
 /// never a truncation. Mirrors `ConfigLock::commit` without needing a
-/// separate lock file, since `.specful.yaml` already gates concurrent
+/// separate lock file, since `.specful/config.yaml` already gates concurrent
 /// `init` calls before this ever runs.
 fn atomic_replace(target: &Path, content: &str) -> Result<(), Vec<Finding>> {
     let tmp_path = target.with_extension("md.tmp");
@@ -315,7 +319,7 @@ impl ConfigLock {
     }
 
     /// Writes `content` to the lock file, then renames it onto
-    /// `.specful.yaml`: an atomic replace that also releases the lock. On
+    /// `.specful/config.yaml`: an atomic replace that also releases the lock. On
     /// any error the lock file is left for `Drop` to remove.
     fn commit(mut self, root: &Path, content: &str) -> Result<(), Vec<Finding>> {
         if let Err(error) = std::fs::write(&self.path, content) {
@@ -364,11 +368,12 @@ pub struct InitOutcome {
 /// skeleton, `docs/SPECFUL.md`, and the `AGENTS.md` pointer block. Refuses
 /// to touch an already-initialized root.
 ///
-/// Preconditions run before any write, in order: project key, `.specful.yaml`
-/// absence (an early advisory check purely for error ordering; `create_new`
-/// below is the actual enforcement and the concurrency lock), `docs/SPECFUL.md`
-/// absence, and `AGENTS.md` well-formedness. A write failure after
-/// `.specful.yaml` is created rolls back every file this invocation
+/// Preconditions run before any write, in order: project key,
+/// `.specful/config.yaml` absence (an early advisory check purely for error
+/// ordering; `create_new` below is the actual enforcement and the
+/// concurrency lock), `docs/SPECFUL.md` absence, and `AGENTS.md`
+/// well-formedness. A write failure after `.specful/config.yaml` is created
+/// rolls back every file this invocation
 /// exclusively created; it never touches a pre-existing `AGENTS.md`. If
 /// configuration creation fails after the directories were created (for
 /// example a concurrent or prior `init`), those directories are left in
@@ -410,6 +415,7 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
         create_dir_verified(root, Path::new(dir)).map_err(|finding| vec![finding])?;
         created.push(format!("{dir}/"));
     }
+    create_dir_verified(root, Path::new(CONFIG_DIR)).map_err(|finding| vec![finding])?;
 
     match OpenOptions::new()
         .write(true)
@@ -419,7 +425,7 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
         Ok(mut file) => {
             if let Err(error) = file.write_all(config.render().as_bytes()) {
                 // create_new just claimed this path exclusively; leaving a
-                // truncated .specful.yaml behind would make a rerun of
+                // truncated .specful/config.yaml behind would make a rerun of
                 // init see "repository is already initialized" against a
                 // corrupt config, so remove it rather than leave the
                 // partial write in place.
@@ -558,7 +564,7 @@ pub fn new_artifact(
     }
 
     // The lock file is the exclusive right to read, allocate from, and
-    // rewrite `.specful.yaml`, so the whole read-modify-write below is one
+    // rewrite `.specful/config.yaml`, so the whole read-modify-write below is one
     // critical section: no other allocation can observe or advance these
     // counters between the read and the rename that commits them. It is
     // released (via `Drop`) on every path out of this function once

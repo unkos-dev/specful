@@ -45,10 +45,10 @@ concurrent branches allocate the same unpublished identifier, one record is real
 Allocation fails with a clear exhaustion error when no value remains. Specful does not silently widen the sequence or
 change the identifier grammar. Supporting a wider sequence requires a later profile version.
 
-The adopting repository stores `next-adr-sequence` in `.specful.yaml` as the next value available for allocation. It
-starts at `1`, advances atomically with each durable allocation, and never decreases when an ADR is deleted. The value
-must be greater than every ADR sequence present in the current snapshot. Transition validation rejects a decrease and
-requires each newly allocated sequence to consume the prior next value. Allocating several ADRs in one transition
+The adopting repository stores `next-adr-sequence` in `.specful/config.yaml` as the next value available for allocation.
+It starts at `1`, advances atomically with each durable allocation, and never decreases when an ADR is deleted. The
+value must be greater than every ADR sequence present in the current snapshot. Transition validation rejects a decrease
+and requires each newly allocated sequence to consume the prior next value. Allocating several ADRs in one transition
 consumes consecutive values and advances the high-water mark by the same count.
 
 `next-adr-sequence` may range from `1` through `10000`; `10000` is an exhausted sentinel and is never allocated to an

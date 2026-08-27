@@ -1,0 +1,11 @@
+{
+  "artifacts": [
+    {
+      "id": "SPECFUL-ADR-0001",
+      "kind": "adr",
+      "path": "docs/adr/0001-consolidate-specful-state-under-specful.md",
+      "status": "accepted",
+      "title": "Consolidate specful state under .specful"
+    }
+  ]
+}
