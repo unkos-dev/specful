@@ -37,7 +37,7 @@ fn new_discovers_the_root_from_a_nested_working_directory() {
 fn new_reports_a_clear_error_with_no_ancestor_configuration() {
     // Deliberately its own TempDir rather than a subdirectory of
     // CARGO_TARGET_TMPDIR, which lives inside this repository's own tree:
-    // if this repository ever gains a root .specful.yaml (e.g.
+    // if this repository ever gains a root .specful/config.yaml (e.g.
     // dogfooding), discover_root would find it from a scratch dir under
     // the repo and this test would create a real artifact here instead of
     // exercising the no-ancestor error. TempDir gives an atomically and
@@ -57,7 +57,7 @@ fn new_reports_a_clear_error_with_no_ancestor_configuration() {
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains(".specful.yaml"),
-        "expected a clear .specful.yaml discovery error, got: {stdout}"
+        stdout.contains(".specful/config.yaml"),
+        "expected a clear .specful/config.yaml discovery error, got: {stdout}"
     );
 }

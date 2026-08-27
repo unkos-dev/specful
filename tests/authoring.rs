@@ -7,7 +7,7 @@ fn scratch() -> tempfile::TempDir {
     tempfile::tempdir().expect("create scratch")
 }
 
-const LOCK_FILE: &str = ".specful.yaml.lock";
+const LOCK_FILE: &str = ".specful/config.yaml.lock";
 const AGENTS_FILE: &str = "AGENTS.md";
 const SPECFUL_MD_FILE: &str = "docs/SPECFUL.md";
 
@@ -112,7 +112,7 @@ fn assert_malformed_markers_block_init(agents_content: &str) {
         "expected a finding against AGENTS.md, got {findings:?}"
     );
     assert!(
-        !root.path().join(".specful.yaml").exists(),
+        !root.path().join(".specful/config.yaml").exists(),
         "no write may happen when a precondition fails"
     );
     assert_eq!(
@@ -174,7 +174,7 @@ fn symlinked_agents_md_is_rejected_and_target_untouched() {
         "expected a symlink finding, got {findings:?}"
     );
     assert!(
-        !root.path().join(".specful.yaml").exists(),
+        !root.path().join(".specful/config.yaml").exists(),
         "no write may happen when a precondition fails"
     );
     assert_eq!(
@@ -198,7 +198,7 @@ fn preexisting_docs_specful_md_is_rejected() {
         "expected a finding naming docs/SPECFUL.md, got {findings:?}"
     );
     assert!(
-        !root.path().join(".specful.yaml").exists(),
+        !root.path().join(".specful/config.yaml").exists(),
         "no write may happen when a precondition fails"
     );
 }
@@ -308,7 +308,8 @@ fn lock_file_is_removed_via_drop_when_configuration_cannot_be_loaded() {
     // whole read-modify-write is now inside the critical section) but the
     // subsequent load fails before any rename ever consumes the lock file.
     // This is the genuine Drop path, not the rename-already-removed-it path.
-    std::fs::write(root.path().join(".specful.yaml"), "not: [valid").expect("corrupt config");
+    std::fs::write(root.path().join(".specful/config.yaml"), "not: [valid")
+        .expect("corrupt config");
 
     let findings = new_artifact(root.path(), NewKind::Adr, None, "Broken config")
         .expect_err("a broken configuration must fail allocation");
@@ -405,8 +406,9 @@ fn init_rejects_a_symlinked_docs_directory() {
 fn init_rejects_a_dangling_config_symlink() {
     let root = scratch();
     let outside = scratch();
-    let target = outside.path().join("nonexistent/.specful.yaml");
-    std::os::unix::fs::symlink(&target, root.path().join(".specful.yaml"))
+    std::fs::create_dir_all(root.path().join(".specful")).expect("create .specful dir");
+    let target = outside.path().join("nonexistent/config.yaml");
+    std::os::unix::fs::symlink(&target, root.path().join(".specful/config.yaml"))
         .expect("plant dangling config symlink");
 
     let findings = init(root.path(), "EXAMPLE")
@@ -416,7 +418,7 @@ fn init_rejects_a_dangling_config_symlink() {
             .iter()
             .any(|f| f.message == "repository is already initialized"),
         "expected the already-initialized finding (the symlink entry itself already exists at \
-         .specful.yaml), got {findings:?}"
+         .specful/config.yaml), got {findings:?}"
     );
     assert!(
         !target.parent().expect("target has a parent").exists(),
@@ -427,16 +429,17 @@ fn init_rejects_a_dangling_config_symlink() {
 #[cfg(unix)]
 #[test]
 fn init_leaves_created_directories_after_a_config_write_failure() {
-    // A dangling symlink at .specful.yaml makes the exclusive config
+    // A dangling symlink at .specful/config.yaml makes the exclusive config
     // create fail (the symlink entry itself already exists) after the
     // directories were already created. init does not roll those
     // directories back: they are empty and harmless, and a rerun
     // completes the job.
     let root = scratch();
     let outside = scratch();
+    std::fs::create_dir_all(root.path().join(".specful")).expect("create .specful dir");
     std::os::unix::fs::symlink(
-        outside.path().join("nonexistent/.specful.yaml"),
-        root.path().join(".specful.yaml"),
+        outside.path().join("nonexistent/config.yaml"),
+        root.path().join(".specful/config.yaml"),
     )
     .expect("plant dangling config symlink");
 

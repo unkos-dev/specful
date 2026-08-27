@@ -19,7 +19,7 @@ struct Cli {
 enum Command {
     /// Validate the repository against the Specful profiles.
     Validate {
-        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
+        /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         root: Option<PathBuf>,
         /// Emit findings as JSON. The shape is unstable.
         #[arg(long)]
@@ -27,7 +27,7 @@ enum Command {
     },
     /// Regenerate the committed navigation views (indexes and catalog).
     Index {
-        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
+        /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         root: Option<PathBuf>,
         /// Report drift without writing anything.
         #[arg(long)]
@@ -52,7 +52,7 @@ enum Command {
         /// Architectural scope for msrs and msdd modules, e.g. backend/sync.
         #[arg(long)]
         scope: Option<String>,
-        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
+        /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
     },
@@ -60,7 +60,7 @@ enum Command {
     Show {
         /// Identifier to look up, e.g. OK-MSDD-0001.
         id: String,
-        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
+        /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
     },
@@ -68,7 +68,7 @@ enum Command {
     Trace {
         /// Identifier to trace, e.g. OK-MSRS-0001.
         id: String,
-        /// Repository root; defaults to the nearest ancestor containing .specful.yaml.
+        /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
     },
@@ -93,7 +93,7 @@ impl From<NewKindArg> for specful::authoring::NewKind {
 
 /// Resolves the effective repository root for a command: the explicit
 /// `--root` (or positional root) when given, otherwise the nearest ancestor
-/// of the current directory containing `.specful.yaml`, per the root
+/// of the current directory containing `.specful/config.yaml`, per the root
 /// discovery contract in `docs/configuration.md`. `init` never calls this:
 /// it initializes the given or current directory as given, without
 /// searching upward.

@@ -277,7 +277,7 @@ fn init_and_new_produce_a_schema_conformant_draft() {
     let scratch = scratch.path();
 
     let outcome = specful::authoring::init(scratch, "TST").expect("init succeeds");
-    assert!(outcome.created.iter().any(|p| p == ".specful.yaml"));
+    assert!(outcome.created.iter().any(|p| p == ".specful/config.yaml"));
     let rerun_findings =
         specful::authoring::init(scratch, "TST").expect_err("second init must refuse");
     assert!(
@@ -313,7 +313,8 @@ fn init_and_new_produce_a_schema_conformant_draft() {
         "module without scope must refuse"
     );
 
-    let config = std::fs::read_to_string(scratch.join(".specful.yaml")).expect("read config");
+    let config =
+        std::fs::read_to_string(scratch.join(".specful/config.yaml")).expect("read config");
     assert!(config.contains("next-adr-sequence: 2"));
     assert!(config.contains("next-msrs-sequence: 2"));
     assert!(config.contains("next-requirement-sequence: 2"));

@@ -1,7 +1,7 @@
 # Repository configuration
 
-Every Specful repository has one `.specful.yaml` at its root. The file is versioned canonical project state, not an
-optional command preference.
+Every Specful repository has one `.specful/config.yaml` at its root. The file is versioned canonical project state, not
+an optional command preference.
 
 ```yaml
 config-version: 1
@@ -29,7 +29,7 @@ aliases, merge keys, complex keys, empty unquoted scalars, and invalid UTF-8 are
 primitives and RFC 8259 numbers resolve to their JSON values; other non-empty scalars are strings.
 
 Library operations receive the root explicitly. Command operations accept an explicit root or search upward from the
-working directory and select the nearest ancestor containing `.specful.yaml`. Traversal remains within that root.
+working directory and select the nearest ancestor containing `.specful/config.yaml`. Traversal remains within that root.
 
 Canonical paths are relative UTF-8 paths using `/`. Absolute paths, drive prefixes, backslashes, empty segments, and `.`
 or `..` segments are invalid.
