@@ -1,53 +1,41 @@
 # Workflows
 
-`ci.yml` is a thin caller. It owns the triggers (`pull_request`, `push` to
-`main`, `merge_group`), top-level `permissions: contents: read`, concurrency
-(cancels superseded runs on every ref except `main`), and one job per concern,
-each `uses:` on a `workflow_call`-only file below. There is no path filtering
-and no aggregate gate; branch protection lists the resulting per-job check
-contexts directly.
+`ci.yml` is a thin caller. It owns the triggers (`pull_request`, `push` to `main`, `merge_group`), top-level
+`permissions: contents: read`, concurrency (cancels superseded runs on every ref except `main`), and one job per
+concern, each `uses:` on a `workflow_call`-only file below. There is no path filtering and no aggregate gate; branch
+protection lists the resulting per-job check contexts directly.
 
 ## The composition pattern
 
-A job in a called workflow reports as `<caller job> / <called job>`. The
-`rust` caller job invoking a `checks` job inside `rust.yml` produces the check
-run `rust / checks`. Required contexts are therefore namespaced by
-construction, and branch protection lists them per job rather than as one
-aggregate.
+A job in a called workflow reports as `<caller job> / <called job>`. The `rust` caller job invoking a `checks` job
+inside `rust.yml` produces the check run `rust / checks`. Required contexts are therefore namespaced by construction,
+and branch protection lists them per job rather than as one aggregate.
 
 ### Two invariants that will block every pull request if violated
 
-**A caller job in `ci.yml` never gains an `if:` condition.** A skipped caller
-reports a check run named after itself (`rust`), but branch protection
-requires `rust / checks`. That context never reports. Filtering, where a
-concern needs it, lives inside the called workflow, where a skipped job
-reports success and satisfies its own context.
+**A caller job in `ci.yml` never gains an `if:` condition.** A skipped caller reports a check run named after itself
+(`rust`), but branch protection requires `rust / checks`. That context never reports. Filtering, where a concern needs
+it, lives inside the called workflow, where a skipped job reports success and satisfies its own context.
 
-**No workflow carrying required contexts gets a top-level `paths:` trigger.**
-A workflow that never triggers reports nothing at all, which is not the same
-as reporting success. This repository runs no path filtering, so the concern
-does not arise, but the rule stays load-bearing if one is ever added.
+**No workflow carrying required contexts gets a top-level `paths:` trigger.** A workflow that never triggers reports
+nothing at all, which is not the same as reporting success. This repository runs no path filtering, so the concern does
+not arise, but the rule stays load-bearing if one is ever added.
 
-A caller job in `ci.yml` also never declares `name:`, because the context
-prefix is the caller job's own id. Adding one would silently rename every
-required context that caller owns into strings that never report again.
+A caller job in `ci.yml` also never declares `name:`, because the context prefix is the caller job's own id. Adding one
+would silently rename every required context that caller owns into strings that never report again.
 
-We deliberately run no `changes` detectors and no `ci-gate` backstop: with no
-path filtering, per-job contexts are the entire enforcement surface.
+We deliberately run no `changes` detectors and no `ci-gate` backstop: with no path filtering, per-job contexts are the
+entire enforcement surface.
 
 ## The justfile is canonical
 
-Every locally runnable gate is a recipe in the repository-root `justfile`, and
-a job invokes it by name from CI, so a gate changes in one place. `just
-preflight` does not fully match CI: CI also runs the MSRV compile inline
-(inline because it asserts the `RUSTUP_TOOLCHAIN` override took effect), a
-gitleaks scan narrowed to the PR commit range (`preflight` scans full
-history), coverage instrumentation via `just cov` (`preflight` runs plain
-`test`), and a Snyk Code scan (needs `SNYK_TOKEN`, so it cannot run locally).
-Non-cargo tools are pinned in `.mise.toml` and installed through the
-`.github/actions/setup` composite action; the Rust toolchain comes from
-`rust-toolchain.toml` through `.github/actions/rust-toolchain`. A tool appears
-in both a recipe and a job, or in neither.
+Every locally runnable gate is a recipe in the repository-root `justfile`, and a job invokes it by name from CI, so a
+gate changes in one place. `just preflight` does not fully match CI: CI also runs the MSRV compile inline (inline
+because it asserts the `RUSTUP_TOOLCHAIN` override took effect), a gitleaks scan narrowed to the PR commit range
+(`preflight` scans full history), coverage instrumentation via `just cov` (`preflight` runs plain `test`), and a Snyk
+Code scan (needs `SNYK_TOKEN`, so it cannot run locally). Non-cargo tools are pinned in `.mise.toml` and installed
+through the `.github/actions/setup` composite action; the Rust toolchain comes from `rust-toolchain.toml` through
+`.github/actions/rust-toolchain`. A tool appears in both a recipe and a job, or in neither.
 
 ## Layout
 
@@ -62,9 +50,8 @@ in both a recipe and a job, or in neither.
 | `release-plz.yml` | `release-pr`, `release` | Rolling release PR; publish. |
 | `release.yml` | `plan`, `build-local-artifacts`, `build-global-artifacts`, `host`, `announce` | dist binary release. |
 
-Every third-party action is pinned to a full commit SHA with a trailing
-version comment that Renovate keeps current. `.github/zizmor.yml` records the
-one audit rule that is disabled and why.
+Every third-party action is pinned to a full commit SHA with a trailing version comment that Renovate keeps current.
+`.github/zizmor.yml` records the one audit rule that is disabled and why.
 
 ## Required contexts
 
@@ -81,39 +68,31 @@ Branch protection lists these exact `<caller> / <job>` strings:
 - `hygiene / commits`
 - `hygiene / title`
 
-The `hygiene` contexts come from `pr-hygiene.yml`'s own `name:` fields rather
-than the composition, faux-namespaced to read the same in this list.
+The `hygiene` contexts come from `pr-hygiene.yml`'s own `name:` fields rather than the composition, faux-namespaced to
+read the same in this list.
 
-`snyk` is advisory (its findings never fail the job) and `label` runs outside
-the composition, so neither carries a required context. `release-plz` carries
-none either: it runs on push to `main` and standalone, outside the
-composition. `release.yml`'s pull_request plan job is likewise advisory.
+`snyk` is advisory (its findings never fail the job) and `label` runs outside the composition, so neither carries a
+required context. `release-plz` carries none either: it runs on push to `main` and standalone, outside the composition.
+`release.yml`'s pull_request plan job is likewise advisory.
 
 ## Binary releases
 
-`release.yml` is generated by cargo-dist (`dist generate`); edit
-`dist-workspace.toml` and regenerate rather than editing it by hand. The
-action SHA pins come from `[dist.github-action-commits]` there. The release
-sequence: merging the release PR makes release-plz publish to crates.io, push
-the tag, and create a draft GitHub release carrying the changelog body
-(`git_release_draft = true`); the tag push triggers `release.yml`, which
-builds the target archives and checksums, attaches them to the draft, and
-publishes it. The tag reaches the repository via the release-plz App token,
-which unlike `GITHUB_TOKEN` can trigger workflows. Recovery from a failed
-dist run: re-run the workflow for transient failures. For a repository
-defect, never recreate the tag: crates.io already holds the source for that
-version, so the tag must keep pointing at it. Fix `main`, delete the
-binary-less draft, and ship the fix as the next patch release. No secrets
-beyond the workflow's own `GITHUB_TOKEN` are involved.
+`release.yml` is generated by cargo-dist (`dist generate`); edit `dist-workspace.toml` and regenerate rather than
+editing it by hand. The action SHA pins come from `[dist.github-action-commits]` there. The release sequence: merging
+the release PR makes release-plz publish to crates.io, push the tag, and create a draft GitHub release carrying the
+changelog body (`git_release_draft = true`); the tag push triggers `release.yml`, which builds the target archives and
+checksums, attaches them to the draft, and publishes it. The tag reaches the repository via the release-plz App token,
+which unlike `GITHUB_TOKEN` can trigger workflows. Recovery from a failed dist run: re-run the workflow for transient
+failures. For a repository defect, never recreate the tag: crates.io already holds the source for that version, so the
+tag must keep pointing at it. Fix `main`, delete the binary-less draft, and ship the fix as the next patch release. No
+secrets beyond the workflow's own `GITHUB_TOKEN` are involved.
 
 ## Permissions and secrets
 
-A called workflow can only downgrade its caller's token, never elevate it, so
-a caller job's `permissions:` must be the union of what its jobs declare. The
-`snyk` caller job is the one exception to the top-level `contents: read`
-default: its `code` job needs `security-events: write` to upload SARIF, so
-`ci.yml` grants that at the caller job, mirroring the job-level grant already
-in `snyk.yml`.
+A called workflow can only downgrade its caller's token, never elevate it, so a caller job's `permissions:` must be the
+union of what its jobs declare. The `snyk` caller job is the one exception to the top-level `contents: read` default:
+its `code` job needs `security-events: write` to upload SARIF, so `ci.yml` grants that at the caller job, mirroring the
+job-level grant already in `snyk.yml`.
 
 | Secret | Used by | When absent |
 | --- | --- | --- |
@@ -123,7 +102,6 @@ in `snyk.yml`.
 | `RELEASE_PLZ_APP_PRIVATE_KEY` | `release-plz` | Token mint fails; run fails. |
 | `CARGO_REGISTRY_TOKEN` | `release-plz` / `release` | Publish fails. |
 
-`GITHUB_TOKEN` is the only other credential in use: zizmor reads public
-action metadata with it, the labeler writes labels with a job-scoped
-`pull-requests: write`, and the SARIF upload uses `security-events: write`
-scoped to the `snyk` caller job and the `code` job inside `snyk.yml`.
+`GITHUB_TOKEN` is the only other credential in use: zizmor reads public action metadata with it, the labeler writes
+labels with a job-scoped `pull-requests: write`, and the SARIF upload uses `security-events: write` scoped to the `snyk`
+caller job and the `code` job inside `snyk.yml`.
