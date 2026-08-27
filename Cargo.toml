@@ -9,6 +9,17 @@ repository = "https://github.com/unkos-dev/specful"
 readme = "README.md"
 keywords = ["specification", "requirements", "documentation", "cli"]
 categories = ["command-line-utilities", "development-tools"]
+# Allowlist so repository tooling never leaks into the crate: shipping
+# rust-toolchain.toml and .mise.toml overrode installers' toolchains and
+# broke mise-wrapped builds in 0.1.0.
+include = [
+  "src/",
+  "schemas/",
+  "templates/",
+  "/README.md",
+  "/LICENSE",
+  "/NOTICE.md",
+]
 
 [dependencies]
 clap = { version = "4.6.6", features = ["derive"] }
