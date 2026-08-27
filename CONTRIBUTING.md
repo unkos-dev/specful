@@ -9,8 +9,8 @@ repository.
 
 Contributions are accepted under the [Developer Certificate of Origin v1.1](https://developercertificate.org/) (DCO).
 You keep the copyright of your work; each contribution is licensed to the project under the license that governs the
-files it touches (inbound = outbound): the Apache License 2.0 for implementation and general repository content, and
-CC0 1.0 for templates and schemas. The nearest license file and any SPDX identifier on a file determine which applies.
+files it touches (inbound = outbound): the Apache License 2.0 for implementation and general repository content, and CC0
+1.0 for templates and schemas. The nearest license file and any SPDX identifier on a file determine which applies.
 Signing off certifies the DCO: that you wrote the contribution, or otherwise have the right to submit it under that
 license.
 

@@ -51,8 +51,7 @@ history.
 
 ## Decision Outcome
 
-Chosen option: **{option}**, because {reason it best satisfies the decision
-drivers}.
+Chosen option: **{option}**, because {reason it best satisfies the decision drivers}.
 
 ### Consequences
 
@@ -85,5 +84,4 @@ does not add useful decision evidence.
 
 ## More Information
 
-{Supporting evidence, related decisions, or conditions that should trigger
-reconsideration}
+{Supporting evidence, related decisions, or conditions that should trigger reconsideration}

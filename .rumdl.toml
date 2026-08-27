@@ -12,3 +12,5 @@ line-length = 120
 headings = true
 code-blocks = false
 tables = true
+reflow = true
+reflow-mode = "normalize"

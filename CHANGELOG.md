@@ -2,8 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -56,5 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add contributor process and DCO check ([#4](https://github.com/unkos-dev/specful/pull/4))
 - *(deps)* update rust to v1.98.0 ([#13](https://github.com/unkos-dev/specful/pull/13))
 - add issue forms and pull request template ([#6](https://github.com/unkos-dev/specful/pull/6))
-- adopt the justfile-driven pipeline with coverage, lint, and dependency gates ([#7](https://github.com/unkos-dev/specful/pull/7))
+- adopt the justfile-driven pipeline with coverage, lint, and dependency gates
+  ([#7](https://github.com/unkos-dev/specful/pull/7))
 - match rustfmt import layout
