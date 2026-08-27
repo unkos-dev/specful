@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use specful::authoring::{NewKind, SPECFUL_MARKER_END, SPECFUL_MARKER_START, init, new_artifact};
+use specful::index::CATALOG_PATH;
 
 fn scratch() -> tempfile::TempDir {
     tempfile::tempdir().expect("create scratch")
@@ -31,6 +32,31 @@ fn fresh_init_writes_specful_md_and_agents_md() {
     let agents_md = std::fs::read_to_string(root.path().join(AGENTS_FILE)).expect("read AGENTS.md");
     assert!(agents_md.starts_with(SPECFUL_MARKER_START));
     assert!(agents_md.contains(SPECFUL_MARKER_END));
+}
+
+#[test]
+fn fresh_init_writes_generated_views_for_a_zero_artifact_repository() {
+    let root = scratch();
+    let outcome = init(root.path(), "EXAMPLE").expect("init");
+
+    assert!(outcome.created.iter().any(|p| p == CATALOG_PATH));
+    assert!(outcome.created.iter().any(|p| p == "docs/specs/index.md"));
+    assert!(root.path().join(CATALOG_PATH).is_file());
+    assert!(root.path().join("docs/specs/index.md").is_file());
+}
+
+#[test]
+fn failed_init_preserves_author_owned_specs_index() {
+    let root = scratch();
+    let index_path = root.path().join("docs/specs/index.md");
+    std::fs::create_dir_all(index_path.parent().expect("parent")).expect("create docs/specs");
+    let author_owned = "# My hand-written index\n";
+    std::fs::write(&index_path, author_owned).expect("plant author-owned index");
+
+    init(root.path(), "EXAMPLE").expect_err("init must refuse an author-owned index");
+
+    let after = std::fs::read_to_string(&index_path).expect("author-owned index must survive");
+    assert_eq!(after, author_owned);
 }
 
 #[test]

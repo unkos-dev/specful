@@ -473,6 +473,31 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
         },
     }
 
+    let generated_views = crate::index::render_views(&[]);
+    // A view path that already exists is not this invocation's to remove:
+    // run_index refuses author-owned files, and rollback must not delete
+    // the very file that refusal protected.
+    let preexisting_views: Vec<&String> = generated_views
+        .keys()
+        .filter(|path| root.join(path).exists())
+        .collect();
+    let view_findings = crate::index::run_index(root, false);
+    if !view_findings.is_empty() {
+        let mut rollback_targets = vec![CONFIG_FILE, SPECFUL_MD_FILE];
+        if created.iter().any(|f| f == AGENTS_FILE) {
+            rollback_targets.push(AGENTS_FILE);
+        }
+        rollback_targets.extend(
+            generated_views
+                .keys()
+                .filter(|path| !preexisting_views.contains(path))
+                .map(String::as_str),
+        );
+        rollback(root, &rollback_targets);
+        return Err(view_findings);
+    }
+    created.extend(generated_views.into_keys());
+
     Ok(InitOutcome { created, updated })
 }
 
