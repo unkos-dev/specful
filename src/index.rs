@@ -22,9 +22,6 @@ pub const CATALOG_PATH: &str = ".specful/generated/catalog.json";
 /// repositories render identical bytes.
 pub(crate) fn render_views(artifacts: &[Artifact]) -> BTreeMap<String, String> {
     let mut views = BTreeMap::new();
-    if artifacts.is_empty() {
-        return views;
-    }
     views.insert(CATALOG_PATH.to_owned(), render_catalog(artifacts));
     for (scope, content) in render_indexes(artifacts) {
         let path = if scope.is_empty() {
@@ -355,4 +352,20 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
         }
     }
     findings
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CATALOG_PATH, render_views};
+    use crate::repo::SPECS_DIR;
+
+    #[test]
+    fn renders_catalog_and_root_index_with_zero_artifacts() {
+        let views = render_views(&[]);
+        assert!(views.contains_key(CATALOG_PATH), "views: {views:?}");
+        assert!(
+            views.contains_key(&format!("{SPECS_DIR}/index.md")),
+            "views: {views:?}"
+        );
+    }
 }
