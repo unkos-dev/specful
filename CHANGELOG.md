@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/unkos-dev/specful/compare/v0.1.0...v0.1.1) - 2026-08-27
+
+### Fixed
+
+- restrict the published crate to shipped content ([#30](https://github.com/unkos-dev/specful/pull/30))
+
 ## [0.1.0](https://github.com/unkos-dev/specful/releases/tag/v0.1.0) - 2026-08-26
 
 ### Added
