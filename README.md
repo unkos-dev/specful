@@ -7,6 +7,17 @@
 
 > Re-spec your repository.
 
+[![crates.io][cv]][crates] [![docs.rs][dv]][docs] [![build][bv]][build] [![MSRV][mv]][msrv]
+
+[crates]: https://crates.io/crates/specful
+[cv]: https://img.shields.io/crates/v/specful?style=flat-square&label=crates.io&labelColor=5F646A&color=C54A3B
+[docs]: https://docs.rs/specful/latest/specful/
+[dv]: https://img.shields.io/docsrs/specful?style=flat-square&label=docs.rs&labelColor=5F646A&color=C54A3B
+[build]: https://github.com/unkos-dev/specful/actions/workflows/ci.yml
+[bv]: https://img.shields.io/github/actions/workflow/status/unkos-dev/specful/ci.yml?branch=main&style=flat-square&label=build&labelColor=5F646A&color=C54A3B
+[msrv]: https://github.com/unkos-dev/specful/blob/main/Cargo.toml
+[mv]: https://img.shields.io/crates/msrv/specful?style=flat-square&label=MSRV&labelColor=5F646A&color=C54A3B
+
 Specful is a portable convention for keeping software requirements, design documentation, and decisions current,
 connected, and usable by people and coding agents, served by a single-binary CLI.
 
