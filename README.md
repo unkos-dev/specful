@@ -1,7 +1,9 @@
 <h1>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/specful-masthead-dark.svg">
-    <img src="docs/assets/brand/specful-masthead-light.svg" alt="Specful" height="44">
+    <source media="(prefers-color-scheme: dark)"
+            srcset="https://github.com/unkos-dev/specful/raw/main/docs/assets/brand/specful-masthead-dark.svg">
+    <img src="https://github.com/unkos-dev/specful/raw/main/docs/assets/brand/specful-masthead-light.svg"
+         alt="Specful" height="44">
   </picture>
 </h1>
 
