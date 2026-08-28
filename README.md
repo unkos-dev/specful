@@ -1,4 +1,9 @@
-# Specful
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/brand/specful-masthead-dark.svg">
+    <img src="docs/assets/brand/specful-masthead-light.svg" alt="Specful" height="44">
+  </picture>
+</h1>
 
 > Re-spec your repository.
 
@@ -62,6 +67,9 @@ Specful's implementation and general repository content are licensed under the [
 Reusable templates, schemas, and examples are dedicated to the public domain under
 [CC0 1.0 Universal](templates/LICENSE). The nearest license file and any SPDX identifier on an individual file determine
 which terms apply.
+
+The Specful marks under [`docs/assets/brand/`](docs/assets/brand/) are reserved brand assets governed by their
+[own licence](docs/assets/brand/LICENSE).
 
 Specful claims no rights over material supplied by an adopting project. To the extent Specful holds rights in the
 Specful-provided portions of generated artifacts, those portions are available under CC0-1.0.
