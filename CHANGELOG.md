@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/unkos-dev/specful/compare/v0.1.2...v0.2.0) - 2026-08-28
+
+### Other
+
+- add repository badges ([#40](https://github.com/unkos-dev/specful/pull/40))
+- apply Specful brand identity ([#38](https://github.com/unkos-dev/specful/pull/38))
+- reflow the AGENTS.md block template to fill the 120-column limit ([#37](https://github.com/unkos-dev/specful/pull/37))
+- [**breaking**] consolidate specful state under .specful ([#34](https://github.com/unkos-dev/specful/pull/34))
+- reflow Markdown prose to fill the 120-column limit ([#35](https://github.com/unkos-dev/specful/pull/35))
+
 ## [0.1.2](https://github.com/unkos-dev/specful/compare/v0.1.1...v0.1.2) - 2026-08-27
 
 ### Fixed
