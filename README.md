@@ -15,7 +15,7 @@
 [dv]: https://img.shields.io/docsrs/specful?style=flat-square&label=docs.rs&labelColor=5F646A&color=C54A3B
 [build]: https://github.com/unkos-dev/specful/actions/workflows/ci.yml
 [bv]: https://img.shields.io/github/actions/workflow/status/unkos-dev/specful/ci.yml?branch=main&style=flat-square&label=build&labelColor=5F646A&color=C54A3B
-[msrv]: https://github.com/unkos-dev/specful/blob/main/rust-toolchain.toml
+[msrv]: https://github.com/unkos-dev/specful/blob/main/Cargo.toml
 [mv]: https://img.shields.io/crates/msrv/specful?style=flat-square&label=MSRV&labelColor=5F646A&color=C54A3B
 
 Specful is a portable convention for keeping software requirements, design documentation, and decisions current,
