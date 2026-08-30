@@ -13,26 +13,27 @@ links. Plain text search across `docs/specs/` and `docs/adr/` always works, with
 
 ## Authoring workflow
 
-Create every new specification, design description, or decision record with `specful new`; never hand-allocate an
-identifier. Requirements and design descriptions describe current state only, written as though the system has always
-worked this way. A requirement block uses at least one uppercase BCP 14 keyword (MUST, MUST NOT, SHOULD, SHOULD NOT,
-MAY). A design module declares the requirements it `satisfies`; a specification cites its governing ADRs through
-`governed-by`. After editing, run `specful index` to regenerate the navigation views, then `specful validate` to check
-the result, and commit the regenerated views with your change. Coordinate a transition with a plan in `plans/`, copied
-by hand from `templates/change-plan.md` or `templates/arc-plan.md` at the versioned repository link below; graduate any
-durable rationale to an ADR, then move the plan out of the active set once the transition lands.
+Create every new Requirement, Design, or ADR with `specful new`; never hand-allocate an identifier. Requirements and
+Designs describe current state only, written as though the system has always worked this way. A Requirement's Statement
+section uses at least one uppercase BCP 14 keyword (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY). A Design declares the
+Requirements it `satisfies`; a Requirement or Design cites its governing ADRs through `governed-by`. After editing, run
+`specful index` to regenerate the navigation views, then `specful validate` to check the result, and commit the
+regenerated views with your change. Coordinate a transition with a plan in `plans/`, copied by hand from
+`templates/change-plan.md` or `templates/arc-plan.md` at the versioned repository link below; graduate any durable
+rationale to an ADR, then move the plan out of the active set once the transition lands.
 
 ## Which artifact changes
 
 | Kind of change | Artifact | How it changes |
 |---|---|---|
-| Behaviour or constraint | MSRS | Rewrite in place |
-| How the system works | MSDD | Rewrite in place |
+| Normative obligation | Requirement | Rewrite in place |
+| How the system works | Design | Rewrite in place |
 | Durable decision rationale | ADR | New record, old one superseded |
 | Active transition | Plan | Archived or deleted once the transition lands |
 | What used to be true | Git history | Never restated in current-state docs |
 
 ## About Specful
 
-For the full convention, its artifact profiles, and the CLI reference matching this installation, see
+For the current documentation site, with the full artifact profiles, authoring workflow, and CLI reference, see
+<https://unkos-dev.github.io/specful/>. For the exact text this installation was scaffolded from, see
 <https://github.com/unkos-dev/specful/tree/{version}>.

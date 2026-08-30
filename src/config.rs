@@ -32,18 +32,17 @@ pub fn discover_root(start: &Path) -> Result<PathBuf, Finding> {
     }
 }
 
-const COUNTER_KINDS: [(&str, &str); 4] = [
+const COUNTER_KINDS: [(&str, &str); 3] = [
     ("next-adr-sequence", "ADR"),
-    ("next-msrs-sequence", "MSRS"),
     ("next-requirement-sequence", "REQ"),
-    ("next-msdd-sequence", "MSDD"),
+    ("next-design-sequence", "DESIGN"),
 ];
 
 #[derive(Debug, Clone)]
 pub struct Config {
     pub project_key: String,
     pub specful_version: String,
-    /// Allocation counters keyed by identifier kind (ADR, MSRS, REQ, MSDD).
+    /// Allocation counters keyed by identifier kind (ADR, REQ, DESIGN).
     pub counters: BTreeMap<String, i64>,
 }
 
@@ -57,15 +56,13 @@ impl Config {
              project-key: {}\n\
              specful-version: {}\n\
              next-adr-sequence: {}\n\
-             next-msrs-sequence: {}\n\
              next-requirement-sequence: {}\n\
-             next-msdd-sequence: {}\n",
+             next-design-sequence: {}\n",
             self.project_key,
             self.specful_version,
             self.counters.get("ADR").copied().unwrap_or(1),
-            self.counters.get("MSRS").copied().unwrap_or(1),
             self.counters.get("REQ").copied().unwrap_or(1),
-            self.counters.get("MSDD").copied().unwrap_or(1),
+            self.counters.get("DESIGN").copied().unwrap_or(1),
         )
     }
 }

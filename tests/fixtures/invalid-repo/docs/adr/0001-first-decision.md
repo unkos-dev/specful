@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: BAD-ADR-0001
 title: First decision

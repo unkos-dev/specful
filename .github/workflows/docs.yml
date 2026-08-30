@@ -1,0 +1,98 @@
+name: Docs
+
+# Path filtering lives here rather than as a top-level `paths:` trigger on this file: a workflow
+# with a top-level `paths:` trigger that never fires reports nothing at all for the contexts it
+# owns, which would leave `docs / build` permanently pending on a pull request that never touches
+# a docs-relevant path. Filtering inside the one job that always runs keeps the context reporting
+# either way.
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Pull requests get real path filtering, since most touch Rust or workflow files and never
+      # the site. Push to main, merge_group, and a manual dispatch always build: main is the
+      # publish source, merge_group is the last check before it, and dispatch is the explicit
+      # full-run override, so none of the three are worth a diff heuristic's edge cases.
+      - name: Filter changed paths
+        if: github.event_name == 'pull_request'
+        id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            docs:
+              - 'site/**'
+              - 'docs/specs/**'
+              - 'templates/**'
+              - '.mise.toml'
+              - '.github/workflows/ci.yml'
+              - '.github/workflows/docs.yml'
+
+      - name: Decide whether this run builds
+        id: gate
+        # Step outputs and the event name go through env rather than direct template expansion
+        # in the script body, so nothing here is substituted into the shell before it runs.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DOCS_CHANGED: ${{ steps.filter.outputs.docs }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" != 'pull_request' ] || [ "${DOCS_CHANGED}" = 'true' ]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+            echo '::notice title=Docs build skipped::No docs-relevant path changed in this pull request.'
+          fi
+
+      # Not the repository's shared ./.github/actions/setup composite: it wraps mise-action with
+      # caching left at its default-on, and this build's output is the exact thing the privileged
+      # Pages publish workflow later builds and deploys, so nothing in its path gets a cache.
+      - name: Install bun (mise, uncached)
+        if: steps.gate.outputs.run == 'true'
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
+          version: "2026.8.14"
+          install_args: bun
+          cache: false
+
+      - name: Install site dependencies
+        if: steps.gate.outputs.run == 'true'
+        working-directory: site
+        run: mise exec -- bun install --frozen-lockfile
+
+      - name: Build site
+        if: steps.gate.outputs.run == 'true'
+        working-directory: site
+        run: mise exec -- bun run build
+
+      # The site is built with base '/specful', so every internal link and asset reference is
+      # already prefixed that way. Staging the output under a matching /specful/ directory before
+      # the offline check means lychee resolves those absolute links against the same root the
+      # published site will actually have, instead of a false mismatch against the bare dist root.
+      - name: Stage build for offline link check
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p link-root/specful
+          cp -r site/dist/. link-root/specful/
+
+      - name: Check internal links (offline)
+        if: steps.gate.outputs.run == 'true'
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          # --root-dir must be absolute: it is where an absolute link (e.g. /specful/foo/) is
+          # resolved from, and the staged tree puts that root one level above link-root/specful.
+          args: >-
+            --offline --no-progress --root-dir ${{ github.workspace }}/link-root
+            'link-root/specful/**/*.html'
+          fail: true
+          # renovate: datasource=github-releases depName=lycheeverse/lychee extractVersion=^lychee-v(?<version>.+)$
+          lycheeVersion: v0.24.2

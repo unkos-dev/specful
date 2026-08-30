@@ -12,8 +12,8 @@ use crate::diagnostics::Finding;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArtifactKind {
     Adr,
-    Msrs,
-    Msdd,
+    Requirement,
+    Design,
 }
 
 /// One body line plus its file-relative position and fence membership.
@@ -131,7 +131,7 @@ fn contains_bcp14_term(text: &str) -> bool {
 }
 
 /// Whether `text` contains one non-empty `{...}` pair on a single line, the
-/// bracket placeholder convention used throughout `templates/adr.md`.
+/// bracket placeholder convention used throughout the templates.
 fn has_brace_placeholder(text: &str) -> bool {
     if let Some(open) = text.find('{')
         && let Some(close_rel) = text[open + 1..].find('}')
@@ -141,12 +141,12 @@ fn has_brace_placeholder(text: &str) -> bool {
     false
 }
 
-/// Whether `text` still carries template placeholder or instructional
-/// residue. Markers are taken verbatim from the templates: bracket
-/// placeholders (`{...}`), the bare `NNNN` sequence number token, and
-/// instructional HTML comments. The SPDX license comment in
-/// `templates/adr.md` is excluded: it is a machine-readable license notice
-/// documented in `README.md`, not authoring guidance.
+/// Whether `text` still carries single-line template placeholder or
+/// instructional residue. Markers are taken verbatim from the templates:
+/// bracket placeholders (`{...}`), the bare `NNNN` sequence number token,
+/// and instructional HTML comments. The SPDX license comment is excluded:
+/// it is a machine-readable license notice documented in `README.md`, not
+/// authoring guidance.
 fn has_placeholder_residue(text: &str) -> bool {
     if text.contains("<!--") && !text.contains("SPDX-License-Identifier") {
         return true;
@@ -157,10 +157,56 @@ fn has_placeholder_residue(text: &str) -> bool {
     has_brace_placeholder(text)
 }
 
+/// Finds every line that belongs to a `{...}` block whose opening brace is
+/// not closed on the same line, tracking brace balance across lines. Every
+/// line the block spans is residue, whether the block is entirely untouched
+/// guidance or has been partially edited without closing the block: the
+/// brace pairing, not the wording inside it, marks the span. Fenced lines
+/// are excluded from balance tracking entirely, so code content never
+/// contributes to or breaks a real placeholder block's balance.
+fn multiline_brace_residue(lines: &[Line<'_>]) -> HashSet<usize> {
+    let mut residue = HashSet::new();
+    let mut open_start: Option<usize> = None;
+    let mut balance: i32 = 0;
+    for (idx, line) in lines.iter().enumerate() {
+        if line.in_fence {
+            continue;
+        }
+        let opens = line.text.matches('{').count() as i32;
+        let closes = line.text.matches('}').count() as i32;
+        if balance == 0 && opens > closes {
+            open_start = Some(idx);
+        }
+        balance += opens - closes;
+        if balance <= 0 {
+            if let Some(start) = open_start
+                && start != idx
+            {
+                for line_idx in lines.iter().take(idx + 1).skip(start) {
+                    residue.insert(line_idx.file_line);
+                }
+            }
+            balance = 0;
+            open_start = None;
+        }
+    }
+    // A block left open at end of input is residue to its last line: a missing
+    // closing brace must not turn unfinished guidance into a pass.
+    if let Some(start) = open_start {
+        for line in lines.iter().skip(start) {
+            residue.insert(line.file_line);
+        }
+    }
+    residue
+}
+
 fn placeholder_findings(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
+    let multiline = multiline_brace_residue(lines);
     lines
         .iter()
-        .filter(|l| !l.in_fence && has_placeholder_residue(l.text))
+        .filter(|l| {
+            !l.in_fence && (has_placeholder_residue(l.text) || multiline.contains(&l.file_line))
+        })
         .map(|l| {
             Finding::new(
                 path,
@@ -176,9 +222,8 @@ fn placeholder_findings(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
 /// the body, so an unfilled frontmatter field (for example the ADR
 /// `decision-makers` scaffold entry) is not silently accepted just because
 /// placeholder scanning only ever looked at the Markdown body. A YAML flow
-/// mapping such as the MSRS `requirements: ID: {}` scaffold entry parses to
-/// a JSON object, never a string, so it is never mistaken for a
-/// placeholder; only actual string scalars are checked.
+/// mapping parses to a JSON object, never a string, so it is never mistaken
+/// for a placeholder; only actual string scalars are checked.
 fn frontmatter_placeholder_findings(frontmatter: &serde_json::Value, path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
     collect_frontmatter_placeholders(frontmatter, "", path, &mut findings);
@@ -218,16 +263,6 @@ fn collect_frontmatter_placeholders(
             }
         }
         _ => {}
-    }
-}
-
-/// Splits a requirement heading's text at the first `": "` into an id and a
-/// title. A heading with no separator is treated as an id-only heading, so
-/// it still participates in id-set comparison rather than being dropped.
-fn split_id_title(text: &str) -> &str {
-    match text.split_once(": ") {
-        Some((id, _title)) => id,
-        None => text,
     }
 }
 
@@ -279,187 +314,6 @@ fn check_common(
     findings
 }
 
-fn check_msrs(lines: &[Line<'_>], frontmatter: &serde_json::Value, path: &str) -> Vec<Finding> {
-    let mut findings = Vec::new();
-
-    let req_sections: Vec<(usize, &Line<'_>)> = lines
-        .iter()
-        .enumerate()
-        .filter(|(_, l)| !l.in_fence && heading_level_and_text(l.text) == Some((2, "Requirements")))
-        .collect();
-
-    if req_sections.is_empty() {
-        findings.push(Finding::new(
-            path,
-            None,
-            "missing a level-two \"Requirements\" section",
-        ));
-        return findings;
-    }
-    if req_sections.len() > 1 {
-        for (_, l) in &req_sections {
-            findings.push(Finding::new(
-                path,
-                Some(l.file_line),
-                "multiple level-two \"Requirements\" sections found",
-            ));
-        }
-        return findings;
-    }
-
-    let (start_idx, req_heading) = req_sections[0];
-    let mut end_idx = lines.len();
-    for (idx, l) in lines.iter().enumerate().skip(start_idx + 1) {
-        if l.in_fence {
-            continue;
-        }
-        if let Some((lvl, _)) = heading_level_and_text(l.text)
-            && lvl <= 2
-        {
-            end_idx = idx;
-            break;
-        }
-    }
-    let section_start = start_idx + 1;
-
-    struct Block {
-        id: String,
-        heading_line: usize,
-        start: usize,
-        end: usize,
-    }
-
-    let mut h3_positions: Vec<(usize, &str, usize)> = Vec::new();
-    for (idx, l) in lines.iter().enumerate().take(end_idx).skip(section_start) {
-        if l.in_fence {
-            continue;
-        }
-        if let Some((lvl, text)) = heading_level_and_text(l.text)
-            && lvl == 3
-        {
-            h3_positions.push((idx, text, l.file_line));
-        }
-    }
-
-    let mut blocks = Vec::new();
-    for (i, (idx, text, file_line)) in h3_positions.iter().enumerate() {
-        let block_end = h3_positions
-            .get(i + 1)
-            .map_or(end_idx, |(next_idx, _, _)| *next_idx);
-        blocks.push(Block {
-            id: split_id_title(text).to_string(),
-            heading_line: *file_line,
-            start: idx + 1,
-            end: block_end,
-        });
-    }
-
-    let mut seen = HashSet::new();
-    for b in &blocks {
-        if !seen.insert(b.id.clone()) {
-            findings.push(Finding::new(
-                path,
-                Some(b.heading_line),
-                format!("duplicate requirement heading \"{}\"", b.id),
-            ));
-        }
-    }
-
-    if let Some(reqs) = frontmatter.get("requirements").and_then(|v| v.as_object()) {
-        let heading_ids: HashSet<&str> = blocks.iter().map(|b| b.id.as_str()).collect();
-        for b in &blocks {
-            if !reqs.contains_key(&b.id) {
-                findings.push(Finding::new(
-                    path,
-                    Some(b.heading_line),
-                    format!(
-                        "requirement heading \"{}\" has no matching frontmatter entry",
-                        b.id
-                    ),
-                ));
-            }
-        }
-        for key in reqs.keys() {
-            if !heading_ids.contains(key.as_str()) {
-                findings.push(Finding::new(
-                    path,
-                    Some(req_heading.file_line),
-                    format!("frontmatter requirement \"{key}\" has no matching heading"),
-                ));
-            }
-        }
-    }
-
-    for b in &blocks {
-        let block_lines = &lines[b.start..b.end];
-        // The obligation lives in the normative paragraph, before the first
-        // subsection. Guidance under "#### Verification" or "#### Rationale"
-        // discusses the requirement rather than stating it.
-        let normative_end = block_lines
-            .iter()
-            .position(|l| {
-                !l.in_fence && heading_level_and_text(l.text).is_some_and(|(lvl, _)| lvl >= 4)
-            })
-            .unwrap_or(block_lines.len());
-        let normative = &block_lines[..normative_end];
-
-        let has_bcp14 = normative
-            .iter()
-            .any(|l| !l.in_fence && contains_bcp14_term(l.text));
-        if !has_bcp14 {
-            findings.push(Finding::new(
-                path,
-                Some(b.heading_line),
-                "requirement block has no normative BCP 14 term before its first subsection",
-            ));
-        }
-
-        let has_should = normative
-            .iter()
-            .any(|l| !l.in_fence && contains_word_token(l.text, "SHOULD"));
-        if has_should {
-            let has_rationale = block_lines.iter().any(|l| {
-                !l.in_fence
-                    && heading_level_and_text(l.text)
-                        .is_some_and(|(lvl, text)| lvl == 4 && text == "Rationale")
-            });
-            if !has_rationale {
-                findings.push(Finding::new(
-                    path,
-                    Some(b.heading_line),
-                    "requirement block uses SHOULD/SHOULD NOT but has no \"#### Rationale\" section",
-                ));
-            }
-        }
-    }
-
-    findings
-}
-
-fn check_msdd(lines: &[Line<'_>], path: &str, body_first_line: usize) -> Vec<Finding> {
-    let h1_line = lines
-        .iter()
-        .find(|l| !l.in_fence && heading_level_and_text(l.text).is_some_and(|(lvl, _)| lvl == 1))
-        .map(|l| l.file_line);
-
-    let has_content = lines.iter().any(|l| {
-        if l.text.trim().is_empty() {
-            return false;
-        }
-        Some(l.file_line) != h1_line
-    });
-
-    if has_content {
-        Vec::new()
-    } else {
-        vec![Finding::new(
-            path,
-            Some(h1_line.unwrap_or(body_first_line)),
-            "body has no content besides the heading",
-        )]
-    }
-}
-
 /// Finds the first line index after `after_idx` (exclusive) whose heading
 /// level is `<= level`, marking the end of that section's span. Returns
 /// `lines.len()` when no such heading follows.
@@ -491,19 +345,157 @@ fn section_nonempty(lines: &[Line<'_>], start_idx: usize, end_idx: usize) -> boo
     })
 }
 
-const ADR_REQUIRED_H2: [&str; 4] = [
-    "Context and Problem Statement",
-    "Decision Drivers",
-    "Considered Options",
-    "Decision Outcome",
+/// Checks that exactly the `required` level-`level` headings are present,
+/// in order, non-duplicated, and each has content. Shared by the
+/// Requirement and Design profiles, whose canonical section sets are both
+/// closed lists of required level-two headings.
+fn check_required_sections_in_order(
+    lines: &[Line<'_>],
+    path: &str,
+    level: usize,
+    required: &[&str],
+) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let marker = "#".repeat(level);
+
+    let headings: Vec<(usize, &str, usize)> = lines
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, l)| {
+            if l.in_fence {
+                return None;
+            }
+            heading_level_and_text(l.text)
+                .filter(|(lvl, _)| *lvl == level)
+                .map(|(_, text)| (idx, text, l.file_line))
+        })
+        .collect();
+
+    for name in required {
+        let matches: Vec<_> = headings.iter().filter(|(_, t, _)| t == name).collect();
+        if matches.is_empty() {
+            findings.push(Finding::new(
+                path,
+                None,
+                format!("missing required section \"{marker} {name}\""),
+            ));
+        } else if matches.len() > 1 {
+            for (_, _, fl) in &matches {
+                findings.push(Finding::new(
+                    path,
+                    Some(*fl),
+                    format!("duplicate \"{marker} {name}\" section"),
+                ));
+            }
+        }
+    }
+
+    let mut encountered: Vec<(usize, usize)> = Vec::new();
+    for (_, text, fl) in &headings {
+        if let Some(req_idx) = required.iter().position(|n| n == text)
+            && !encountered.iter().any(|(ri, _)| *ri == req_idx)
+        {
+            encountered.push((req_idx, *fl));
+        }
+    }
+    let mut max_seen = 0usize;
+    let mut started = false;
+    for (req_idx, fl) in &encountered {
+        if started && *req_idx < max_seen {
+            findings.push(Finding::new(
+                path,
+                Some(*fl),
+                format!(
+                    "\"{marker} {}\" section is out of order",
+                    required[*req_idx]
+                ),
+            ));
+        }
+        max_seen = max_seen.max(*req_idx);
+        started = true;
+    }
+
+    for (idx, text, fl) in &headings {
+        if required.contains(text) {
+            let end = section_end(lines, *idx, level);
+            if !section_nonempty(lines, *idx, end) {
+                findings.push(Finding::new(
+                    path,
+                    Some(*fl),
+                    format!("\"{marker} {text}\" section has no content"),
+                ));
+            }
+        }
+    }
+
+    findings
+}
+
+const REQUIREMENT_REQUIRED_H2: [&str; 4] = [
+    "Statement",
+    "Rationale",
+    "Acceptance criteria",
+    "More information",
 ];
 
-const ADR_OPTIONAL_H2: [&str; 2] = ["Pros and Cons of the Options", "More Information"];
+fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
+    let mut findings = check_required_sections_in_order(lines, path, 2, &REQUIREMENT_REQUIRED_H2);
+
+    let statement_headings: Vec<(usize, usize)> = lines
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, l)| {
+            if l.in_fence {
+                return None;
+            }
+            (heading_level_and_text(l.text) == Some((2, "Statement"))).then_some((idx, l.file_line))
+        })
+        .collect();
+    if let Some(&(idx, file_line)) = statement_headings.first() {
+        let end = section_end(lines, idx, 2);
+        let has_bcp14 = lines[idx + 1..end]
+            .iter()
+            .any(|l| !l.in_fence && contains_bcp14_term(l.text));
+        if !has_bcp14 {
+            findings.push(Finding::new(
+                path,
+                Some(file_line),
+                "\"## Statement\" section has no uppercase BCP 14 keyword",
+            ));
+        }
+    }
+
+    findings
+}
+
+const DESIGN_REQUIRED_H2: [&str; 8] = [
+    "Purpose and boundaries",
+    "Structure",
+    "Interfaces and dependencies",
+    "Data and state",
+    "Runtime behaviour",
+    "Failure and recovery",
+    "Security and operations",
+    "More information",
+];
+
+fn check_design(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
+    check_required_sections_in_order(lines, path, 2, &DESIGN_REQUIRED_H2)
+}
+
+const ADR_REQUIRED_H2: [&str; 4] = [
+    "Context and problem statement",
+    "Decision drivers",
+    "Considered options",
+    "Decision outcome",
+];
+
+const ADR_OPTIONAL_H2: [&str; 2] = ["Pros and cons of the options", "More information"];
 
 const ADR_REQUIRED_H3: [&str; 2] = ["Consequences", "Confirmation"];
 
 fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
-    let mut findings = Vec::new();
+    let mut findings = check_required_sections_in_order(lines, path, 2, &ADR_REQUIRED_H2);
 
     let h2s: Vec<(usize, &str, usize)> = lines
         .iter()
@@ -518,52 +510,8 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         })
         .collect();
 
-    for name in ADR_REQUIRED_H2 {
-        let matches: Vec<_> = h2s.iter().filter(|(_, t, _)| *t == name).collect();
-        if matches.is_empty() {
-            findings.push(Finding::new(
-                path,
-                None,
-                format!("missing required section \"## {name}\""),
-            ));
-        } else if matches.len() > 1 {
-            for (_, _, fl) in &matches {
-                findings.push(Finding::new(
-                    path,
-                    Some(*fl),
-                    format!("duplicate \"## {name}\" section"),
-                ));
-            }
-        }
-    }
-
-    let mut encountered: Vec<(usize, usize)> = Vec::new();
-    for (_, text, fl) in &h2s {
-        if let Some(req_idx) = ADR_REQUIRED_H2.iter().position(|n| n == text)
-            && !encountered.iter().any(|(ri, _)| *ri == req_idx)
-        {
-            encountered.push((req_idx, *fl));
-        }
-    }
-    let mut max_seen = 0usize;
-    let mut started = false;
-    for (req_idx, fl) in &encountered {
-        if started && *req_idx < max_seen {
-            findings.push(Finding::new(
-                path,
-                Some(*fl),
-                format!(
-                    "\"## {}\" section is out of order",
-                    ADR_REQUIRED_H2[*req_idx]
-                ),
-            ));
-        }
-        max_seen = max_seen.max(*req_idx);
-        started = true;
-    }
-
     for (idx, text, fl) in &h2s {
-        if ADR_REQUIRED_H2.contains(text) || ADR_OPTIONAL_H2.contains(text) {
+        if ADR_OPTIONAL_H2.contains(text) {
             let end = section_end(lines, *idx, 2);
             if !section_nonempty(lines, *idx, end) {
                 findings.push(Finding::new(
@@ -578,7 +526,7 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
     // Consequences and Confirmation are level-three subsections of
     // Decision Outcome. Scope the search to that section's span so a
     // stray top-level heading of the same name is not mistaken for it.
-    let decision_outcome = h2s.iter().find(|(_, t, _)| *t == "Decision Outcome");
+    let decision_outcome = h2s.iter().find(|(_, t, _)| *t == "Decision outcome");
     let (scope_start, scope_end) = match decision_outcome {
         Some((idx, _, _)) => (*idx, section_end(lines, *idx, 2)),
         None => (0, lines.len()),
@@ -669,8 +617,8 @@ pub fn check_body(
     let mut findings = check_common(&lines, frontmatter, path, body_first_line);
 
     match kind {
-        ArtifactKind::Msrs => findings.extend(check_msrs(&lines, frontmatter, path)),
-        ArtifactKind::Msdd => findings.extend(check_msdd(&lines, path, body_first_line)),
+        ArtifactKind::Requirement => findings.extend(check_requirement(&lines, path)),
+        ArtifactKind::Design => findings.extend(check_design(&lines, path)),
         ArtifactKind::Adr => findings.extend(check_adr(&lines, path)),
     }
 
@@ -695,7 +643,7 @@ mod tests {
     #[test]
     fn missing_h1_is_a_finding() {
         let fm = json!({});
-        let findings = findings_for(ArtifactKind::Msdd, fm, "no heading here\n");
+        let findings = findings_for(ArtifactKind::Design, fm, "no heading here\n");
         assert!(
             findings
                 .iter()
@@ -707,7 +655,7 @@ mod tests {
     fn multiple_h1_is_a_finding_per_heading() {
         let fm = json!({});
         let body = "# First\n\nsome text\n\n# Second\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         let multi: Vec<_> = findings
             .iter()
             .filter(|f| f.message.contains("multiple level-one headings"))
@@ -720,9 +668,13 @@ mod tests {
     #[test]
     fn fenced_fake_heading_is_ignored() {
         let fm = json!({"title": "Real title"});
-        let body = "# Real title\n\n```\n# not a heading\n```\n\nsome content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
-        assert!(findings.is_empty());
+        let body = complete_design_body().replacen(
+            "Structure explanation.",
+            "```\n# not a heading\n```\n\nStructure explanation.",
+            1,
+        );
+        let findings = findings_for(ArtifactKind::Design, fm, &body);
+        assert!(findings.is_empty(), "{findings:?}");
     }
 
     // ---- common: title parity ----
@@ -731,7 +683,7 @@ mod tests {
     fn title_mismatch_is_a_finding_on_h1_line() {
         let fm = json!({"title": "Expected Title"});
         let body = "line offset\n# Wrong Title\n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         let mismatch = findings
             .iter()
             .find(|f| f.message.contains("does not match frontmatter title"))
@@ -741,9 +693,9 @@ mod tests {
 
     #[test]
     fn title_match_trims_trailing_whitespace_only() {
-        let fm = json!({"title": "Exact Title"});
-        let body = "# Exact Title   \n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let fm = json!({"title": "Real title"});
+        let body = complete_design_body().replacen("# Real title", "# Real title   ", 1);
+        let findings = findings_for(ArtifactKind::Design, fm, &body);
         assert!(
             !findings
                 .iter()
@@ -755,7 +707,7 @@ mod tests {
     fn missing_title_field_skips_parity_check() {
         let fm = json!({});
         let body = "# Any Heading\n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             !findings
                 .iter()
@@ -763,13 +715,13 @@ mod tests {
         );
     }
 
-    // ---- common: placeholder residue ----
+    // ---- common: single-line placeholder residue ----
 
     #[test]
     fn brace_placeholder_is_flagged() {
         let fm = json!({"title": "T"});
         let body = "# T\n\n{Fill this in}\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             findings
                 .iter()
@@ -781,7 +733,7 @@ mod tests {
     fn bare_nnnn_token_is_flagged() {
         let fm = json!({"title": "T"});
         let body = "# T\n\nPROJECT-REQ-NNNN needs a real id\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             findings
                 .iter()
@@ -793,7 +745,7 @@ mod tests {
     fn instructional_comment_is_flagged() {
         let fm = json!({"title": "T"});
         let body = "# T\n\n<!-- Replace this placeholder. -->\n\nbody\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             findings
                 .iter()
@@ -805,7 +757,7 @@ mod tests {
     fn spdx_comment_is_not_flagged() {
         let fm = json!({"title": "T"});
         let body = "<!-- SPDX-License-Identifier: CC0-1.0 -->\n\n# T\n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             !findings
                 .iter()
@@ -817,7 +769,7 @@ mod tests {
     fn placeholder_inside_fence_is_ignored() {
         let fm = json!({"title": "T"});
         let body = "# T\n\n```\n{still a placeholder pattern}\n```\n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             !findings
                 .iter()
@@ -829,7 +781,7 @@ mod tests {
     fn fence_info_string_is_not_a_placeholder() {
         let fm = json!({"title": "T"});
         let body = "# T\n\n```{r}\ncode\n```\n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             !findings
                 .iter()
@@ -857,15 +809,15 @@ mod tests {
 
     #[test]
     fn frontmatter_flow_mapping_braces_are_not_a_placeholder() {
-        // `requirements: ID: {}` parses to a JSON object, not a string
-        // scalar, so the empty-mapping syntax must never be mistaken for
-        // `{...}` placeholder residue.
+        // `governed-by: {}` parses to a JSON object, not a string scalar, so
+        // the empty-mapping syntax must never be mistaken for `{...}`
+        // placeholder residue.
         let fm = json!({
             "title": "T",
-            "requirements": {"OK-REQ-0001": {}},
+            "extra": {"OK-ADR-0001": {}},
         });
-        let body = "# T\n\n## Requirements\n\n### OK-REQ-0001: Title\n\nThe system MUST do it.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+        let body = complete_requirement_body();
+        let findings = findings_for(ArtifactKind::Requirement, fm, &body);
         assert!(
             !findings
                 .iter()
@@ -878,8 +830,65 @@ mod tests {
     fn heading_inside_tilde_fence_is_ignored() {
         let fm = json!({"title": "T"});
         let body = "# T\n\n~~~\n# heading-looking-text\n~~~\n\nbody content\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
+        let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(!findings.iter().any(|f| f.message.contains("heading")));
+    }
+
+    // ---- multiline placeholder residue ----
+
+    #[test]
+    fn untouched_multiline_guidance_block_is_flagged_on_every_line() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n{INSTRUCTIONS. This is a long\nguidance block spanning several\nphysical lines.}\n\nbody content\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        let flagged: Vec<usize> = findings
+            .iter()
+            .filter(|f| f.message.contains("placeholder residue"))
+            .filter_map(|f| f.line)
+            .collect();
+        assert_eq!(flagged, vec![3, 4, 5]);
+    }
+
+    #[test]
+    fn partially_edited_multiline_guidance_block_is_still_flagged() {
+        let fm = json!({"title": "T"});
+        // The author replaced some inner wording but left the block open
+        // across lines instead of collapsing it to real prose.
+        let body = "# T\n\n{INSTRUCTIONS. Author started editing\nbut left this block\nopen across lines.}\n\nbody content\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        let flagged: Vec<usize> = findings
+            .iter()
+            .filter(|f| f.message.contains("placeholder residue"))
+            .filter_map(|f| f.line)
+            .collect();
+        assert_eq!(flagged, vec![3, 4, 5]);
+    }
+
+    #[test]
+    fn unterminated_multiline_guidance_block_is_flagged_to_end_of_input() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n{INSTRUCTIONS. This block was\nleft open with no closing brace\nall the way down.\n\nbody content\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        let flagged: Vec<usize> = findings
+            .iter()
+            .filter(|f| f.message.contains("placeholder residue"))
+            .filter_map(|f| f.line)
+            .collect();
+        assert_eq!(flagged, vec![3, 4, 5, 6, 7]);
+    }
+
+    #[test]
+    fn closed_multiline_pair_flags_only_the_pair_lines() {
+        let fm = json!({"title": "T"});
+        let body =
+            "# T\n\nReal prose with an opening {\nplaceholder spanning a line} and more prose.\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        let flagged: Vec<usize> = findings
+            .iter()
+            .filter(|f| f.message.contains("placeholder residue"))
+            .filter_map(|f| f.line)
+            .collect();
+        assert_eq!(flagged, vec![3, 4]);
     }
 
     // ---- common: line offset arithmetic ----
@@ -887,7 +896,7 @@ mod tests {
     #[test]
     fn findings_use_body_first_line_offset() {
         let fm = json!({});
-        let findings = check_body(ArtifactKind::Msdd, &fm, "no heading\n", "p.md", 42);
+        let findings = check_body(ArtifactKind::Design, &fm, "no heading\n", "p.md", 42);
         let f = findings
             .iter()
             .find(|f| f.message.contains("missing a level-one heading"))
@@ -896,7 +905,7 @@ mod tests {
 
         let fm2 = json!({"title": "Late Title"});
         let body2 = "filler 1\nfiller 2\n# Wrong\n";
-        let findings2 = check_body(ArtifactKind::Msdd, &fm2, body2, "p.md", 10);
+        let findings2 = check_body(ArtifactKind::Design, &fm2, body2, "p.md", 10);
         let f2 = findings2
             .iter()
             .find(|f| f.message.contains("does not match"))
@@ -905,198 +914,160 @@ mod tests {
         assert_eq!(f2.line, Some(12));
     }
 
-    // ---- MSDD ----
+    // ---- Design ----
 
-    #[test]
-    fn msdd_empty_body_is_a_finding() {
-        let fm = json!({"title": "T"});
-        let body = "# T\n\n\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
-        assert!(
-            findings
-                .iter()
-                .any(|f| f.message.contains("no content besides the heading"))
-        );
+    fn complete_design_body() -> String {
+        [
+            "# Real title",
+            "",
+            "## Purpose and boundaries",
+            "",
+            "Purpose explanation.",
+            "",
+            "## Structure",
+            "",
+            "Structure explanation.",
+            "",
+            "## Interfaces and dependencies",
+            "",
+            "Interfaces explanation.",
+            "",
+            "## Data and state",
+            "",
+            "Data explanation.",
+            "",
+            "## Runtime behaviour",
+            "",
+            "Runtime explanation.",
+            "",
+            "## Failure and recovery",
+            "",
+            "Failure explanation.",
+            "",
+            "## Security and operations",
+            "",
+            "Security explanation.",
+            "",
+            "## More information",
+            "",
+            "Not applicable: nothing further to add.",
+            "",
+        ]
+        .join("\n")
     }
 
     #[test]
-    fn msdd_nonempty_body_has_no_content_finding() {
-        let fm = json!({"title": "T"});
-        let body = "# T\n\nSome design prose.\n";
-        let findings = findings_for(ArtifactKind::Msdd, fm, body);
-        assert!(
-            !findings
-                .iter()
-                .any(|f| f.message.contains("no content besides"))
-        );
-    }
-
-    // ---- MSRS ----
-
-    fn msrs_frontmatter() -> serde_json::Value {
-        json!({
-            "title": "Module requirements",
-            "requirements": {
-                "PROJECT-REQ-0001": {},
-                "PROJECT-REQ-0002": {}
-            }
-        })
+    fn design_complete_body_has_no_structural_findings() {
+        let fm = json!({"title": "Real title"});
+        let findings = findings_for(ArtifactKind::Design, fm, &complete_design_body());
+        assert!(findings.is_empty(), "{findings:?}");
     }
 
     #[test]
-    fn msrs_missing_requirements_section_is_a_finding() {
-        let fm = msrs_frontmatter();
-        let body = "# Module requirements\n\nno requirements section here\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+    fn design_missing_required_section_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let body = complete_design_body().replace("## Structure\n\nStructure explanation.\n\n", "");
+        let findings = findings_for(ArtifactKind::Design, fm, &body);
         assert!(findings.iter().any(|f| {
             f.message
-                .contains("missing a level-two \"Requirements\" section")
+                .contains("missing required section \"## Structure\"")
         }));
     }
 
     #[test]
-    fn msrs_multiple_requirements_sections_is_a_finding() {
-        let fm = msrs_frontmatter();
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST do it.\n\n## Requirements\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        let multi: Vec<_> = findings
-            .iter()
-            .filter(|f| {
-                f.message
-                    .contains("multiple level-two \"Requirements\" sections")
-            })
-            .collect();
-        assert_eq!(multi.len(), 2);
+    fn design_out_of_order_section_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let body = complete_design_body().replacen(
+            "## Purpose and boundaries\n\nPurpose explanation.\n\n## Structure\n\nStructure explanation.\n\n",
+            "## Structure\n\nStructure explanation.\n\n## Purpose and boundaries\n\nPurpose explanation.\n\n",
+            1,
+        );
+        let findings = findings_for(ArtifactKind::Design, fm, &body);
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("\"## Purpose and boundaries\" section is out of order")
+        }));
     }
 
     #[test]
-    fn msrs_heading_without_mapping_entry_is_a_finding() {
-        let fm = msrs_frontmatter();
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST do it.\n\n### PROJECT-REQ-0002: Two\n\nThe system MUST do it too.\n\n### PROJECT-REQ-9999: Stray\n\nThe system MUST also do this.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+    fn design_empty_section_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let body = complete_design_body().replace("Data explanation.\n\n", "");
+        let findings = findings_for(ArtifactKind::Design, fm, &body);
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("\"## Data and state\" section has no content")
+        }));
+    }
+
+    // ---- Requirement ----
+
+    fn complete_requirement_body() -> String {
+        [
+            "# Real title",
+            "",
+            "## Statement",
+            "",
+            "The system MUST do the thing.",
+            "",
+            "## Rationale",
+            "",
+            "Because it matters.",
+            "",
+            "## Acceptance criteria",
+            "",
+            "- The thing happens.",
+            "",
+            "## More information",
+            "",
+            "None.",
+            "",
+        ]
+        .join("\n")
+    }
+
+    #[test]
+    fn requirement_complete_body_has_no_structural_findings() {
+        let fm = json!({"title": "Real title"});
+        let findings = findings_for(ArtifactKind::Requirement, fm, &complete_requirement_body());
+        assert!(findings.is_empty(), "{findings:?}");
+    }
+
+    #[test]
+    fn requirement_missing_section_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let body =
+            complete_requirement_body().replace("## Rationale\n\nBecause it matters.\n\n", "");
+        let findings = findings_for(ArtifactKind::Requirement, fm, &body);
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("missing required section \"## Rationale\"")
+        }));
+    }
+
+    #[test]
+    fn requirement_statement_without_bcp14_term_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let body = complete_requirement_body().replace(
+            "The system MUST do the thing.",
+            "The system does the thing.",
+        );
+        let findings = findings_for(ArtifactKind::Requirement, fm, &body);
         assert!(
             findings
                 .iter()
-                .any(|f| f.message.contains("PROJECT-REQ-9999")
-                    && f.message.contains("no matching frontmatter entry"))
+                .any(|f| f.message.contains("no uppercase BCP 14 keyword"))
         );
     }
 
     #[test]
-    fn msrs_mapping_key_without_heading_is_a_finding() {
-        let fm = msrs_frontmatter();
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST do it.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(
-            findings
-                .iter()
-                .any(|f| f.message.contains("PROJECT-REQ-0002")
-                    && f.message.contains("no matching heading"))
-        );
-    }
-
-    #[test]
-    fn msrs_duplicate_heading_is_a_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST do it.\n\n### PROJECT-REQ-0001: One again\n\nThe system MUST also do it.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(
-            findings
-                .iter()
-                .any(|f| f.message.contains("duplicate requirement heading"))
-        );
-    }
-
-    #[test]
-    fn msrs_block_missing_bcp14_term_is_a_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThis block has no normative language at all.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(
-            findings
-                .iter()
-                .any(|f| f.message.contains("no normative BCP 14 term"))
-        );
-    }
-
-    #[test]
-    fn msrs_block_with_bcp14_term_has_no_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST validate the input.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
+    fn requirement_statement_with_bcp14_term_has_no_finding() {
+        let fm = json!({"title": "Real title"});
+        let findings = findings_for(ArtifactKind::Requirement, fm, &complete_requirement_body());
         assert!(
             !findings
                 .iter()
-                .any(|f| f.message.contains("no normative BCP 14 term"))
-        );
-    }
-
-    #[test]
-    fn msrs_bcp14_term_only_in_a_subsection_is_a_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system validates the input.\n\n#### Verification\n\nThe input MUST be rejected in the parser test.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(
-            findings
-                .iter()
-                .any(|f| f.message.contains("no normative BCP 14 term"))
-        );
-    }
-
-    #[test]
-    fn msrs_subsections_without_a_bcp14_term_have_no_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST validate the input.\n\n#### Verification\n\nThe parser test covers rejected input.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(findings.is_empty(), "unexpected findings: {findings:?}");
-    }
-
-    #[test]
-    fn msrs_should_only_in_a_subsection_needs_no_rationale() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST validate the input.\n\n#### Verification\n\nReviewers SHOULD run the parser test.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(findings.is_empty(), "unexpected findings: {findings:?}");
-    }
-
-    #[test]
-    fn msrs_should_without_rationale_is_a_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system SHOULD prefer this approach.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(
-            findings
-                .iter()
-                .any(|f| f.message.contains("no \"#### Rationale\" section"))
-        );
-    }
-
-    #[test]
-    fn msrs_should_not_with_rationale_has_no_finding() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system SHOULD NOT do this by default.\n\n#### Rationale\n\nBecause of reasons.\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(!findings.iter().any(|f| f.message.contains("Rationale")));
-    }
-
-    #[test]
-    fn msrs_fenced_fake_req_heading_is_ignored() {
-        let mut fm = msrs_frontmatter();
-        fm["requirements"] = json!({"PROJECT-REQ-0001": {}});
-        let body = "# Module requirements\n\n## Requirements\n\n### PROJECT-REQ-0001: One\n\nThe system MUST do it.\n\n```\n### PROJECT-REQ-9999: Fake\n```\n";
-        let findings = findings_for(ArtifactKind::Msrs, fm, body);
-        assert!(
-            !findings
-                .iter()
-                .any(|f| f.message.contains("PROJECT-REQ-9999"))
+                .any(|f| f.message.contains("no uppercase BCP 14 keyword"))
         );
     }
 
@@ -1110,19 +1081,19 @@ mod tests {
         [
             "# Use PostgreSQL",
             "",
-            "## Context and Problem Statement",
+            "## Context and problem statement",
             "",
             "We need a database.",
             "",
-            "## Decision Drivers",
+            "## Decision drivers",
             "",
             "- Operational maturity",
             "",
-            "## Considered Options",
+            "## Considered options",
             "",
             "- PostgreSQL",
             "",
-            "## Decision Outcome",
+            "## Decision outcome",
             "",
             "Chosen option: PostgreSQL.",
             "",
@@ -1149,11 +1120,11 @@ mod tests {
     fn adr_missing_required_section_is_a_finding() {
         let fm = adr_frontmatter();
         let body =
-            complete_adr_body().replace("## Decision Drivers\n\n- Operational maturity\n\n", "");
+            complete_adr_body().replace("## Decision drivers\n\n- Operational maturity\n\n", "");
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
         assert!(findings.iter().any(|f| {
             f.message
-                .contains("missing required section \"## Decision Drivers\"")
+                .contains("missing required section \"## Decision drivers\"")
         }));
     }
 
@@ -1175,7 +1146,7 @@ mod tests {
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
         assert!(findings.iter().any(|f| {
             f.message
-                .contains("\"## Context and Problem Statement\" section has no content")
+                .contains("\"## Context and problem statement\" section has no content")
         }));
     }
 
@@ -1185,19 +1156,19 @@ mod tests {
         let body = [
             "# Use PostgreSQL",
             "",
-            "## Decision Drivers",
+            "## Decision drivers",
             "",
             "- Operational maturity",
             "",
-            "## Context and Problem Statement",
+            "## Context and problem statement",
             "",
             "We need a database.",
             "",
-            "## Considered Options",
+            "## Considered options",
             "",
             "- PostgreSQL",
             "",
-            "## Decision Outcome",
+            "## Decision outcome",
             "",
             "Chosen option: PostgreSQL.",
             "",
@@ -1214,7 +1185,7 @@ mod tests {
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
         assert!(findings.iter().any(|f| {
             f.message
-                .contains("\"## Context and Problem Statement\" section is out of order")
+                .contains("\"## Context and problem statement\" section is out of order")
         }));
     }
 
@@ -1222,11 +1193,11 @@ mod tests {
     fn adr_duplicate_section_is_a_finding() {
         let fm = adr_frontmatter();
         let mut body = complete_adr_body();
-        body.push_str("## Considered Options\n\n- Another option\n");
+        body.push_str("## Considered options\n\n- Another option\n");
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
         assert!(findings.iter().any(|f| {
             f.message
-                .contains("duplicate \"## Considered Options\" section")
+                .contains("duplicate \"## Considered options\" section")
         }));
     }
 
@@ -1234,11 +1205,11 @@ mod tests {
     fn adr_optional_section_present_but_empty_is_a_finding() {
         let fm = adr_frontmatter();
         let mut body = complete_adr_body();
-        body.push_str("## More Information\n\n");
+        body.push_str("## More information\n\n");
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
         assert!(findings.iter().any(|f| {
             f.message
-                .contains("\"## More Information\" section has no content")
+                .contains("\"## More information\" section has no content")
         }));
     }
 
@@ -1249,7 +1220,7 @@ mod tests {
         assert!(
             !findings
                 .iter()
-                .any(|f| f.message.contains("More Information"))
+                .any(|f| f.message.contains("More information"))
         );
     }
 
@@ -1257,12 +1228,12 @@ mod tests {
     fn adr_optional_section_present_and_filled_has_no_finding() {
         let fm = adr_frontmatter();
         let mut body = complete_adr_body();
-        body.push_str("## More Information\n\nSome supporting evidence.\n");
+        body.push_str("## More information\n\nSome supporting evidence.\n");
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
         assert!(
             !findings
                 .iter()
-                .any(|f| f.message.contains("More Information"))
+                .any(|f| f.message.contains("More information"))
         );
     }
 }

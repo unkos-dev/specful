@@ -9,18 +9,16 @@
     "project-key",
     "specful-version",
     "next-adr-sequence",
-    "next-msrs-sequence",
     "next-requirement-sequence",
-    "next-msdd-sequence"
+    "next-design-sequence"
   ],
   "properties": {
     "config-version": { "const": 1 },
     "project-key": { "$ref": "#/$defs/project-key" },
     "specful-version": { "$ref": "#/$defs/specful-version" },
     "next-adr-sequence": { "$ref": "#/$defs/counter" },
-    "next-msrs-sequence": { "$ref": "#/$defs/counter" },
     "next-requirement-sequence": { "$ref": "#/$defs/counter" },
-    "next-msdd-sequence": { "$ref": "#/$defs/counter" }
+    "next-design-sequence": { "$ref": "#/$defs/counter" }
   },
   "additionalProperties": false,
   "$defs": {

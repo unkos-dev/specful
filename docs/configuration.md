@@ -8,9 +8,8 @@ config-version: 1
 project-key: EXAMPLE
 specful-version: "0.1.0"
 next-adr-sequence: 1
-next-msrs-sequence: 1
 next-requirement-sequence: 1
-next-msdd-sequence: 1
+next-design-sequence: 1
 ```
 
 The project key contains 2 to 10 uppercase ASCII letters or digits and starts with a letter. It is immutable after the

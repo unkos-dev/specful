@@ -10,9 +10,8 @@
         "project-key": "SPF",
         "specful-version": "0.1.0",
         "next-adr-sequence": 1,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1
+        "next-design-sequence": 1
       }
     },
     {
@@ -23,9 +22,8 @@
         "project-key": "ACME2",
         "specful-version": "1.4.0",
         "next-adr-sequence": 10000,
-        "next-msrs-sequence": 10000,
         "next-requirement-sequence": 10000,
-        "next-msdd-sequence": 10000
+        "next-design-sequence": 10000
       }
     },
     {
@@ -36,9 +34,8 @@
         "project-key": "SPF",
         "specful-version": "0.1.0",
         "next-adr-sequence": 1,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1
+        "next-design-sequence": 1
       }
     },
     {
@@ -49,9 +46,8 @@
         "project-key": "S",
         "specful-version": "0.1.0",
         "next-adr-sequence": 1,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1
+        "next-design-sequence": 1
       }
     },
     {
@@ -62,9 +58,8 @@
         "project-key": "SPF",
         "specful-version": "0.1.0",
         "next-adr-sequence": 10001,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1
+        "next-design-sequence": 1
       }
     },
     {
@@ -74,9 +69,8 @@
         "config-version": 1,
         "project-key": "SPF",
         "next-adr-sequence": 1,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1
+        "next-design-sequence": 1
       }
     },
     {
@@ -87,9 +81,8 @@
         "project-key": "SPF",
         "specful-version": "v0.1.0",
         "next-adr-sequence": 1,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1
+        "next-design-sequence": 1
       }
     },
     {
@@ -100,10 +93,20 @@
         "project-key": "SPF",
         "specful-version": "0.1.0",
         "next-adr-sequence": 1,
-        "next-msrs-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-msdd-sequence": 1,
+        "next-design-sequence": 1,
         "validation": { "rules": {} }
+      }
+    },
+    {
+      "description": "missing next-design-sequence counter",
+      "valid": false,
+      "instance": {
+        "config-version": 1,
+        "project-key": "SPF",
+        "specful-version": "0.1.0",
+        "next-adr-sequence": 1,
+        "next-requirement-sequence": 1
       }
     }
   ]

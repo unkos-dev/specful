@@ -1,0 +1,99 @@
+name: Docs deploy
+
+# Push to main and a manual dispatch are the only triggers, so the deploy job's own event
+# allowlist below is redundant today; it stays because an allowlist fails closed if this trigger
+# set ever grows; a denylist would not, since merge_group (which never runs on this file at all
+# yet) satisfies "not push" and "not workflow_dispatch" only by the accident of the current list.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Publishes queue rather than cancel: an in-flight deploy finishing after a newer one starts would
+# leave the live site on stale content with no failed run to flag it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Not the repository's shared ./.github/actions/setup composite: it wraps mise-action with
+      # caching left at its default-on, and this build feeds the Pages publish directly, so
+      # nothing in its path gets a cache a stale or poisoned entry could taint.
+      - name: Install bun (mise, uncached)
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
+          version: "2026.8.14"
+          install_args: bun
+          cache: false
+
+      - name: Install site dependencies
+        working-directory: site
+        run: mise exec -- bun install --frozen-lockfile
+
+      - name: Build site
+        working-directory: site
+        run: mise exec -- bun run build
+
+      # Matches the internal-link staging in docs.yml: base '/specful' means absolute links
+      # already expect that prefix, so the offline check gets a root that actually has it.
+      - name: Stage build for link check
+        run: |
+          set -euo pipefail
+          mkdir -p link-root/specful
+          cp -r site/dist/. link-root/specful/
+
+      # Gating: broken internal links and asset references block the deploy outright.
+      - name: Check internal links (offline)
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --offline --no-progress --root-dir ${{ github.workspace }}/link-root
+            'link-root/specful/**/*.html'
+          fail: true
+          # renovate: datasource=github-releases depName=lycheeverse/lychee extractVersion=^lychee-v(?<version>.+)$
+          lycheeVersion: v0.24.2
+
+      # Advisory: external hosts are outside this repository's control and go stale or rate-limit
+      # independently of any change here, so a broken outbound link is worth seeing but never
+      # worth blocking a same-repository content deploy over.
+      - name: Check external links (advisory)
+        continue-on-error: true
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --no-progress --root-dir ${{ github.workspace }}/link-root
+            'link-root/specful/**/*.html'
+          fail: false
+          # renovate: datasource=github-releases depName=lycheeverse/lychee extractVersion=^lychee-v(?<version>.+)$
+          lycheeVersion: v0.24.2
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

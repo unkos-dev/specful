@@ -13,5 +13,6 @@ pub mod yaml;
 mod schemas;
 
 pub use schemas::{
-    ADR_V1_SCHEMA_ID, CONFIG_V1_SCHEMA_ID, MSDD_V1_SCHEMA_ID, MSRS_V1_SCHEMA_ID, builtin_schema,
+    ADR_V1_SCHEMA_ID, CONFIG_V1_SCHEMA_ID, DESIGN_V1_SCHEMA_ID, REQUIREMENT_V1_SCHEMA_ID,
+    builtin_schema,
 };

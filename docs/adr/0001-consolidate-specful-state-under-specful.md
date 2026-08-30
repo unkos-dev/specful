@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: SPECFUL-ADR-0001
 title: "Consolidate specful state under .specful"
@@ -11,23 +11,23 @@ decision-makers:
 
 # Consolidate specful state under .specful
 
-## Context and Problem Statement
+## Context and problem statement
 
 Specful adds files to a host repository it does not own, so adopters reasonably want a minimal root footprint.
 Configuration sat at `.specful.yaml` while generated state sat under `.specful/generated/`, giving specful two root
 entries where one would suffice.
 
-## Decision Drivers
+## Decision drivers
 
 - Minimise the number of root-level entries specful adds to an adopting repository.
 - Keep the split between canonical and generated content legible without adding a second root entry to express it.
 
-## Considered Options
+## Considered options
 
 - Keep `.specful.yaml` at the root alongside the existing `.specful/generated/` directory.
 - Move canonical configuration into `.specful/config.yaml`, so the whole footprint sits inside one directory.
 
-## Decision Outcome
+## Decision outcome
 
 Chosen option: **move canonical configuration into `.specful/config.yaml`**, because it consolidates specful's footprint
 into the single `.specful/` directory. Canonical configuration lives at `.specful/config.yaml`; generated, disposable

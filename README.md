@@ -40,10 +40,10 @@ Specful is designed around a few commitments:
 - Indexes and catalogs are generated, disposable views.
 - The core information model is independent of any agent harness.
 
-See the [project charter](docs/project-charter.md) for the product boundary and design principles. The artifact profiles
-are documented under [`docs/adr/`](docs/adr/README.md), [`docs/msrs/`](docs/msrs/README.md),
-[`docs/msdd/`](docs/msdd/README.md), and [`docs/okf/`](docs/okf/README.md), with repository configuration in
-[`docs/configuration.md`](docs/configuration.md).
+See the [project charter](docs/project-charter.md) for the product boundary and design principles. The ADR artifact
+profile is documented under [`docs/adr/`](docs/adr/README.md); the Requirement and Design profiles are defined by their
+schemas and templates under [`schemas/`](schemas/) and [`templates/`](templates/). Repository configuration is
+documented in [`docs/configuration.md`](docs/configuration.md).
 
 ## Status
 
@@ -67,6 +67,12 @@ specful validate
 
 The project key (2 to 10 uppercase letters or digits, starting with a letter) prefixes every allocated artifact
 identifier.
+
+## Documentation
+
+The current artifact profiles (Requirement, Design, ADR), the authoring workflow, and the CLI reference are published at
+<https://unkos-dev.github.io/specful/>. For the exact text a given release shipped with, see the corresponding
+[GitHub release tag](https://github.com/unkos-dev/specful/tags).
 
 ## Influences
 
