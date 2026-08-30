@@ -2,8 +2,9 @@
 
 `ci.yml` is a thin caller. It owns the triggers (`pull_request`, `push` to `main`, `merge_group`), top-level
 `permissions: contents: read`, concurrency (cancels superseded runs on every ref except `main`), and one job per
-concern, each `uses:` on a `workflow_call`-only file below. There is no path filtering and no aggregate gate; branch
-protection lists the resulting per-job check contexts directly.
+concern, each `uses:` on a `workflow_call`-only file below. There is no path filtering at this level and no aggregate
+gate; branch protection lists the resulting per-job check contexts directly. `docs.yml` is the one called workflow that
+filters, and it does so inside its own job, per the second invariant below.
 
 ## The composition pattern
 
@@ -18,8 +19,9 @@ and branch protection lists them per job rather than as one aggregate.
 it, lives inside the called workflow, where a skipped job reports success and satisfies its own context.
 
 **No workflow carrying required contexts gets a top-level `paths:` trigger.** A workflow that never triggers reports
-nothing at all, which is not the same as reporting success. This repository runs no path filtering, so the concern does
-not arise, but the rule stays load-bearing if one is ever added.
+nothing at all, which is not the same as reporting success. Every other concern here runs unconditionally, but
+`docs.yml` does filter: the filtering step lives inside its one `build` job, which always runs and reports a passing
+conclusion when it decides there is nothing docs-relevant to build, so `docs / build` never sits pending.
 
 A caller job in `ci.yml` also never declares `name:`, because the context prefix is the caller job's own id. Adding one
 would silently rename every required context that caller owns into strings that never report again.
@@ -45,10 +47,12 @@ through the `.github/actions/setup` composite action; the Rust toolchain comes f
 | `lint.yml` | `workflows`, `prose`, `secrets` | Static analysis per job. |
 | `deps.yml` | `cargo-deny`, `review` | `deny.toml` checks; dependency review. |
 | `snyk.yml` | `code` | Snyk Code SAST, advisory only. |
+| `docs.yml` | `build` | Documentation site build-check (`site/`), path-filtered. |
 | `label.yml` | `label` | Labels from `.github/labeler.yml`. |
 | `pr-hygiene.yml` | `commits`, `title` | commitlint; title lint. Standalone. |
 | `release-plz.yml` | `release-pr`, `release` | Rolling release PR; publish. |
 | `release.yml` | `plan`, `build-local-artifacts`, `build-global-artifacts`, `host`, `announce` | dist binary release. |
+| `docs-deploy.yml` | `build`, `deploy` | Builds and publishes the documentation site to GitHub Pages. Standalone. |
 
 Every third-party action is pinned to a full commit SHA with a trailing version comment that Renovate keeps current.
 `.github/zizmor.yml` records the one audit rule that is disabled and why.
@@ -65,6 +69,7 @@ Branch protection lists these exact `<caller> / <job>` strings:
 - `lint / secrets`
 - `deps / cargo-deny`
 - `deps / review`
+- `docs / build`
 - `hygiene / commits`
 - `hygiene / title`
 
@@ -86,6 +91,19 @@ which unlike `GITHUB_TOKEN` can trigger workflows. Recovery from a failed dist r
 failures. For a repository defect, never recreate the tag: crates.io already holds the source for that version, so the
 tag must keep pointing at it. Fix `main`, delete the binary-less draft, and ship the fix as the next patch release. No
 secrets beyond the workflow's own `GITHUB_TOKEN` are involved.
+
+## Documentation site
+
+`site/` is a self-contained Astro/Starlight project built with bun; `docs.yml` proves it still builds on a pull request,
+path-filtered to `site/`, `docs/adr/`, `docs/specs/`, and `templates/` so a Rust-only change does not pay the build
+cost. `docs-deploy.yml` is the privileged counterpart: it builds the same site again from scratch on push to `main`
+(never sharing a build or a cache with the pull-request check), stages the output under a `/specful/` link root matching
+the site's configured base path, runs an offline `lychee` pass as a hard gate over that staged output and an advisory
+pass over live external links, then uploads and deploys through the official Pages actions. The build job carries no
+Pages permissions; only the `deploy` job does, scoped to `pages: write` and `id-token: write`. Neither workflow's build
+job uses `./.github/actions/setup` or an `actions/cache`-backed dependency cache: the setup composite leaves
+mise-action's own cache on by default, and this build's output is what a privileged job later deploys, so its dependency
+install stays uncached end to end.
 
 ## Permissions and secrets
 
