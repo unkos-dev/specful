@@ -13,11 +13,12 @@ decision-makers:
 
 ## Context and Problem Statement
 
-Specful needs a canonical unit for requirements knowledge. The requirements lineage it draws on supports several
-packagings: a monolithic specification document, a per-scope module holding requirement blocks, and a requirements-only
-workflow of individual requirement files with generated assembly. The requirement is the unit that designs satisfy,
-readers retrieve, and reviews change, so the packaging choice decides whether that unit owns its own identity and
-metadata or resolves through a container. What is the canonical unit of requirements knowledge?
+Specful needs a canonical unit for requirements knowledge. Established requirements practice, including the Markdown SRS
+templates attributed in `NOTICE.md`, supports several packagings: a monolithic specification document, a per-scope
+module holding requirement blocks, and a requirements-only workflow of individual requirement files with generated
+assembly. The requirement is the unit that designs satisfy, readers retrieve, and reviews change, so the packaging
+choice decides whether that unit owns its own identity and metadata or resolves through a container. What is the
+canonical unit of requirements knowledge?
 
 ## Decision Drivers
 
@@ -86,5 +87,5 @@ requirements directly; `show` and `trace` resolve requirement identifiers withou
 
 ## More Information
 
-Informed by the Markdown SRS lineage and decision-record practice attributed in `NOTICE.md`. Reconsider if
+Informed by the Markdown SRS templates and decision-record practice attributed in `NOTICE.md`. Reconsider if
 requirements-only authoring proves unworkable for a real adopting repository.

@@ -13,7 +13,8 @@ decision-makers:
 
 ## Context and Problem Statement
 
-Specful needs a canonical unit for current design knowledge. The design-description lineage it draws on models
+Specful needs a canonical unit for current design knowledge. Established design-description practice, including the
+Markdown SDD templates attributed in `NOTICE.md` and the architecture-description standards they align with, models
 stakeholder concerns, viewpoints, and views, and supports packagings from an assembled description document to
 independently stored per-viewpoint views. Design knowledge is interwoven: a subject's structure, data, and runtime
 behaviour explain one another, and its readers include developers, maintainers, adopters, and self-hosters asking the
@@ -46,9 +47,10 @@ currently works, in declarative present-tense prose combining diagrams, tables, 
 template carries a canonical section set as a completeness baseline; headings are never renamed, an inapplicable section
 states why, and subject-specific sections extend the set. Splitting follows cohesion: only when the resulting subjects
 are independently understandable and maintained. Specful adopts no formal viewpoint or view concepts in its artifact
-model, schema, identifiers, relationships, or queries; the lineage's concern catalogue survives as authoring prompts.
-The artifact owns `satisfies` (the described design contributes to satisfying the referenced requirements) and
-`governed-by` (ADRs whose durable rationale the design embodies).
+model, schema, identifiers, relationships, or queries; the concern catalogue those sources define (structure, data,
+interfaces, interaction, state, deployment, security, operations) survives as authoring prompts. The artifact owns
+`satisfies` (the described design contributes to satisfying the referenced requirements) and `governed-by` (ADRs whose
+durable rationale the design embodies).
 
 ### Consequences
 
@@ -69,7 +71,7 @@ concepts.
 ### Subject-oriented Design artifacts with canonical sections
 
 - Positive: retrieval matches how the design is actually asked about and changed.
-- Positive: the lineage's completeness concerns survive as authoring prompts without determining file boundaries.
+- Positive: established design-completeness concerns survive as authoring prompts without determining file boundaries.
 - Negative: a large subject produces a long document.
 
 ### One artifact per viewpoint-scoped design view
@@ -87,5 +89,5 @@ concepts.
 
 ## More Information
 
-Informed by the Markdown SDD lineage attributed in `NOTICE.md` and by architecture-description standards terminology.
+Informed by the Markdown SDD templates attributed in `NOTICE.md` and by architecture-description standards terminology.
 Reconsider if subject-scale documents prove unmanageable in a real adopting repository.
