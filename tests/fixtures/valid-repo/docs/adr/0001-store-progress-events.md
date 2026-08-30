@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: OK-ADR-0001
 title: Store progress as events
@@ -11,20 +11,20 @@ decision-makers:
 ---
 # Store progress as events
 
-## Context and Problem Statement
+## Context and problem statement
 
 Progress must survive reconnection without a central clock.
 
-## Decision Drivers
+## Decision drivers
 
 - Offline clients reconnect with stale state.
 
-## Considered Options
+## Considered options
 
 - Store progress as replayable events.
 - Store only the latest position.
 
-## Decision Outcome
+## Decision outcome
 
 Chosen option: store progress as replayable events, because replay resolves
 conflicts deterministically.

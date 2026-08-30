@@ -1,7 +1,7 @@
 ---
-type: MSRS
+type: REQ
 profile-version: 1
-id: BAD-MSRS-0003
+id: BAD-REQ-0004
 title: Short filename
 ---
 # Short filename

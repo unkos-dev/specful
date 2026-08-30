@@ -2,6 +2,5 @@ config-version: 1
 project-key: OK
 specful-version: "0.1.0"
 next-adr-sequence: 2
-next-msrs-sequence: 2
 next-requirement-sequence: 3
-next-msdd-sequence: 2
+next-design-sequence: 2

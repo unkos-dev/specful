@@ -6,6 +6,53 @@ fn scratch() -> tempfile::TempDir {
     tempfile::tempdir().expect("create scratch")
 }
 
+/// Overwrites a freshly scaffolded ADR with schema-conformant, residue-free
+/// content: these tests exercise root discovery, not scaffold completeness,
+/// and a raw scaffold's unresolved optional frontmatter placeholders are
+/// expected to fail collection.
+fn complete_adr(root: &std::path::Path, path: &str) {
+    std::fs::write(
+        root.join(path),
+        "---\n\
+         type: ADR\n\
+         profile-version: 1\n\
+         id: EXAMPLE-ADR-0001\n\
+         title: Seed\n\
+         status: accepted\n\
+         recorded-on: 2026-08-30\n\
+         decision-makers:\n\
+         \x20 - John\n\
+         ---\n\
+         \n\
+         # Seed\n\
+         \n\
+         ## Context and problem statement\n\
+         \n\
+         Root discovery needs a conformant ADR to index.\n\
+         \n\
+         ## Decision drivers\n\
+         \n\
+         - A discovery test needs one collectible artifact.\n\
+         \n\
+         ## Considered options\n\
+         \n\
+         - Seed a conformant ADR.\n\
+         \n\
+         ## Decision outcome\n\
+         \n\
+         Chosen option: seed a conformant ADR, because it lets discovery run without also asserting scaffold shape.\n\
+         \n\
+         ### Consequences\n\
+         \n\
+         Positive: discovery tests stay independent of scaffold content.\n\
+         \n\
+         ### Confirmation\n\
+         \n\
+         This file collects and indexes without findings.\n",
+    )
+    .expect("write conformant seed ADR");
+}
+
 #[test]
 fn validate_discovers_the_root_from_a_nested_working_directory() {
     let root = scratch();
@@ -56,8 +103,14 @@ fn validate_reports_a_clear_error_with_no_ancestor_configuration() {
 fn show_discovers_the_root_from_a_nested_working_directory() {
     let root = scratch();
     specful::authoring::init(root.path(), "EXAMPLE").expect("init");
-    specful::authoring::new_artifact(root.path(), specful::authoring::NewKind::Adr, None, "Seed")
-        .expect("new adr");
+    let adr_path = specful::authoring::new_artifact(
+        root.path(),
+        specful::authoring::NewKind::Adr,
+        None,
+        "Seed",
+    )
+    .expect("new adr");
+    complete_adr(root.path(), &adr_path);
     let index_findings = specful::index::run_index(root.path(), false);
     assert!(index_findings.is_empty(), "index generation should succeed");
     let nested = root.path().join("docs/specs/backend/sync");
@@ -91,8 +144,14 @@ fn trace_discovers_the_root_from_a_nested_working_directory() {
     // full coverage of every trace shape.
     let root = scratch();
     specful::authoring::init(root.path(), "EXAMPLE").expect("init");
-    specful::authoring::new_artifact(root.path(), specful::authoring::NewKind::Adr, None, "Seed")
-        .expect("new adr");
+    let adr_path = specful::authoring::new_artifact(
+        root.path(),
+        specful::authoring::NewKind::Adr,
+        None,
+        "Seed",
+    )
+    .expect("new adr");
+    complete_adr(root.path(), &adr_path);
     let index_findings = specful::index::run_index(root.path(), false);
     assert!(index_findings.is_empty(), "index generation should succeed");
     let nested = root.path().join("docs/specs/backend/sync");
@@ -121,8 +180,14 @@ fn index_discovers_the_root_from_a_nested_working_directory() {
     specful::authoring::init(root.path(), "EXAMPLE").expect("init");
     // run_index only writes generated views once at least one artifact
     // exists, so plant one before exercising discovery.
-    specful::authoring::new_artifact(root.path(), specful::authoring::NewKind::Adr, None, "Seed")
-        .expect("new adr");
+    let adr_path = specful::authoring::new_artifact(
+        root.path(),
+        specful::authoring::NewKind::Adr,
+        None,
+        "Seed",
+    )
+    .expect("new adr");
+    complete_adr(root.path(), &adr_path);
     let nested = root.path().join("docs/specs/backend/sync");
     std::fs::create_dir_all(&nested).expect("create nested dir");
 
