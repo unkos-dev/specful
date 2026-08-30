@@ -64,10 +64,11 @@ semantics so an existing path is refused rather than overwritten.
 The ordering of the two writes is the recovery model: a run interrupted between the counter commit and the file creation
 leaves an allocation gap, which is permitted, never a counter that lags an allocated identifier, which would be invalid.
 A failed write of the scaffold removes the partial file rather than stranding an invalid artifact under an
-already-advanced counter. A second allocation racing the first observes the lock file's exclusive creation fail and
-reports the collision instead of corrupting the counters; the lock is released on every exit path once acquired. A hard
-kill mid-write can still leave a partial file, accepted as the same class as a skipped identifier and reported by
-validation.
+already-advanced counter. A second allocation whose critical section overlaps the first observes the lock file's
+exclusive creation fail and reports the collision instead of corrupting the counters; one arriving after the counter
+commit simply allocates the next identifier, since the lock is released by the rename and on every exit path once
+acquired. A hard kill mid-write can still leave a partial file, accepted as the same class as a skipped identifier and
+reported by validation.
 
 ## Security and operations
 

@@ -30,8 +30,9 @@ deleted. Counter-based allocation is what lets an identifier outlive its file.
 - An interrupted creation may leave an unused sequence number; a skipped number is valid, and the counter never lags an
   identifier that appears in an artifact (checked by inspecting `.specful/config.yaml` against the highest allocated
   identifier of each kind).
-- Two concurrent `specful new` invocations never allocate the same identifier: one succeeds and the other reports the
-  allocation collision.
+- Two concurrent `specful new` invocations never allocate the same identifier: both may succeed with distinct
+  identifiers, and an invocation that encounters the allocation lock while it is held reports the collision rather than
+  proceeding.
 
 ## More information
 
