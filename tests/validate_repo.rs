@@ -18,19 +18,17 @@ fn flags_every_planted_defect_in_the_invalid_repository() {
 
     let expected = [
         "\"superseded-by\" is a required property",
-        "filename sequence 0001 does not match identifier BAD-MSRS-0002",
-        "concept type \"WIDGET\" is not MSRS or MSDD",
+        "filename sequence 0002 does not match identifier BAD-REQ-0003",
+        "artifact type \"WIDGET\" is not REQ or DESIGN",
+        "artifact type \"MSRS\" is not REQ or DESIGN",
         "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
         "BAD-ADR-0002 supersedes BAD-ADR-0003, but BAD-ADR-0003 does not record superseded-by BAD-ADR-0002",
         "supersession cycle detected involving BAD-ADR-0004",
         "governed-by target BAD-ADR-0009 does not exist",
         "satisfies target BAD-REQ-0404 does not exist",
-        "next-msrs-sequence 1 lags allocated identifier sequence 2",
-        "next-requirement-sequence 1 lags allocated identifier sequence 1",
-        "requirement BAD-REQ-0001 cites source artifact BAD-ADR-0404, which does not exist",
-        "requirement BAD-REQ-0001 cites its own module BAD-MSRS-0002 as a source",
-        "requirement BAD-REQ-0001 cites source path docs/specs/system/msrs/0404-missing.md, which does not exist",
-        "requirement BAD-REQ-0001 cites its own file docs/specs/system/msrs/0001-service.md as a source",
+        "next-adr-sequence 1 lags allocated identifier sequence 5",
+        "next-requirement-sequence 1 lags allocated identifier sequence 4",
+        "next-design-sequence 1 lags allocated identifier sequence 1",
     ];
     for needle in expected {
         assert!(
@@ -138,7 +136,7 @@ fn collection_failures_leave_generated_views_unchanged() {
         view_paths.map(|path| std::fs::read(scratch.join(path)).expect("read generated view"));
 
     std::fs::write(
-        scratch.join("docs/specs/system/msrs/0001-progress-sync.md"),
+        scratch.join("docs/specs/system/requirements/0001-offline-replay.md"),
         "invalid frontmatter\n",
     )
     .expect("corrupt source artifact");
@@ -294,56 +292,126 @@ fn init_and_new_produce_a_schema_conformant_draft() {
     use specful::authoring::{NewKind, new_artifact};
     let adr = new_artifact(scratch, NewKind::Adr, None, "Adopt event replay").expect("new adr");
     assert_eq!(adr, "docs/adr/0001-adopt-event-replay.md");
-    let msrs = new_artifact(
+    let requirement = new_artifact(
         scratch,
-        NewKind::Msrs,
+        NewKind::Requirement,
         Some("backend/sync"),
         "Sync requirements",
     )
-    .expect("new msrs");
+    .expect("new requirement");
     assert_eq!(
-        msrs,
-        "docs/specs/backend/sync/msrs/0001-sync-requirements.md"
+        requirement,
+        "docs/specs/backend/sync/requirements/0001-sync-requirements.md"
     );
-    let msdd = new_artifact(scratch, NewKind::Msdd, Some("backend/sync"), "Sync design")
-        .expect("new msdd");
-    assert_eq!(msdd, "docs/specs/backend/sync/msdd/0001-sync-design.md");
+    let design = new_artifact(
+        scratch,
+        NewKind::Design,
+        Some("backend/sync"),
+        "Sync design",
+    )
+    .expect("new design");
+    assert_eq!(design, "docs/specs/backend/sync/design/0001-sync-design.md");
     assert!(
-        new_artifact(scratch, NewKind::Msdd, None, "No scope").is_err(),
-        "module without scope must refuse"
+        new_artifact(scratch, NewKind::Design, None, "No scope").is_err(),
+        "a design without scope must refuse"
     );
 
     let config =
         std::fs::read_to_string(scratch.join(".specful/config.yaml")).expect("read config");
     assert!(config.contains("next-adr-sequence: 2"));
-    assert!(config.contains("next-msrs-sequence: 2"));
     assert!(config.contains("next-requirement-sequence: 2"));
-    assert!(config.contains("next-msdd-sequence: 2"));
+    assert!(config.contains("next-design-sequence: 2"));
 
-    // Drafts conform to the schemas and integrity rules; every remaining
-    // finding is authoring work (placeholders, missing generated views),
-    // never a schema defect.
+    // The allocated id and title are substituted; every other braced
+    // placeholder, including the ADR's optional relationship fields, is left
+    // for the author, so a fresh draft fails schema conformance until they
+    // are filled in or removed.
     let combined = validate_repository(scratch)
         .iter()
         .map(|f| f.render())
         .collect::<Vec<_>>()
         .join("\n");
     assert!(
-        !combined.contains("frontmatter"),
-        "drafts must be schema-conformant, got:\n{combined}"
+        !combined.contains("frontmatter /id") && !combined.contains("frontmatter /title"),
+        "the allocated id and title must be substituted, not left as placeholders:\n{combined}"
     );
     assert!(
-        combined.contains("placeholder"),
-        "drafts should report their unfinished placeholders:\n{combined}"
+        combined.contains("frontmatter /status"),
+        "an untouched ADR status placeholder should be reported:\n{combined}"
     );
     assert!(
-        combined.contains("decision-makers") && combined.contains("placeholder residue"),
-        "an unfilled ADR decision-makers frontmatter field should be reported, not silently \
-         accepted just because placeholder scanning only looked at the body:\n{combined}"
+        combined.contains("frontmatter /governed-by/0"),
+        "an untouched governed-by placeholder should be reported:\n{combined}"
+    );
+    assert!(
+        combined.contains("frontmatter /satisfies/0"),
+        "an untouched satisfies placeholder should be reported:\n{combined}"
+    );
+
+    // Completing each draft's frontmatter (filling the required status and
+    // date, and removing the optional relationship fields that do not
+    // apply, as the templates instruct) clears the schema findings and lets
+    // indexing proceed. The body's own placeholders are left as they are:
+    // this test exercises frontmatter substitution and collection, not full
+    // authoring completion.
+    std::fs::write(
+        scratch.join("docs/adr/0001-adopt-event-replay.md"),
+        std::fs::read_to_string(scratch.join("docs/adr/0001-adopt-event-replay.md"))
+            .expect("read adr draft")
+            .lines()
+            .map(|line| match line {
+                "status: \"{proposed | accepted | deprecated | superseded}\"" => "status: proposed",
+                other => other,
+            })
+            .filter(|line| {
+                !matches!(
+                    line.trim(),
+                    "decided-on: \"{YYYY-MM-DD}\""
+                        | "supersedes:"
+                        | "superseded-by:"
+                        | "- \"{PROJECT}-ADR-{NNNN}\""
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+            + "\n",
+    )
+    .expect("write adr draft");
+    for path in [
+        "docs/specs/backend/sync/requirements/0001-sync-requirements.md",
+        "docs/specs/backend/sync/design/0001-sync-design.md",
+    ] {
+        let file = scratch.join(path);
+        let content = std::fs::read_to_string(&file).expect("read draft");
+        let stripped = content
+            .lines()
+            .filter(|line| {
+                !matches!(
+                    line.trim(),
+                    "- \"{PROJECT}-ADR-{NNNN}\"" | "- \"{PROJECT}-REQ-{NNNN}\""
+                ) && *line != "governed-by:"
+                    && *line != "satisfies:"
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+            + "\n";
+        std::fs::write(&file, stripped).expect("write draft");
+    }
+    let cleared = validate_repository(scratch)
+        .iter()
+        .map(|f| f.render())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(
+        !cleared.contains("frontmatter"),
+        "removing the unresolved optional fields should clear every schema finding:\n{cleared}"
     );
 
     let index_findings = specful::index::run_index(scratch, false);
-    assert!(index_findings.is_empty(), "index generation should succeed");
+    assert!(
+        index_findings.is_empty(),
+        "index generation should succeed, got: {index_findings:?}"
+    );
     let after_index = validate_repository(scratch)
         .iter()
         .map(|f| f.render())
@@ -369,28 +437,28 @@ fn run_specful(args: &[&str]) -> (bool, String) {
 }
 
 #[test]
-fn shows_an_msdd_record() {
+fn shows_a_design_record() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "show",
-        "OK-MSDD-0001",
+        "OK-DESIGN-0001",
         "--root",
         root.to_str().expect("utf8 path"),
     ]);
     assert!(ok, "show should succeed:\n{out}");
     assert_eq!(
         out,
-        "id: OK-MSDD-0001\n\
-kind: msdd\n\
+        "id: OK-DESIGN-0001\n\
+kind: design\n\
 title: Progress pipeline\n\
-path: docs/specs/backend/msdd/0001-progress-pipeline.md\n\
+path: docs/specs/backend/design/0001-progress-pipeline.md\n\
 governed-by: OK-ADR-0001\n\
 satisfies: OK-REQ-0001, OK-REQ-0002\n"
     );
 }
 
 #[test]
-fn shows_a_requirement_and_its_owning_module() {
+fn shows_a_requirement() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "show",
@@ -402,25 +470,24 @@ fn shows_a_requirement_and_its_owning_module() {
     assert_eq!(
         out,
         "id: OK-REQ-0001\n\
-kind: requirement\n\
-module: OK-MSRS-0001 (docs/specs/system/msrs/0001-progress-sync.md)\n"
+kind: req\n\
+title: Offline replay\n\
+path: docs/specs/system/requirements/0001-offline-replay.md\n\
+governed-by: OK-ADR-0001\n"
     );
 }
 
 #[test]
-fn traces_an_msrs_module_to_its_designs() {
+fn traces_a_design_to_the_requirements_it_satisfies() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "trace",
-        "OK-MSRS-0001",
+        "OK-DESIGN-0001",
         "--root",
         root.to_str().expect("utf8 path"),
     ]);
     assert!(ok, "trace should succeed:\n{out}");
-    assert_eq!(
-        out,
-        "OK-REQ-0001 <- OK-MSDD-0001\nOK-REQ-0002 <- OK-MSDD-0001\n"
-    );
+    assert_eq!(out, "OK-REQ-0001, OK-REQ-0002\n");
 }
 
 #[test]
@@ -435,23 +502,23 @@ fn traces_a_requirement_to_its_satisfying_designs() {
     assert!(ok, "trace should succeed:\n{out}");
     assert_eq!(
         out,
-        "OK-MSDD-0001 (docs/specs/backend/msdd/0001-progress-pipeline.md)\n"
+        "OK-DESIGN-0001 (docs/specs/backend/design/0001-progress-pipeline.md)\n"
     );
 }
 
 #[test]
-fn traces_an_msdd_module_to_the_requirements_it_satisfies() {
+fn traces_a_second_requirement_to_its_satisfying_design() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "trace",
-        "OK-MSDD-0001",
+        "OK-REQ-0002",
         "--root",
         root.to_str().expect("utf8 path"),
     ]);
     assert!(ok, "trace should succeed:\n{out}");
     assert_eq!(
         out,
-        "OK-REQ-0001 -> OK-MSRS-0001\nOK-REQ-0002 -> OK-MSRS-0001\n"
+        "OK-DESIGN-0001 (docs/specs/backend/design/0001-progress-pipeline.md)\n"
     );
 }
 
@@ -476,21 +543,21 @@ fn trace_of_unknown_identifier_fails() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "trace",
-        "OK-MSRS-9999",
+        "OK-DESIGN-9999",
         "--root",
         root.to_str().expect("utf8 path"),
     ]);
     assert!(!ok, "trace of an unknown id must fail");
     assert!(
-        out.contains("unknown identifier OK-MSRS-9999"),
+        out.contains("unknown identifier OK-DESIGN-9999"),
         "unexpected output:\n{out}"
     );
 }
 
 #[test]
 fn trace_of_an_unrecognized_kind_identifier_fails() {
-    // "FOO" is not ADR, MSRS, MSDD, or REQ: infer_kind returns None before
-    // any catalog lookup, a different path than a well-formed but absent id.
+    // "FOO" is not ADR, REQ, or DESIGN: infer_kind returns None before any
+    // catalog lookup, a different path than a well-formed but absent id.
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "trace",
@@ -506,8 +573,8 @@ fn trace_of_an_unrecognized_kind_identifier_fails() {
 }
 
 /// Writes a hand-built catalog directly, bypassing `specful index`: query.rs
-/// reads the catalog only, so this is enough to exercise result shapes
-/// (untraced requirements, an MSDD with no satisfies links) that the
+/// reads the catalog only, so this is enough to exercise result shapes (an
+/// untraced requirement, a design with no satisfies links) that the
 /// `valid-repo` fixture's fully-linked artifacts never produce.
 fn scratch_catalog(artifacts_json: &str) -> tempfile::TempDir {
     let root = tempfile::tempdir().expect("create scratch");
@@ -521,38 +588,14 @@ fn scratch_catalog(artifacts_json: &str) -> tempfile::TempDir {
 }
 
 #[test]
-fn traces_an_msrs_module_with_an_unsatisfied_requirement_as_untraced() {
-    let root = scratch_catalog(
-        r#"[
-            {
-                "id": "T-MSRS-0001",
-                "kind": "msrs",
-                "path": "docs/specs/system/msrs/0001-x.md",
-                "title": "X",
-                "requirements": ["T-REQ-0001"]
-            }
-        ]"#,
-    );
-    let (ok, out) = run_specful(&[
-        "trace",
-        "T-MSRS-0001",
-        "--root",
-        root.path().to_str().expect("utf8 path"),
-    ]);
-    assert!(ok, "trace should succeed:\n{out}");
-    assert_eq!(out, "T-REQ-0001 <- (untraced)\n");
-}
-
-#[test]
 fn traces_an_unsatisfied_requirement_as_untraced() {
     let root = scratch_catalog(
         r#"[
             {
-                "id": "T-MSRS-0001",
-                "kind": "msrs",
-                "path": "docs/specs/system/msrs/0001-x.md",
-                "title": "X",
-                "requirements": ["T-REQ-0001"]
+                "id": "T-REQ-0001",
+                "kind": "req",
+                "path": "docs/specs/system/requirements/0001-x.md",
+                "title": "X"
             }
         ]"#,
     );
@@ -567,13 +610,13 @@ fn traces_an_unsatisfied_requirement_as_untraced() {
 }
 
 #[test]
-fn traces_an_msdd_module_with_no_satisfies_links() {
+fn traces_a_design_with_no_satisfies_links() {
     let root = scratch_catalog(
         r#"[
             {
-                "id": "T-MSDD-0001",
-                "kind": "msdd",
-                "path": "docs/specs/system/msdd/0001-y.md",
+                "id": "T-DESIGN-0001",
+                "kind": "design",
+                "path": "docs/specs/system/design/0001-y.md",
                 "title": "Y",
                 "satisfies": []
             }
@@ -581,7 +624,7 @@ fn traces_an_msdd_module_with_no_satisfies_links() {
     );
     let (ok, out) = run_specful(&[
         "trace",
-        "T-MSDD-0001",
+        "T-DESIGN-0001",
         "--root",
         root.path().to_str().expect("utf8 path"),
     ]);
@@ -590,40 +633,17 @@ fn traces_an_msdd_module_with_no_satisfies_links() {
 }
 
 #[test]
-fn traces_an_msrs_module_with_no_requirements() {
-    let root = scratch_catalog(
-        r#"[
-            {
-                "id": "T-MSRS-0001",
-                "kind": "msrs",
-                "path": "docs/specs/system/msrs/0001-x.md",
-                "title": "X",
-                "requirements": []
-            }
-        ]"#,
-    );
-    let (ok, out) = run_specful(&[
-        "trace",
-        "T-MSRS-0001",
-        "--root",
-        root.path().to_str().expect("utf8 path"),
-    ]);
-    assert!(ok, "trace should succeed:\n{out}");
-    assert_eq!(out, "(no requirements)\n");
-}
-
-#[test]
 fn show_of_unknown_identifier_fails() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "show",
-        "OK-MSDD-9999",
+        "OK-DESIGN-9999",
         "--root",
         root.to_str().expect("utf8 path"),
     ]);
     assert!(!ok, "show of an unknown id must fail");
     assert!(
-        out.contains("unknown identifier OK-MSDD-9999"),
+        out.contains("unknown identifier OK-DESIGN-9999"),
         "unexpected output:\n{out}"
     );
 }
@@ -690,7 +710,7 @@ fn show_with_a_corrupt_catalog_reports_a_json_error() {
 
     let (ok, out) = run_specful(&[
         "show",
-        "OK-MSDD-0001",
+        "OK-DESIGN-0001",
         "--root",
         root.path().to_str().expect("utf8 path"),
     ]);
@@ -712,7 +732,7 @@ fn show_without_a_catalog_reports_the_run_index_message() {
 
     let (ok, out) = run_specful(&[
         "show",
-        "OK-MSDD-0001",
+        "OK-DESIGN-0001",
         "--root",
         scratch.to_str().expect("utf8 path"),
     ]);
@@ -748,7 +768,7 @@ fn rejects_a_non_kebab_case_specification_scope() {
     let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
     assert!(
         rendered.iter().any(|f| f.contains(
-            "docs/specs/Data Plane/msrs/0001-progress-sync.md: scope directory segment \"Data Plane\" must be lowercase ASCII kebab-case"
+            "docs/specs/Data Plane/requirements/0001-offline-replay.md: scope directory segment \"Data Plane\" must be lowercase ASCII kebab-case"
         )),
         "expected an invalid scope finding, got:\n{}",
         rendered.join("\n")
@@ -817,7 +837,7 @@ fn reports_symlinks_without_following_them() {
 
 #[cfg(unix)]
 #[test]
-fn rejects_a_path_source_whose_final_component_is_a_symlink_outside_the_repository() {
+fn rejects_an_artifact_file_replaced_by_a_symlink_outside_the_repository() {
     let root = copy_fixture("valid-repo", "symlink-final");
     let root = root.path();
     let cited = root.join("docs/adr/0001-store-progress-events.md");
@@ -832,9 +852,9 @@ fn rejects_a_path_source_whose_final_component_is_a_symlink_outside_the_reposito
     let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
 
     assert!(
-        rendered.iter().any(|f| f.contains(
-            "requirement OK-REQ-0001 cites source path docs/adr/0001-store-progress-events.md, which does not exist"
-        )),
+        rendered
+            .iter()
+            .any(|f| f == "docs/adr/0001-store-progress-events.md: symlink not allowed"),
         "expected a finding for the symlinked source, got:\n{}",
         rendered.join("\n")
     );
@@ -842,7 +862,7 @@ fn rejects_a_path_source_whose_final_component_is_a_symlink_outside_the_reposito
 
 #[cfg(unix)]
 #[test]
-fn rejects_a_path_source_through_a_symlinked_intermediate_directory() {
+fn rejects_a_symlinked_artifact_root_directory() {
     let root = copy_fixture("valid-repo", "symlink-intermediate");
     let root = root.path();
     let real_dir = root.join("docs/adr-real");
@@ -853,10 +873,10 @@ fn rejects_a_path_source_through_a_symlinked_intermediate_directory() {
     let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
 
     assert!(
-        rendered.iter().any(|f| f.contains(
-            "requirement OK-REQ-0001 cites source path docs/adr/0001-store-progress-events.md, which does not exist"
-        )),
-        "expected a finding for the symlinked intermediate directory, got:\n{}",
+        rendered
+            .iter()
+            .any(|f| f == "docs/adr: symlink not allowed"),
+        "expected a finding for the symlinked artifact root, got:\n{}",
         rendered.join("\n")
     );
 }

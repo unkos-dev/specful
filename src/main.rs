@@ -49,7 +49,7 @@ enum Command {
         /// Artifact title; also derives the filename slug.
         #[arg(long)]
         title: String,
-        /// Architectural scope for msrs and msdd modules, e.g. backend/sync.
+        /// Architectural scope for a requirement or design, e.g. backend/sync.
         #[arg(long)]
         scope: Option<String>,
         /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
@@ -58,7 +58,7 @@ enum Command {
     },
     /// Show the catalog record for an identifier.
     Show {
-        /// Identifier to look up, e.g. OK-MSDD-0001.
+        /// Identifier to look up, e.g. OK-DESIGN-0001.
         id: String,
         /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]
@@ -66,7 +66,7 @@ enum Command {
     },
     /// Trace requirement-to-design links for an identifier.
     Trace {
-        /// Identifier to trace, e.g. OK-MSRS-0001.
+        /// Identifier to trace, e.g. OK-REQ-0001.
         id: String,
         /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]
@@ -77,16 +77,16 @@ enum Command {
 #[derive(Clone, Copy, clap::ValueEnum)]
 enum NewKindArg {
     Adr,
-    Msrs,
-    Msdd,
+    Requirement,
+    Design,
 }
 
 impl From<NewKindArg> for specful::authoring::NewKind {
     fn from(kind: NewKindArg) -> Self {
         match kind {
             NewKindArg::Adr => Self::Adr,
-            NewKindArg::Msrs => Self::Msrs,
-            NewKindArg::Msdd => Self::Msdd,
+            NewKindArg::Requirement => Self::Requirement,
+            NewKindArg::Design => Self::Design,
         }
     }
 }

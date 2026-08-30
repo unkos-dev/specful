@@ -11,9 +11,9 @@
       "governed-by": [
         "OK-ADR-0001"
       ],
-      "id": "OK-MSDD-0001",
-      "kind": "msdd",
-      "path": "docs/specs/backend/msdd/0001-progress-pipeline.md",
+      "id": "OK-DESIGN-0001",
+      "kind": "design",
+      "path": "docs/specs/backend/design/0001-progress-pipeline.md",
       "satisfies": [
         "OK-REQ-0001",
         "OK-REQ-0002"
@@ -24,14 +24,16 @@
       "governed-by": [
         "OK-ADR-0001"
       ],
-      "id": "OK-MSRS-0001",
-      "kind": "msrs",
-      "path": "docs/specs/system/msrs/0001-progress-sync.md",
-      "requirements": [
-        "OK-REQ-0001",
-        "OK-REQ-0002"
-      ],
-      "title": "Progress sync requirements"
+      "id": "OK-REQ-0001",
+      "kind": "req",
+      "path": "docs/specs/system/requirements/0001-offline-replay.md",
+      "title": "Offline replay"
+    },
+    {
+      "id": "OK-REQ-0002",
+      "kind": "req",
+      "path": "docs/specs/system/requirements/0002-replay-pacing.md",
+      "title": "Replay pacing"
     }
   ]
 }

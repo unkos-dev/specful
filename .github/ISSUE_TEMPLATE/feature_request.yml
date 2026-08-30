@@ -64,7 +64,7 @@ body:
           honour), the CLI (something `specful` alone provides), or both?
       placeholder: |
         - Layout: no change
-        - Schema: adds an optional field to the MSRS frontmatter, backward
+        - Schema: adds an optional field to the Requirement frontmatter, backward
           compatible
         - Belongs in: the convention, since agents need to see this field
           without the CLI

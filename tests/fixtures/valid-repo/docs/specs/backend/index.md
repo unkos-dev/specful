@@ -2,6 +2,6 @@
 
 # backend
 
-## Design modules
+## Designs
 
-- [OK-MSDD-0001](msdd/0001-progress-pipeline.md): Progress pipeline
+- [OK-DESIGN-0001](design/0001-progress-pipeline.md): Progress pipeline

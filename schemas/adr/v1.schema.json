@@ -6,7 +6,7 @@
   "description": "Validates the loaded JSON-compatible value of Specful ADR v1 frontmatter.",
   "type": "object",
   "required": [
-    "kind",
+    "type",
     "profile-version",
     "id",
     "title",
@@ -15,8 +15,8 @@
     "decision-makers"
   ],
   "properties": {
-    "kind": {
-      "const": "adr"
+    "type": {
+      "const": "ADR"
     },
     "profile-version": {
       "const": 1

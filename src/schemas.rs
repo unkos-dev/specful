@@ -1,21 +1,21 @@
 /// Canonical identifier for the built-in ADR profile version 1 schema.
 pub const ADR_V1_SCHEMA_ID: &str = "https://unkos-dev.github.io/specful/schemas/adr/v1.schema.json";
 
-/// Canonical identifier for the built-in MSRS profile version 1 schema.
-pub const MSRS_V1_SCHEMA_ID: &str =
-    "https://unkos-dev.github.io/specful/schemas/msrs/v1.schema.json";
+/// Canonical identifier for the built-in Requirement profile version 1 schema.
+pub const REQUIREMENT_V1_SCHEMA_ID: &str =
+    "https://unkos-dev.github.io/specful/schemas/requirement/v1.schema.json";
 
-/// Canonical identifier for the built-in MSDD profile version 1 schema.
-pub const MSDD_V1_SCHEMA_ID: &str =
-    "https://unkos-dev.github.io/specful/schemas/msdd/v1.schema.json";
+/// Canonical identifier for the built-in Design profile version 1 schema.
+pub const DESIGN_V1_SCHEMA_ID: &str =
+    "https://unkos-dev.github.io/specful/schemas/design/v1.schema.json";
 
 /// Canonical identifier for the built-in repository configuration version 1 schema.
 pub const CONFIG_V1_SCHEMA_ID: &str =
     "https://unkos-dev.github.io/specful/schemas/config/v1.schema.json";
 
 const ADR_V1_SCHEMA: &str = include_str!("../schemas/adr/v1.schema.json");
-const MSRS_V1_SCHEMA: &str = include_str!("../schemas/msrs/v1.schema.json");
-const MSDD_V1_SCHEMA: &str = include_str!("../schemas/msdd/v1.schema.json");
+const REQUIREMENT_V1_SCHEMA: &str = include_str!("../schemas/requirement/v1.schema.json");
+const DESIGN_V1_SCHEMA: &str = include_str!("../schemas/design/v1.schema.json");
 const CONFIG_V1_SCHEMA: &str = include_str!("../schemas/config/v1.schema.json");
 
 /// Returns a built-in schema by its canonical JSON Schema identifier.
@@ -23,8 +23,8 @@ const CONFIG_V1_SCHEMA: &str = include_str!("../schemas/config/v1.schema.json");
 pub fn builtin_schema(canonical_id: &str) -> Option<&'static str> {
     match canonical_id {
         ADR_V1_SCHEMA_ID => Some(ADR_V1_SCHEMA),
-        MSRS_V1_SCHEMA_ID => Some(MSRS_V1_SCHEMA),
-        MSDD_V1_SCHEMA_ID => Some(MSDD_V1_SCHEMA),
+        REQUIREMENT_V1_SCHEMA_ID => Some(REQUIREMENT_V1_SCHEMA),
+        DESIGN_V1_SCHEMA_ID => Some(DESIGN_V1_SCHEMA),
         CONFIG_V1_SCHEMA_ID => Some(CONFIG_V1_SCHEMA),
         _ => None,
     }
@@ -33,14 +33,15 @@ pub fn builtin_schema(canonical_id: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::{
-        ADR_V1_SCHEMA_ID, CONFIG_V1_SCHEMA_ID, MSDD_V1_SCHEMA_ID, MSRS_V1_SCHEMA_ID, builtin_schema,
+        ADR_V1_SCHEMA_ID, CONFIG_V1_SCHEMA_ID, DESIGN_V1_SCHEMA_ID, REQUIREMENT_V1_SCHEMA_ID,
+        builtin_schema,
     };
     use serde_json::Value;
 
     const REGISTERED: [&str; 4] = [
         ADR_V1_SCHEMA_ID,
-        MSRS_V1_SCHEMA_ID,
-        MSDD_V1_SCHEMA_ID,
+        REQUIREMENT_V1_SCHEMA_ID,
+        DESIGN_V1_SCHEMA_ID,
         CONFIG_V1_SCHEMA_ID,
     ];
 

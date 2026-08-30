@@ -6,4 +6,4 @@ title: Bogus type
 ---
 # Bogus type
 
-This module declares a type the schema does not recognize.
+This artifact declares a type the schema does not recognize.

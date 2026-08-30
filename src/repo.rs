@@ -8,23 +8,13 @@ use crate::body::{ArtifactKind, check_body};
 use crate::config::{Config, load_config};
 use crate::diagnostics::{Finding, sort_findings};
 use crate::frontmatter::split_frontmatter;
-use crate::schemas::{ADR_V1_SCHEMA_ID, MSDD_V1_SCHEMA_ID, MSRS_V1_SCHEMA_ID, builtin_schema};
+use crate::schemas::{
+    ADR_V1_SCHEMA_ID, DESIGN_V1_SCHEMA_ID, REQUIREMENT_V1_SCHEMA_ID, builtin_schema,
+};
 use crate::yaml::load_restricted_yaml;
 
 pub(crate) const ADR_DIR: &str = "docs/adr";
 pub(crate) const SPECS_DIR: &str = "docs/specs";
-
-/// One `sources` entry of one requirement, kept with enough context to
-/// resolve it once the whole repository has been collected.
-#[derive(Debug, Clone)]
-struct SourceCitation {
-    /// Repository-relative path of the citing module.
-    path: String,
-    /// Identifier of the citing module.
-    module_id: String,
-    requirement_id: String,
-    value: serde_json::Value,
-}
 
 /// One conformant artifact, as collected during the repository walk.
 ///
@@ -41,17 +31,14 @@ pub(crate) struct Artifact {
     pub superseded_by: Vec<String>,
     pub satisfies: Vec<String>,
     pub governed_by: Vec<String>,
-    /// Requirement identifiers declared by an MSRS module.
-    pub requirements: Vec<String>,
 }
 
 /// Validates the repository rooted at `root` and returns sorted findings.
 pub fn validate_repository(root: &Path) -> Vec<Finding> {
     let mut findings = Vec::new();
     let config = load_config(root, &mut findings);
-    let mut sources = Vec::new();
-    let (artifacts, _) = collect_artifacts_and_sources(root, &mut findings, &mut sources);
-    validate_integrity(root, config.as_ref(), &artifacts, &sources, &mut findings);
+    let (artifacts, _) = collect_artifacts(root, &mut findings);
+    validate_integrity(config.as_ref(), &artifacts, &mut findings);
     crate::index::check_generated_views(root, &artifacts, &mut findings);
     sort_findings(&mut findings);
     findings
@@ -60,22 +47,10 @@ pub fn validate_repository(root: &Path) -> Vec<Finding> {
 /// Walks the repository and returns every conformant artifact, appending
 /// findings for each defect encountered on the way.
 pub(crate) fn collect_artifacts(root: &Path, findings: &mut Vec<Finding>) -> (Vec<Artifact>, bool) {
-    let mut sources = Vec::new();
-    collect_artifacts_and_sources(root, findings, &mut sources)
-}
-
-/// Walks the repository, returning every conformant artifact and every
-/// requirement `sources` citation encountered along the way, appending
-/// findings for each defect.
-fn collect_artifacts_and_sources(
-    root: &Path,
-    findings: &mut Vec<Finding>,
-    sources: &mut Vec<SourceCitation>,
-) -> (Vec<Artifact>, bool) {
     let mut artifacts = Vec::new();
     let mut complete = true;
     collect_adr_directory(root, &mut artifacts, findings, &mut complete);
-    collect_specs_tree(root, &mut artifacts, sources, findings, &mut complete);
+    collect_specs_tree(root, &mut artifacts, findings, &mut complete);
     (artifacts, complete)
 }
 
@@ -159,6 +134,23 @@ pub(crate) fn read_entries(
     }
     kept.sort();
     kept
+}
+
+/// Rejects a top-level artifact root (`ADR_DIR` or `SPECS_DIR`) that is
+/// itself a symlink, before it is ever opened: `read_entries` only catches a
+/// symlink among a directory's entries, never the walk's own starting point.
+fn reject_symlinked_root(root: &Path, dir: &Path, findings: &mut Vec<Finding>) -> bool {
+    match std::fs::symlink_metadata(dir) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            findings.push(Finding::new(
+                relative(root, dir),
+                None,
+                "symlink not allowed",
+            ));
+            false
+        }
+        _ => true,
+    }
 }
 
 fn markdown_files(root: &Path, dir: &Path, findings: &mut Vec<Finding>) -> Vec<PathBuf> {
@@ -323,6 +315,10 @@ fn collect_adr_directory(
     complete: &mut bool,
 ) {
     let validator = compile(ADR_V1_SCHEMA_ID);
+    if !reject_symlinked_root(root, &root.join(ADR_DIR), findings) {
+        *complete = false;
+        return;
+    }
     let finding_count = findings.len();
     let files = markdown_files(root, &root.join(ADR_DIR), findings);
     *complete &= findings.len() == finding_count;
@@ -365,7 +361,6 @@ fn collect_adr_directory(
             superseded_by: string_array(&value, "superseded-by"),
             satisfies: Vec::new(),
             governed_by: Vec::new(),
-            requirements: Vec::new(),
         });
     }
 }
@@ -373,14 +368,17 @@ fn collect_adr_directory(
 fn collect_specs_tree(
     root: &Path,
     artifacts: &mut Vec<Artifact>,
-    sources: &mut Vec<SourceCitation>,
     findings: &mut Vec<Finding>,
     complete: &mut bool,
 ) {
-    let validators = ConceptValidators {
-        msrs: compile(MSRS_V1_SCHEMA_ID),
-        msdd: compile(MSDD_V1_SCHEMA_ID),
+    let validators = ArtifactValidators {
+        requirement: compile(REQUIREMENT_V1_SCHEMA_ID),
+        design: compile(DESIGN_V1_SCHEMA_ID),
     };
+    if !reject_symlinked_root(root, &root.join(SPECS_DIR), findings) {
+        *complete = false;
+        return;
+    }
     let mut stack = vec![root.join(SPECS_DIR)];
     while let Some(dir) = stack.pop() {
         let finding_count = findings.len();
@@ -399,58 +397,54 @@ fn collect_specs_tree(
                 .unwrap_or_default()
                 .to_string_lossy()
                 .to_string();
-            if file_name == "index.md" || file_name == "log.md" {
+            if file_name == "index.md" {
                 continue;
             }
-            *complete &= collect_concept(
-                root,
-                &file,
-                &file_name,
-                artifacts,
-                sources,
-                findings,
-                &validators,
-            );
+            *complete &=
+                collect_artifact(root, &file, &file_name, artifacts, findings, &validators);
         }
     }
 }
 
-/// Compiled schema validators shared across every concept collected from
+/// Compiled schema validators shared across every artifact collected from
 /// the specs tree.
-struct ConceptValidators {
-    msrs: jsonschema::Validator,
-    msdd: jsonschema::Validator,
+struct ArtifactValidators {
+    requirement: jsonschema::Validator,
+    design: jsonschema::Validator,
 }
 
-fn collect_concept(
+fn collect_artifact(
     root: &Path,
     file: &Path,
     file_name: &str,
     artifacts: &mut Vec<Artifact>,
-    sources: &mut Vec<SourceCitation>,
     findings: &mut Vec<Finding>,
-    validators: &ConceptValidators,
+    validators: &ArtifactValidators,
 ) -> bool {
     let Some((path, value, body, body_first_line)) = load_artifact(root, file, findings) else {
         return false;
     };
-    let concept_type = value["type"].as_str().unwrap_or_default().to_owned();
-    if concept_type.is_empty() {
+    let artifact_type = value["type"].as_str().unwrap_or_default().to_owned();
+    if artifact_type.is_empty() {
         findings.push(Finding::new(
             &path,
             Some(2),
-            "concept frontmatter requires a non-empty type",
+            "artifact frontmatter requires a non-empty type",
         ));
         return false;
     }
-    let (kind, validator, kind_dir) = match concept_type.as_str() {
-        "MSRS" => (ArtifactKind::Msrs, &validators.msrs, "msrs"),
-        "MSDD" => (ArtifactKind::Msdd, &validators.msdd, "msdd"),
+    let (kind, validator, kind_dir) = match artifact_type.as_str() {
+        "REQ" => (
+            ArtifactKind::Requirement,
+            &validators.requirement,
+            "requirements",
+        ),
+        "DESIGN" => (ArtifactKind::Design, &validators.design, "design"),
         _ => {
             findings.push(Finding::new(
                 &path,
                 Some(2),
-                format!("concept type \"{concept_type}\" is not MSRS or MSDD"),
+                format!("artifact type \"{artifact_type}\" is not REQ or DESIGN"),
             ));
             return false;
         }
@@ -461,7 +455,7 @@ fn collect_concept(
         findings.push(Finding::new(
             &path,
             None,
-            format!("a {concept_type} module belongs in an {kind_dir}/ directory"),
+            format!("a {artifact_type} artifact belongs in a {kind_dir}/ directory"),
         ));
     }
     check_scope_segments(&path, findings);
@@ -473,25 +467,6 @@ fn collect_concept(
     check_id_matches_filename(&id, sequence, &path, findings);
     findings.extend(check_body(kind, &value, &body, &path, body_first_line));
 
-    if kind == ArtifactKind::Msrs
-        && let Some(requirements) = value["requirements"].as_object()
-    {
-        for (requirement_id, requirement) in requirements {
-            for source in requirement["sources"].as_array().into_iter().flatten() {
-                sources.push(SourceCitation {
-                    path: path.clone(),
-                    module_id: id.clone(),
-                    requirement_id: requirement_id.clone(),
-                    value: source.clone(),
-                });
-            }
-        }
-    }
-
-    let requirements = value["requirements"]
-        .as_object()
-        .map(|map| map.keys().cloned().collect())
-        .unwrap_or_default();
     artifacts.push(Artifact {
         kind,
         id,
@@ -502,31 +477,21 @@ fn collect_concept(
         superseded_by: Vec::new(),
         satisfies: string_array(&value, "satisfies"),
         governed_by: string_array(&value, "governed-by"),
-        requirements,
     });
     true
 }
 
 fn validate_integrity(
-    root: &Path,
     config: Option<&Config>,
     artifacts: &[Artifact],
-    sources: &[SourceCitation],
     findings: &mut Vec<Finding>,
 ) {
     let mut artifact_paths: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
-    let mut requirement_paths: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for artifact in artifacts {
         artifact_paths
             .entry(&artifact.id)
             .or_default()
             .push(&artifact.path);
-        for requirement_id in &artifact.requirements {
-            requirement_paths
-                .entry(requirement_id)
-                .or_default()
-                .push(&artifact.path);
-        }
     }
 
     for (id, paths) in &artifact_paths {
@@ -541,29 +506,13 @@ fn validate_integrity(
             ));
         }
     }
-    for (id, paths) in &requirement_paths {
-        if paths.len() > 1 {
-            findings.push(Finding::new(
-                paths[1],
-                None,
-                format!(
-                    "requirement identifier {id} is already declared in {}",
-                    paths[0]
-                ),
-            ));
-        }
-    }
 
     if let Some(config) = config {
         let prefix = format!("{}-", config.project_key);
-        let all_ids = artifact_paths
-            .iter()
-            .chain(requirement_paths.iter())
-            .map(|(id, paths)| (*id, paths[0]));
-        for (id, path) in all_ids {
+        for (id, paths) in &artifact_paths {
             if !id.starts_with(&prefix) {
                 findings.push(Finding::new(
-                    path,
+                    paths[0],
                     None,
                     format!(
                         "identifier {id} does not use the configured project key {}",
@@ -574,11 +523,11 @@ fn validate_integrity(
         }
 
         let mut max_allocated: BTreeMap<&str, i64> = BTreeMap::new();
-        for id in artifact_paths.keys().chain(requirement_paths.keys()) {
+        for id in artifact_paths.keys() {
             let mut segments = id.rsplit('-');
             let sequence: i64 = segments.next().and_then(|s| s.parse().ok()).unwrap_or(0);
             let kind = segments.next().unwrap_or_default();
-            for known in ["ADR", "MSRS", "REQ", "MSDD"] {
+            for known in ["ADR", "REQ", "DESIGN"] {
                 if kind == known {
                     let entry = max_allocated.entry(known).or_insert(0);
                     *entry = (*entry).max(sequence);
@@ -589,19 +538,26 @@ fn validate_integrity(
             if let Some(counter) = config.counters.get(kind)
                 && *counter <= highest
             {
+                let field = match kind {
+                    "ADR" => "adr",
+                    "REQ" => "requirement",
+                    "DESIGN" => "design",
+                    other => other,
+                };
                 findings.push(Finding::new(
                     crate::config::CONFIG_FILE,
                     None,
-                    format!(
-                        "next-{}-sequence {counter} lags allocated identifier sequence {highest}",
-                        kind.to_ascii_lowercase().replace("req", "requirement"),
-                    ),
+                    format!("next-{field}-sequence {counter} lags allocated identifier sequence {highest}"),
                 ));
             }
         }
     }
 
-    let requirement_ids: BTreeSet<&str> = requirement_paths.keys().copied().collect();
+    let requirement_ids: BTreeSet<&str> = artifacts
+        .iter()
+        .filter(|a| a.kind == ArtifactKind::Requirement)
+        .map(|a| a.id.as_str())
+        .collect();
     let adrs: BTreeMap<&str, &Artifact> = artifacts
         .iter()
         .filter(|a| a.kind == ArtifactKind::Adr)
@@ -629,93 +585,7 @@ fn validate_integrity(
         }
     }
 
-    validate_sources(root, &artifact_paths, sources, findings);
     validate_supersession(&adrs, findings);
-}
-
-/// Resolves the `artifact` and `path` source variants. The `uri` and
-/// `citation` variants carry nothing this repository can resolve, so the
-/// published schema is the whole of their contract.
-fn validate_sources(
-    root: &Path,
-    artifact_paths: &BTreeMap<&str, Vec<&str>>,
-    sources: &[SourceCitation],
-    findings: &mut Vec<Finding>,
-) {
-    for citation in sources {
-        let requirement = &citation.requirement_id;
-        let mut report = |message: String| {
-            findings.push(Finding::new(&citation.path, None, message));
-        };
-        match citation.value["type"].as_str().unwrap_or_default() {
-            "artifact" => {
-                let target = citation.value["artifact-id"].as_str().unwrap_or_default();
-                if target == citation.module_id {
-                    report(format!(
-                        "requirement {requirement} cites its own module {target} as a source"
-                    ));
-                } else if !artifact_paths.contains_key(target) {
-                    report(format!(
-                        "requirement {requirement} cites source artifact {target}, which does not exist"
-                    ));
-                }
-            }
-            "path" => {
-                let target = citation.value["path"].as_str().unwrap_or_default();
-                if target == citation.path {
-                    report(format!(
-                        "requirement {requirement} cites its own file {target} as a source"
-                    ));
-                } else if escapes_root(target) {
-                    report(format!(
-                        "requirement {requirement} cites source path {target}, which leaves the repository"
-                    ));
-                } else if !resolves_within_root(root, target) {
-                    report(format!(
-                        "requirement {requirement} cites source path {target}, which does not exist"
-                    ));
-                }
-            }
-            _ => {}
-        }
-    }
-}
-
-/// Whether a source path is absolute or climbs out of the repository root.
-/// The published schema already rejects both, so this only keeps resolution
-/// safe if a path ever reaches it by another route.
-fn escapes_root(path: &str) -> bool {
-    !Path::new(path)
-        .components()
-        .all(|component| matches!(component, std::path::Component::Normal(_)))
-}
-
-/// Walks `target` component by component from `root`, rejecting any
-/// intermediate or final component that is a symlink. This never calls
-/// `canonicalize` and never follows a symlink, so a cited path that escapes
-/// the repository through a symlink is reported as unresolved rather than
-/// silently validated. The final component must be a regular file.
-fn resolves_within_root(root: &Path, target: &str) -> bool {
-    let mut current = root.to_path_buf();
-    let components: Vec<_> = Path::new(target).components().collect();
-    for (index, component) in components.iter().enumerate() {
-        current.push(component);
-        let metadata = match std::fs::symlink_metadata(&current) {
-            Ok(metadata) => metadata,
-            Err(_) => return false,
-        };
-        if metadata.file_type().is_symlink() {
-            return false;
-        }
-        let is_last = index == components.len() - 1;
-        if is_last {
-            return metadata.is_file();
-        }
-        if !metadata.is_dir() {
-            return false;
-        }
-    }
-    false
 }
 
 /// Creates the directory components of `relative` under `root`, rejecting
@@ -725,8 +595,7 @@ fn resolves_within_root(root: &Path, target: &str) -> bool {
 /// symlink escape. Missing components are created one at a time with
 /// `create_dir`, never `create_dir_all` through an unverified path, so a
 /// repository-controlled symlink cannot redirect the write outside the
-/// root. Mirrors the symlink-safe walk in `resolves_within_root`, but
-/// creates rather than only inspects.
+/// root.
 pub(crate) fn create_dir_verified(root: &Path, relative: &Path) -> Result<(), Finding> {
     let mut current = root.to_path_buf();
     for component in relative.components() {
@@ -883,7 +752,6 @@ mod tests {
             superseded_by: superseded_by.iter().map(|s| s.to_string()).collect(),
             satisfies: Vec::new(),
             governed_by: Vec::new(),
-            requirements: Vec::new(),
         }
     }
 

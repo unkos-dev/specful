@@ -2,6 +2,7 @@
 
 # system
 
-## Requirements modules
+## Requirements
 
-- [OK-MSRS-0001](msrs/0001-progress-sync.md): Progress sync requirements
+- [OK-REQ-0001](requirements/0001-offline-replay.md): Offline replay
+- [OK-REQ-0002](requirements/0002-replay-pacing.md): Replay pacing

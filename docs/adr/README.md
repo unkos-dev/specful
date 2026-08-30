@@ -15,14 +15,14 @@ coding agents without requiring that guidance to remain in completed records.
 Every completed ADR contains:
 
 - an identifier, title, status, recorded date, and decision-maker metadata;
-- Context and Problem Statement;
-- Decision Drivers;
-- Considered Options;
-- Decision Outcome;
+- Context and problem statement;
+- Decision drivers;
+- Considered options;
+- Decision outcome;
 - Consequences;
 - Confirmation.
 
-Pros and Cons of the Options and More Information are conditional sections. They are included only when they add
+Pros and cons of the options and More information are conditional sections. They are included only when they add
 material decision evidence.
 
 ## Identifiers
@@ -189,7 +189,7 @@ a first-value-wins or last-value-wins rule.
 Mapping order has no semantic effect and validation is order-independent. Templates and formatting use this canonical
 order:
 
-1. `kind`;
+1. `type`;
 2. `profile-version`;
 3. `id`;
 4. `title`;
@@ -222,14 +222,15 @@ JSON-compatible frontmatter instance and its expected schema validity. These cas
 YAML loading, Unicode normalization, Markdown, filenames, repository relationships, configuration, and transitions
 remain separate validator responsibilities.
 
-Every ADR contains the required discriminator `kind: adr` and integer `profile-version: 1`. These fields identify the
+Every ADR contains the required discriminator `type: ADR` and integer `profile-version: 1`. These fields identify the
 artifact and its complete Specful conformance profile without relying on its repository path. The path, filename, and
 identifier remain consistency checks.
 
-Each profile version identifies one exact conformance contract. The contract includes the JSON Schema, Markdown
-structure, repository invariants, current-state rules, and transition rules. A change that alters whether a snapshot or
-transition is valid creates the next integer version. Editorial corrections and equivalent implementation refactors do
-not. Existing documents retain their declared profile version until explicitly migrated. Extension usage does not change
+Each profile version identifies one exact conformance contract. Before Specful reaches 1.0, an accepted decision may
+still change what conforms to the current profile version in place, without a version bump; the release notes for the
+change carry the manual repository edits it requires. From 1.0, a change that alters whether a snapshot or transition is
+valid creates the next integer version instead, editorial corrections and equivalent implementation refactors do not,
+and existing documents retain their declared profile version until explicitly migrated. Extension usage does not change
 the profile version.
 
 Reading, indexing, and validation never migrate documents. Supported older profile versions are validated against their

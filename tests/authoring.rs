@@ -336,7 +336,7 @@ fn symlinked_scope_directory_is_rejected() {
 
     let findings = new_artifact(
         root.path(),
-        NewKind::Msrs,
+        NewKind::Requirement,
         Some("backend"),
         "Escaping module",
     )
@@ -364,7 +364,7 @@ fn a_plain_file_blocking_the_scope_path_is_reported_as_not_a_directory() {
 
     let findings = new_artifact(
         root.path(),
-        NewKind::Msrs,
+        NewKind::Requirement,
         Some("backend"),
         "Blocked module",
     )
@@ -452,5 +452,173 @@ fn init_leaves_created_directories_after_a_config_write_failure() {
     assert!(
         root.path().join("docs/specs").is_dir(),
         "the specs directory created before the failure must remain"
+    );
+}
+
+/// Applies the same line-prefix substitution `new_artifact` uses, so a
+/// scaffold's body can be checked against its template independent of the
+/// private implementation: only the allocated id, the title (frontmatter and
+/// H1), and (ADR only) `recorded-on` may differ from the template.
+fn expected_scaffold(
+    template_path: &str,
+    id: &str,
+    title: &str,
+    recorded_on: Option<&str>,
+) -> String {
+    let template = std::fs::read_to_string(template_path).expect("read template");
+    let mut replacements: Vec<(&str, String)> = vec![
+        ("id: \"", format!("{id}\"")),
+        ("title: \"", format!("{title}\"")),
+    ];
+    if let Some(date) = recorded_on {
+        replacements.push(("recorded-on: \"", format!("{date}\"")));
+    }
+    replacements.push(("# ", title.to_owned()));
+
+    let mut out = String::with_capacity(template.len());
+    let mut done = vec![false; replacements.len()];
+    for line in template.lines() {
+        let mut wrote = false;
+        for (index, (prefix, value)) in replacements.iter().enumerate() {
+            if !done[index] && line.starts_with(prefix) {
+                out.push_str(prefix);
+                out.push_str(value);
+                out.push('\n');
+                done[index] = true;
+                wrote = true;
+                break;
+            }
+        }
+        if !wrote {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
+fn template_path(name: &str) -> String {
+    format!(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/{}"), name)
+}
+
+/// Today's date, matching the format `new_artifact` stamps into an ADR's
+/// `recorded-on`: kept independent of `authoring`'s private `today` so this
+/// test exercises the CLI's actual output, not its own helper.
+fn today() -> String {
+    let seconds = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("system clock is after 1970")
+        .as_secs();
+    let days = (seconds / 86_400) as i64;
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let year = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let month = (if mp < 10 { mp + 3 } else { mp - 9 }) as u32;
+    let year = if month <= 2 { year + 1 } else { year };
+    format!("{year:04}-{month:02}-{day:02}")
+}
+
+#[test]
+fn new_adr_scaffold_equals_its_template_after_exact_substitutions() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+    let path =
+        new_artifact(root.path(), NewKind::Adr, None, "Adopt event replay").expect("new adr");
+    let content = std::fs::read_to_string(root.path().join(&path)).expect("read scaffold");
+    let expected = expected_scaffold(
+        &template_path("adr.md"),
+        "EXAMPLE-ADR-0001",
+        "Adopt event replay",
+        Some(&today()),
+    );
+    assert_eq!(content, expected);
+}
+
+#[test]
+fn new_requirement_scaffold_equals_its_template_after_exact_substitutions() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+    let path = new_artifact(
+        root.path(),
+        NewKind::Requirement,
+        Some("backend/sync"),
+        "Sync requirements",
+    )
+    .expect("new requirement");
+    let content = std::fs::read_to_string(root.path().join(&path)).expect("read scaffold");
+    let expected = expected_scaffold(
+        &template_path("requirement.md"),
+        "EXAMPLE-REQ-0001",
+        "Sync requirements",
+        None,
+    );
+    assert_eq!(content, expected);
+}
+
+#[test]
+fn new_design_scaffold_equals_its_template_after_exact_substitutions() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+    let path = new_artifact(
+        root.path(),
+        NewKind::Design,
+        Some("backend/sync"),
+        "Sync design",
+    )
+    .expect("new design");
+    let content = std::fs::read_to_string(root.path().join(&path)).expect("read scaffold");
+    let expected = expected_scaffold(
+        &template_path("design.md"),
+        "EXAMPLE-DESIGN-0001",
+        "Sync design",
+        None,
+    );
+    assert_eq!(content, expected);
+}
+
+/// A freshly scaffolded artifact has real content but unresolved template
+/// guidance; it must fail validation. The repository's own completed
+/// artifacts, by contrast, must pass.
+#[test]
+fn fresh_scaffolds_fail_validation_and_the_repository_itself_passes() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+    new_artifact(root.path(), NewKind::Adr, None, "Adopt event replay").expect("new adr");
+    new_artifact(
+        root.path(),
+        NewKind::Requirement,
+        Some("backend/sync"),
+        "Sync requirements",
+    )
+    .expect("new requirement");
+    new_artifact(
+        root.path(),
+        NewKind::Design,
+        Some("backend/sync"),
+        "Sync design",
+    )
+    .expect("new design");
+
+    let findings = specful::repo::validate_repository(root.path());
+    assert!(
+        !findings.is_empty(),
+        "a freshly scaffolded repository must fail validation on unresolved template residue"
+    );
+
+    let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_findings = specful::repo::validate_repository(repo_root);
+    assert!(
+        repo_findings.is_empty(),
+        "this repository's own completed artifacts must pass validation, got:\n{}",
+        repo_findings
+            .iter()
+            .map(|f| f.render())
+            .collect::<Vec<_>>()
+            .join("\n")
     );
 }

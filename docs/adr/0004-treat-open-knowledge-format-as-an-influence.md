@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: SPECFUL-ADR-0004
 title: "Treat Open Knowledge Format as an influence"
@@ -12,7 +12,7 @@ decision-makers:
 
 # Treat Open Knowledge Format as an influence
 
-## Context and Problem Statement
+## Context and problem statement
 
 Specful's repository format shares visible ancestry with the Open Knowledge Format: Markdown knowledge files with
 structured frontmatter, hierarchical organisation, and progressive-disclosure indexes. That ancestry invites a question
@@ -21,20 +21,20 @@ reserved filenames, version declarations, and tolerance rules, or does it credit
 rule itself? OKF publishes its specification on a moving branch without releases, so any conformance claim could only
 ever pin a commit.
 
-## Decision Drivers
+## Decision drivers
 
 - Documentation must describe behaviour that exists; claimed conformance without enforcement is drift.
 - Every Specful rule should be justified by the charter and demonstrated workflows, not by inheritance.
 - Attribution of genuine influence must remain.
 - No obligation to track upstream changes should be created without value in return.
 
-## Considered Options
+## Considered options
 
 - Influence only: attribute OKF, own every rule
 - Conform to a pinned OKF snapshot
 - Leave the relationship undefined
 
-## Decision Outcome
+## Decision outcome
 
 Chosen option: **influence only: attribute OKF, own every rule**, because a conformance commitment to an unversioned
 upstream would create tracking and implementation obligations with no consumer, while everything of value in the
@@ -61,7 +61,7 @@ No repository document claims OKF conformance, inheritance, or a bundle boundary
 the validator reserves only `index.md` and rejects unrecognised types; no `okf_version` or `log.md` handling exists in
 code or documentation.
 
-## Pros and Cons of the Options
+## Pros and cons of the options
 
 ### Influence only: attribute OKF, own every rule
 
@@ -79,6 +79,6 @@ code or documentation.
 - Positive: no work.
 - Negative: ancestry without a stated boundary reads as implied conformance and misleads adopters and agents.
 
-## More Information
+## More information
 
 Reconsider if OKF adopts stable releases and a concrete interoperability need appears.
