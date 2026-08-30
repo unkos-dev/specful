@@ -27,22 +27,24 @@ Specful distinguishes artifacts by responsibility:
 
 | Artifact | Responsibility | Lifecycle |
 |---|---|---|
-| MSRS | Defines what the software must do now | Rewritten or deleted in place |
-| MSDD | Describes how the software works now | Rewritten or deleted in place |
+| Requirement | States one obligation the software carries now | Rewritten or deleted in place |
+| Design | Describes how one subject currently works | Rewritten or deleted in place |
 | ADR | Records why a durable decision was made | Retained and superseded |
 | Plan | Coordinates an active transition | Temporary; archived or deleted on completion |
 | Git | Preserves what used to be true | Repository history |
 
-Requirements and design descriptions are logical collections that may be split into multiple Markdown modules. A
-requirement may be satisfied by multiple design modules, and one design module may satisfy multiple requirements. A
-change plan delivers one coherent change; an arc plan coordinates a sequence or graph of change-sized deliverables.
+Each Requirement is one file carrying one coherent normative obligation with its complete record; each Design is one
+file explaining one coherent subject. A requirement may be satisfied by multiple Designs, and one Design may satisfy
+multiple requirements. Generated views assemble the corpus; no authored container document is canonical. A change plan
+delivers one coherent change; an arc plan coordinates a sequence or graph of change-sized deliverables.
 
 ## Architectural organization
 
 Specification paths follow architectural scope rather than a fixed capability taxonomy:
 
 ```text
-docs/specs/<architectural-scope...>/<artifact-kind>/<subject...>.md
+docs/specs/<architectural-scope...>/requirements/<sequence>-<subject...>.md
+docs/specs/<architectural-scope...>/design/<sequence>-<subject...>.md
 ```
 
 Architectural and subject paths may be nested as needed. File placement aids navigation, while stable identifiers and
@@ -51,32 +53,32 @@ explicit metadata define artifact identity and relationships.
 Cross-component requirements belong to the narrowest scope that completely owns the obligation. System-wide requirements
 remain at system scope rather than being duplicated across components.
 
-`docs/specs/` is the native Open Knowledge Format v0.2 bundle boundary. Specful MSRS and MSDD profiles specialize that
-inherited contract without replacing it. The OKF guide defines the pinned source, permissive native classification, and
-stricter Specful specialization.
+The repository format is informed by the Open Knowledge Format, attributed in `NOTICE.md`, and by the specification and
+design-description templates attributed there. Specful owns every rule its profiles and validation apply; it claims
+conformance to no external format.
 
 Architecture Decision Records live in `docs/adr/`, one flat directory in every adopting repository.
 
 ## Writing model
 
-MSRS and MSDD content describes current state only. Current-state documents are written as though the system has always
-existed in its present form.
+Requirement and Design content describes current state only. Current-state documents are written as though the system
+has always existed in its present form.
 
 Migration history, rejected alternatives, and decision chronology do not belong in requirements or design descriptions.
 Durable rationale belongs in an ADR. Obsolete behaviour is available through Git history.
 
-MSRS requirements use the normative vocabulary defined by BCP 14. Uppercase MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY
-carry normative meaning. MSDD prose is declarative and present tense so it does not become a competing source of
+Requirement statements use the normative vocabulary defined by BCP 14. Uppercase MUST, MUST NOT, SHOULD, SHOULD NOT, and
+MAY carry normative meaning. Design prose is declarative and present tense so it does not become a competing source of
 requirements.
 
 ## Source-of-truth boundary
 
 Markdown documents and structured metadata committed to the adopting repository are canonical.
 
-Relationships are stored in one authoritative direction with the artifact that owns them. Design modules own the
-`satisfies` links to the requirements they implement, and specification modules own citations of the ADRs that govern
-them. ADR supersession is the narrow exception: both the replaced and replacement records store reciprocal links so
-either document remains independently navigable. Validation treats disagreement between those links as an error.
+Relationships are stored in one authoritative direction with the artifact that owns them. Designs own the `satisfies`
+links to the requirements they implement, and Requirements and Designs own citations of the ADRs that govern them. ADR
+supersession is the narrow exception: both the replaced and replacement records store reciprocal links so either
+document remains independently navigable. Validation treats disagreement between those links as an error.
 
 Reverse relationships, indexes, traceability matrices, catalogs, search indexes, and databases are derived and
 disposable.
@@ -118,8 +120,8 @@ Validation is mechanical and covers three layers:
 - relationship integrity: identifiers resolve, `satisfies` targets exist, supersession links agree, citations point at
   real ADRs, generated views match their sources;
 - metadata shape: frontmatter conforms to the artifact's published JSON Schema profile;
-- document structure: required headings present, requirement blocks well-formed, title and heading agree, template
-  placeholder text absent, and every requirement block uses at least one uppercase BCP 14 keyword.
+- document structure: canonical headings present, requirement records well-formed, title and heading agree, template
+  placeholder text absent, and every requirement statement uses at least one uppercase BCP 14 keyword.
 
 Diagnostics are human-readable text with a meaningful exit status. A `--json` flag emits a plain machine-readable
 listing that is explicitly unstable. There is no diagnostic rule registry, no severity policy, and no waiver system; a
@@ -141,7 +143,7 @@ files are generated integration surfaces. They cannot become divergent copies of
 
 The initial product scope includes:
 
-- artifact schemas and metadata conventions for MSRS, MSDD, ADR, and repository configuration;
+- artifact schemas and metadata conventions for Requirement, Design, ADR, and repository configuration;
 - templates for requirements, design descriptions, ADRs, and plans;
 - stable identifiers and validated relationships;
 - generated per-scope indexes and a machine-readable catalog;

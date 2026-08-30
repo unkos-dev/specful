@@ -41,8 +41,8 @@ Specful is designed around a few commitments:
 - The core information model is independent of any agent harness.
 
 See the [project charter](docs/project-charter.md) for the product boundary and design principles. The artifact profiles
-are documented under [`docs/adr/`](docs/adr/README.md), [`docs/msrs/`](docs/msrs/README.md),
-[`docs/msdd/`](docs/msdd/README.md), and [`docs/okf/`](docs/okf/README.md), with repository configuration in
+are documented under [`docs/adr/`](docs/adr/README.md), [`docs/msrs/`](docs/msrs/README.md), and
+[`docs/msdd/`](docs/msdd/README.md), with repository configuration in
 [`docs/configuration.md`](docs/configuration.md).
 
 ## Status
