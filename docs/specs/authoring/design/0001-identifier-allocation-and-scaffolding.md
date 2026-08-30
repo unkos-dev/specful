@@ -9,8 +9,6 @@ governed-by:
   - SPECFUL-ADR-0002
 ---
 
-<!-- SPDX-License-Identifier: CC0-1.0 -->
-
 # Identifier allocation and scaffolding
 
 `specful new` turns an artifact kind, a title, and (for requirements and designs) an architectural scope into a

@@ -5,8 +5,6 @@ id: SPECFUL-REQ-0001
 title: "Stable identifier allocation"
 ---
 
-<!-- SPDX-License-Identifier: CC0-1.0 -->
-
 # Stable identifier allocation
 
 ## Statement
