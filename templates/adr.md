@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: "{PROJECT}-ADR-{NNNN}"
 title: "{Short title naming the problem and chosen solution}"
@@ -22,59 +22,52 @@ superseded-by:
 
 # {Short title naming the problem and chosen solution}
 
-<!--
-Replace every placeholder and remove all instructional comments before the ADR
-is complete.
--->
+{INSTRUCTIONS. This file was scaffolded from the Specful ADR template; the frontmatter identifier was allocated by
+`specful new adr` and is never edited by hand. Replace every braced block with real content. The sections through
+Confirmation are required; Pros and cons of the options and More information are optional and are removed completely
+when they add no useful decision evidence. An ADR records a decision, not an obligation: the outcome says "chosen
+option: X, because ...", never "the system MUST". An obligation created by this decision belongs in a Requirement that
+cites this ADR through `governed-by`; once accepted, this record is never rewritten, only superseded. Remove the
+frontmatter roles and supersession fields that do not apply. The document is complete only when no braced text remains
+and `specful validate` passes. Delete this block last.}
 
-## Context and Problem Statement
+## Context and problem statement
 
-<!--
-Describe the decision context, the problem that requires a durable choice, and
-the scope of that choice. State the problem without narrating implementation
-history.
--->
+{The decision context, the problem that requires a durable choice, and the scope of that choice. State the problem
+without narrating implementation history; you may pose it as a question.}
 
-{Decision context and problem statement}
+## Decision drivers
 
-## Decision Drivers
-
-<!-- List the forces, constraints, and desired qualities that govern the choice. -->
+{The forces, constraints, and desired qualities that govern the choice.}
 
 - {Decision driver}
 
-## Considered Options
+## Considered options
 
-<!-- List the materially viable options using the same names used below. -->
+{The materially viable options, using the same names used below.}
 
 - {Option}
 
-## Decision Outcome
+## Decision outcome
 
 Chosen option: **{option}**, because {reason it best satisfies the decision drivers}.
 
 ### Consequences
 
-<!-- Record material outcomes of the choice, including adverse trade-offs. -->
+{Material outcomes of the choice, including adverse trade-offs.}
 
 - Positive: {benefit or improvement}
 - Negative: {cost, limitation, or risk}
 
 ### Confirmation
 
-<!--
-Describe observable evidence that can confirm the decision is implemented and
-continues to be followed, such as a test, review, rule, or operational check.
--->
+{Observable evidence that the decision is implemented and continues to be followed, such as a test, review, rule, or
+operational check. Confirmation shows the decision is being honoured; whether an obligation is satisfied is a
+Requirement's acceptance criteria, not this section.}
 
-{Confirmation method}
+## Pros and cons of the options
 
-<!--
-The remaining sections are conditional. Remove a section completely when it
-does not add useful decision evidence.
--->
-
-## Pros and Cons of the Options
+{Optional: remove this section completely when the Decision outcome already carries the useful evidence.}
 
 ### {Option}
 
@@ -82,6 +75,7 @@ does not add useful decision evidence.
 - Neutral: {argument}
 - Negative: {argument}
 
-## More Information
+## More information
 
-{Supporting evidence, related decisions, or conditions that should trigger reconsideration}
+{Optional: supporting evidence, related decisions, or conditions that should trigger reconsideration. Remove the section
+when it adds nothing.}
