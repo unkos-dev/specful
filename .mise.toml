@@ -12,7 +12,7 @@ just = "1.58.0"
 # Node toolchain in a Rust-only repository.
 rumdl = "0.2.60"
 snyk = "1.1307.0"
-typos = "1.49.0"
+typos = "1.49.1"
 zizmor = "1.29.0"
 
 # Prebuilt Rust tools. The GitHub backend verifies published checksums and
