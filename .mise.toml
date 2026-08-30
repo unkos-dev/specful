@@ -5,7 +5,7 @@
 [tools]
 actionlint = "1.7.12"
 # Documentation site toolchain (site/): bun install and bun run build.
-bun = "1.3.14"
+bun = "1.4.0"
 gitleaks = "8.30.1"
 just = "1.58.0"
 # markdownlint-compatible linter shipped as a single binary, so it needs no
