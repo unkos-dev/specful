@@ -1,0 +1,31 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getAdrExamples, slugFor } from '../../../lib/adr-examples';
+
+const entries = await getAdrExamples();
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'ADR reference examples',
+    description: 'Complete, accepted Architecture Decision Records rendered from the live repository.',
+  }}
+>
+  <p>
+    These are the Specful project's own Architecture Decision Records, rendered here at build
+    time from <code>docs/adr/</code>. They are the reference examples for the ADR profile: read
+    them alongside the <a href="/specful/profiles/adr/">ADR profile page</a> to see the shape a
+    complete record takes.
+  </p>
+  <ul>
+    {
+      entries.map((entry) => (
+        <li>
+          <a href={`/specful/reference/examples/${slugFor(entry.data.id)}/`}>
+            {entry.data.id}: {entry.data.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</StarlightPage>
