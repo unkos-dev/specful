@@ -3,8 +3,9 @@ kind: adr
 profile-version: 1
 id: SPECFUL-ADR-0002
 title: "Represent requirements as first-class artifacts"
-status: proposed
+status: accepted
 recorded-on: 2026-08-30
+decided-on: 2026-08-30
 decision-makers:
   - "junkovich"
 ---

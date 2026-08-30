@@ -11,21 +11,21 @@
       "id": "SPECFUL-ADR-0002",
       "kind": "adr",
       "path": "docs/adr/0002-represent-requirements-as-first-class-artifacts.md",
-      "status": "proposed",
+      "status": "accepted",
       "title": "Represent requirements as first-class artifacts"
     },
     {
       "id": "SPECFUL-ADR-0003",
       "kind": "adr",
       "path": "docs/adr/0003-represent-design-as-subject-oriented-design-artifacts.md",
-      "status": "proposed",
+      "status": "accepted",
       "title": "Represent design as subject-oriented Design artifacts"
     },
     {
       "id": "SPECFUL-ADR-0004",
       "kind": "adr",
       "path": "docs/adr/0004-treat-open-knowledge-format-as-an-influence.md",
-      "status": "proposed",
+      "status": "accepted",
       "title": "Treat Open Knowledge Format as an influence"
     }
   ]
