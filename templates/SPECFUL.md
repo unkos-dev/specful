@@ -34,5 +34,6 @@ rationale to an ADR, then move the plan out of the active set once the transitio
 
 ## About Specful
 
-For the full convention, its artifact profiles, and the CLI reference matching this installation, see
+For the current documentation site, with the full artifact profiles, authoring workflow, and CLI reference, see
+<https://unkos-dev.github.io/specful/>. For the exact text this installation was scaffolded from, see
 <https://github.com/unkos-dev/specful/tree/{version}>.

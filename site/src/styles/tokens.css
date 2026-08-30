@@ -1,0 +1,206 @@
+/* Specful design tokens
+ *
+ * Three layers, deliberately not the same thing:
+ *   --sf-brand-*   fixed identity values. Artwork only. Never referenced from interface code.
+ *   --sf-accent-*  the brand colour doing interface work: links, focus, identifying details.
+ *   --sf-action-*  routine primary controls. Neutral, because a warm-red button reads as
+ *                  destructive whatever the token says. The brand does not audition for this job.
+ *
+ * Status roles are independent of all three and never carry meaning by colour alone;
+ * pair them with a label, an icon, or both.
+ *
+ * Every text and boundary pair below was computed against WCAG 2.1 minima in both themes:
+ * 4.5:1 for normal text, 3:1 for large text, component boundaries and focus rings.
+ */
+
+:root {
+  /* ---- Brand. Fixed. Artwork only. ---- */
+  --sf-brand-ink:        oklch(0.185 0.012 258.0);  /* #0F1318 */
+  --sf-brand-paper:      oklch(0.982 0.003 250.0);  /* #F8F9FB */
+  --sf-brand-vermilion:  oklch(0.573 0.160 30.0);  /* #C54A3B */
+
+  /* ---- Typography ---- */
+  --sf-font-display: Lora, Georgia, 'Times New Roman', serif;
+  --sf-font-sans:    'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --sf-font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --sf-text-display:   2.5rem;    --sf-leading-display: 1.1;
+  --sf-text-h1:        2rem;      --sf-leading-h1:      1.2;
+  --sf-text-h2:        1.5rem;    --sf-leading-h2:      1.25;
+  --sf-text-h3:        1.1875rem; --sf-leading-h3:      1.35;
+  --sf-text-h4:        1rem;      --sf-leading-h4:      1.4;
+  --sf-text-body:      1rem;      --sf-leading-body:    1.6;
+  --sf-text-small:     0.875rem;  --sf-leading-small:   1.55;
+  --sf-text-caption:   0.8125rem; --sf-leading-caption: 1.5;
+  --sf-text-code:      0.875rem;  --sf-leading-code:    1.6;
+
+  --sf-weight-regular: 400;  --sf-weight-medium: 500;  --sf-weight-semibold: 600;
+  --sf-tracking-display: -0.02em;  --sf-tracking-heading: -0.01em;
+  --sf-measure: 68ch;
+
+  /* ---- Space. 4px base. ---- */
+  --sf-space-1: 0.25rem;  --sf-space-2: 0.5rem;   --sf-space-3: 0.75rem;
+  --sf-space-4: 1rem;     --sf-space-5: 1.5rem;   --sf-space-6: 2rem;
+  --sf-space-7: 3rem;     --sf-space-8: 4rem;     --sf-space-9: 6rem;
+
+  /* ---- Corners ---- */
+  --sf-radius-sm: 6px;  --sf-radius-md: 10px;  --sf-radius-lg: 16px;  --sf-radius-full: 999px;
+
+  /* ---- Lines and focus ---- */
+  --sf-divider:        1px solid var(--sf-border);
+  --sf-divider-strong: 1px solid var(--sf-border-strong);
+  --sf-focus-width:    2px;
+  --sf-focus-offset:   2px;
+  --sf-focus-ring:     var(--sf-focus-width) solid var(--sf-focus);
+
+  /* ---- Interface, light ---- */
+  /* Surfaces */
+  --sf-bg:                oklch(0.982 0.003 250.0);  /* #F8F9FB */
+  --sf-surface:           oklch(1.000 0.000 0.0);  /* #FFFFFF */
+  --sf-surface-sunken:    oklch(0.960 0.004 250.0);  /* #F0F2F4 */
+
+  /* Text */
+  --sf-fg:                oklch(0.230 0.014 258.0);  /* #191D24 */
+  --sf-fg-muted:          oklch(0.505 0.014 258.0);  /* #60656D */
+  --sf-fg-subtle:         oklch(0.615 0.012 258.0);  /* #80858C */
+
+  /* Lines */
+  --sf-border:            oklch(0.900 0.008 258.0);  /* #DBDEE3 */
+  --sf-border-strong:     oklch(0.650 0.010 258.0);  /* #8B8F95 */
+
+  /* Brand accent: identity, links, focus. Not routine actions. */
+  --sf-accent:            oklch(0.573 0.160 30.0);  /* #C54A3B */
+  --sf-accent-hover:      oklch(0.503 0.160 30.0);  /* #AD3326 */
+  --sf-accent-strong:     oklch(0.551 0.160 30.0);  /* #BD4334 */
+  --sf-accent-surface:    oklch(0.955 0.029 30.0);  /* #FFEAE5 */
+
+  /* Action: routine primary controls. Neutral by design. */
+  --sf-action:            oklch(0.230 0.014 258.0);  /* #191D24 */
+  --sf-action-fg:         oklch(1.000 0.000 0.0);  /* #FFFFFF */
+  --sf-action-hover:      oklch(0.320 0.014 258.0);  /* #2E333A */
+
+  /* Focus */
+  --sf-focus:             oklch(0.573 0.160 30.0);  /* #C54A3B */
+
+  /* Status: independent of the brand, never colour alone */
+  --sf-success:           oklch(0.455 0.110 150.0);  /* #1B6734 */
+  --sf-success-surface:   oklch(0.955 0.030 150.0);  /* #E3F6E6 */
+  --sf-warning:           oklch(0.480 0.115 70.0);  /* #864F00 */
+  --sf-warning-surface:   oklch(0.960 0.035 80.0);  /* #FEF0D8 */
+  --sf-danger:            oklch(0.430 0.185 12.0);  /* #9B0034 */
+  --sf-danger-surface:    oklch(0.958 0.032 12.0);  /* #FFE9EB */
+}
+
+/* ---- Interface, dark ---- */
+:root[data-theme="dark"] {
+  /* Surfaces */
+  --sf-bg:                oklch(0.185 0.012 258.0);  /* #0F1318 */
+  --sf-surface:           oklch(0.228 0.013 258.0);  /* #191D23 */
+  --sf-surface-sunken:    oklch(0.150 0.012 258.0);  /* #080B10 */
+
+  /* Text */
+  --sf-fg:                oklch(0.945 0.005 250.0);  /* #EAEDF0 */
+  --sf-fg-muted:          oklch(0.715 0.012 258.0);  /* #9EA3AB */
+  --sf-fg-subtle:         oklch(0.610 0.012 258.0);  /* #7F848B */
+
+  /* Lines */
+  --sf-border:            oklch(0.325 0.012 258.0);  /* #30343A */
+  --sf-border-strong:     oklch(0.495 0.012 258.0);  /* #5E6269 */
+
+  /* Brand accent: identity, links, focus. Not routine actions. */
+  --sf-accent:            oklch(0.628 0.136 30.0);  /* #CD6555 */
+  --sf-accent-hover:      oklch(0.698 0.136 30.0);  /* #E67A6A */
+  --sf-accent-strong:     oklch(0.653 0.136 30.0);  /* #D66D5D */
+  --sf-accent-surface:    oklch(0.272 0.048 30.0);  /* #3B1D19 */
+
+  /* Action: routine primary controls. Neutral by design. */
+  --sf-action:            oklch(0.945 0.005 250.0);  /* #EAEDF0 */
+  --sf-action-fg:         oklch(0.185 0.012 258.0);  /* #0F1318 */
+  --sf-action-hover:      oklch(0.820 0.008 250.0);  /* #C0C5C9 */
+
+  /* Focus */
+  --sf-focus:             oklch(0.628 0.136 30.0);  /* #CD6555 */
+
+  /* Status: independent of the brand, never colour alone */
+  --sf-success:           oklch(0.760 0.120 150.0);  /* #76C788 */
+  --sf-success-surface:   oklch(0.265 0.045 150.0);  /* #142B19 */
+  --sf-warning:           oklch(0.810 0.115 80.0);  /* #E8B966 */
+  --sf-warning-surface:   oklch(0.270 0.045 80.0);  /* #32240A */
+  --sf-danger:            oklch(0.720 0.150 15.0);  /* #F37986 */
+  --sf-danger-surface:    oklch(0.272 0.050 15.0);  /* #3C1C1F */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Surfaces */
+    --sf-bg:                oklch(0.185 0.012 258.0);  /* #0F1318 */
+    --sf-surface:           oklch(0.228 0.013 258.0);  /* #191D23 */
+    --sf-surface-sunken:    oklch(0.150 0.012 258.0);  /* #080B10 */
+
+    /* Text */
+    --sf-fg:                oklch(0.945 0.005 250.0);  /* #EAEDF0 */
+    --sf-fg-muted:          oklch(0.715 0.012 258.0);  /* #9EA3AB */
+    --sf-fg-subtle:         oklch(0.610 0.012 258.0);  /* #7F848B */
+
+    /* Lines */
+    --sf-border:            oklch(0.325 0.012 258.0);  /* #30343A */
+    --sf-border-strong:     oklch(0.495 0.012 258.0);  /* #5E6269 */
+
+    /* Brand accent: identity, links, focus. Not routine actions. */
+    --sf-accent:            oklch(0.628 0.136 30.0);  /* #CD6555 */
+    --sf-accent-hover:      oklch(0.698 0.136 30.0);  /* #E67A6A */
+    --sf-accent-strong:     oklch(0.653 0.136 30.0);  /* #D66D5D */
+    --sf-accent-surface:    oklch(0.272 0.048 30.0);  /* #3B1D19 */
+
+    /* Action: routine primary controls. Neutral by design. */
+    --sf-action:            oklch(0.945 0.005 250.0);  /* #EAEDF0 */
+    --sf-action-fg:         oklch(0.185 0.012 258.0);  /* #0F1318 */
+    --sf-action-hover:      oklch(0.820 0.008 250.0);  /* #C0C5C9 */
+
+    /* Focus */
+    --sf-focus:             oklch(0.628 0.136 30.0);  /* #CD6555 */
+
+    /* Status: independent of the brand, never colour alone */
+    --sf-success:           oklch(0.760 0.120 150.0);  /* #76C788 */
+    --sf-success-surface:   oklch(0.265 0.045 150.0);  /* #142B19 */
+    --sf-warning:           oklch(0.810 0.115 80.0);  /* #E8B966 */
+    --sf-warning-surface:   oklch(0.270 0.045 80.0);  /* #32240A */
+    --sf-danger:            oklch(0.720 0.150 15.0);  /* #F37986 */
+    --sf-danger-surface:    oklch(0.272 0.050 15.0);  /* #3C1C1F */
+  }
+}
+
+/* ---- Minimal application ---- */
+body {
+  background: var(--sf-bg); color: var(--sf-fg);
+  font-family: var(--sf-font-sans); font-size: var(--sf-text-body); line-height: var(--sf-leading-body);
+}
+h1, h2, h3, h4 { font-family: var(--sf-font-sans); font-weight: var(--sf-weight-semibold);
+                 letter-spacing: var(--sf-tracking-heading); }
+
+/* Links carry the brand colour and an underline, so they never rely on colour alone. */
+a { color: var(--sf-accent); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { color: var(--sf-accent-hover); }
+
+/* Code surfaces stay neutral. Accent text on an accent tint does not clear 4.5:1 at
+   this lightness; use --sf-accent-strong if you need accent text on --sf-accent-surface. */
+code, kbd, samp, pre {
+  font-family: var(--sf-font-mono); font-size: var(--sf-text-code);
+  background: var(--sf-surface-sunken); color: var(--sf-fg);
+}
+
+/* Routine primary action. Neutral fill, not the brand colour. */
+.sf-action {
+  background: var(--sf-action); color: var(--sf-action-fg);
+  border: 1px solid var(--sf-action); border-radius: var(--sf-radius-md);
+}
+.sf-action:hover { background: var(--sf-action-hover); border-color: var(--sf-action-hover); }
+.sf-action-secondary {
+  background: transparent; color: var(--sf-fg);
+  border: var(--sf-divider-strong); border-radius: var(--sf-radius-md);
+}
+
+:focus-visible { outline: var(--sf-focus-ring); outline-offset: var(--sf-focus-offset); }
+
+/* The wordmark is fixed artwork. Never set it as live text. */
+.sf-wordmark { display: block; }

@@ -1,0 +1,64 @@
+/*
+ * Specful identity applied to Starlight.
+ *
+ * tokens.css (vendored verbatim, see branding/NOTICE.md) already keys its dark values on
+ * :root[data-theme="dark"], which is exactly the attribute Starlight sets, so it composes here
+ * with no edits to the vendored file. This file only maps --sf-* onto Starlight's --sl-* theme
+ * variables; adaptation lives here, not in the vendored source.
+ *
+ * Token layering per identity.md: --sf-brand-* is artwork only and is never referenced below.
+ * --sf-accent-* carries links, focus rings, and identifying detail. --sf-action-* stays neutral,
+ * so Starlight's own neutral button colours are left alone rather than pulled toward vermilion.
+ */
+@import './tokens.css';
+@import '@fontsource/source-sans-3/400.css';
+@import '@fontsource/source-sans-3/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
+@import '@fontsource/lora/600.css';
+
+:root {
+  --sl-color-accent-low: var(--sf-accent-surface);
+  --sl-color-accent: var(--sf-accent);
+  --sl-color-accent-high: var(--sf-accent-strong);
+  --sl-color-text-accent: var(--sf-accent);
+  --sl-color-text-invert: var(--sf-action-fg);
+
+  --sl-color-bg: var(--sf-bg);
+  --sl-color-bg-nav: var(--sf-surface);
+  --sl-color-bg-sidebar: var(--sf-surface);
+  --sl-color-bg-inline-code: var(--sf-surface-sunken);
+  --sl-color-bg-accent: var(--sf-accent);
+  --sl-color-text: var(--sf-fg);
+  --sl-color-hairline: var(--sf-border);
+  --sl-color-hairline-light: var(--sf-border);
+  --sl-color-hairline-shade: var(--sf-border-strong);
+
+  /* Routine documentation headings, body, navigation, and controls: Source Sans 3. */
+  --sl-font: var(--sf-font-sans);
+  /* Code, commands, paths, identifiers: JetBrains Mono. */
+  --sl-font-mono: var(--sf-font-mono);
+}
+
+/* Page-level h1 is the one "display" heading per page; every other heading stays in
+   Source Sans 3 so the site does not turn serif-heavy (identity.md, section 4). */
+.sl-markdown-content h1,
+.content-panel h1 {
+  font-family: var(--sf-font-display);
+  font-weight: var(--sf-weight-semibold);
+  letter-spacing: var(--sf-tracking-display);
+}
+
+/* Focus rings follow the identity: the accent, as an outline change rather than a fill or
+   colour-only cue. */
+:focus-visible {
+  outline: var(--sf-focus-ring);
+  outline-offset: var(--sf-focus-offset);
+}
+
+/* The vendored global link colour otherwise overrides Starlight's layered active-item colour. */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+  color: var(--sf-action-fg);
+}

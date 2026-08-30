@@ -37,3 +37,6 @@ jobs:
       security-events: write
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  docs:
+    uses: ./.github/workflows/docs.yml
