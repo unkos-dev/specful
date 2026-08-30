@@ -80,5 +80,4 @@ Two litmus questions settle nearly every case:
 The discipline that keeps the line crisp: an ADR outcome never says "the system MUST", and its Confirmation section
 confirms the decision is being followed, not that an obligation is satisfied. See the
 [Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/) for the other
-two sides of the same triangle, and the [ADR reference examples](/specful/reference/examples/) for four complete,
-accepted records.
+two sides of the same triangle.

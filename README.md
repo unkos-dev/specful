@@ -71,8 +71,7 @@ identifier.
 ## Documentation
 
 The current artifact profiles (Requirement, Design, ADR), the authoring workflow, and the CLI reference are published at
-<https://unkos-dev.github.io/specful/>, alongside reference examples rendered from this repository's own `docs/adr/`.
-For the exact text a given release shipped with, see the corresponding
+<https://unkos-dev.github.io/specful/>. For the exact text a given release shipped with, see the corresponding
 [GitHub release tag](https://github.com/unkos-dev/specful/tags).
 
 ## Influences

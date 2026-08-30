@@ -19,8 +19,6 @@ Design, and ADR profiles as they exist today.
 - **Looking up a specific profile's rules?** See [Requirement](/specful/profiles/requirement/),
   [Design](/specful/profiles/design/), or [ADR](/specful/profiles/adr/).
 - **Looking for a command's flags?** See the [CLI reference](/specful/reference/cli/).
-- **Want a complete, accepted example?** See the [ADR reference examples](/specful/reference/examples/), rendered from
-  this project's own decision record.
 
 ## The information model
 

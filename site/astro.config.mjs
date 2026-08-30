@@ -46,10 +46,6 @@ export default defineConfig({
           ],
         },
         { label: 'CLI reference', slug: 'reference/cli' },
-        {
-          label: 'ADR reference examples',
-          link: '/reference/examples/',
-        },
       ],
     }),
     sitemap(),

@@ -94,16 +94,16 @@ secrets beyond the workflow's own `GITHUB_TOKEN` are involved.
 
 ## Documentation site
 
-`site/` is a self-contained Astro/Starlight project built with bun; `docs.yml` proves it still builds on a pull request,
-path-filtered to `site/`, `docs/adr/`, `docs/specs/`, and `templates/` so a Rust-only change does not pay the build
-cost. `docs-deploy.yml` is the privileged counterpart: it builds the same site again from scratch on push to `main`
-(never sharing a build or a cache with the pull-request check), stages the output under a `/specful/` link root matching
-the site's configured base path, runs an offline `lychee` pass as a hard gate over that staged output and an advisory
-pass over live external links, then uploads and deploys through the official Pages actions. The build job carries no
-Pages permissions; only the `deploy` job does, scoped to `pages: write` and `id-token: write`. Neither workflow's build
-job uses `./.github/actions/setup` or an `actions/cache`-backed dependency cache: the setup composite leaves
-mise-action's own cache on by default, and this build's output is what a privileged job later deploys, so its dependency
-install stays uncached end to end.
+`site/` is a self-contained Astro/Starlight project built with bun. `docs.yml` proves it still builds on a pull request,
+path-filtered to `site/`, `docs/specs/`, and `templates/` so a Rust-only change does not pay the build cost.
+`docs-deploy.yml` is the privileged counterpart: it builds the same site again from scratch on push to `main` (never
+sharing a build or a cache with the pull-request check), stages the output under a `/specful/` link root matching the
+site's configured base path, runs an offline `lychee` pass as a hard gate over that staged output and an advisory pass
+over live external links, then uploads and deploys through the official Pages actions. The build job carries no Pages
+permissions; only the `deploy` job does, scoped to `pages: write` and `id-token: write`. Neither workflow's build job
+uses `./.github/actions/setup` or an `actions/cache`-backed dependency cache: the setup composite leaves mise-action's
+own cache on by default, and this build's output is what a privileged job later deploys, so its dependency install stays
+uncached end to end.
 
 ## Permissions and secrets
 

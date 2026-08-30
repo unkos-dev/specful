@@ -29,9 +29,11 @@ jobs:
           filters: |
             docs:
               - 'site/**'
-              - 'docs/adr/**'
               - 'docs/specs/**'
               - 'templates/**'
+              - '.mise.toml'
+              - '.github/workflows/ci.yml'
+              - '.github/workflows/docs.yml'
 
       - name: Decide whether this run builds
         id: gate

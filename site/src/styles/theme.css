@@ -55,3 +55,10 @@
   outline: var(--sf-focus-ring);
   outline-offset: var(--sf-focus-offset);
 }
+
+/* The vendored global link colour otherwise overrides Starlight's layered active-item colour. */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+  color: var(--sf-action-fg);
+}
