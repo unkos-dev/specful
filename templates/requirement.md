@@ -1,5 +1,5 @@
 ---
-type: REQUIREMENT
+type: REQ
 profile-version: 1
 id: "{PROJECT}-REQ-{NNNN}"
 title: "{Concise navigation title for the obligation}"
@@ -49,8 +49,8 @@ issue, decision, or user need motivates the obligation.}
 ## Acceptance criteria
 
 {Observable conditions that distinguish satisfaction from non-satisfaction. Each criterion is independently checkable
-with a yes/no answer; use precise units, tolerances, and thresholds for non-functional bounds, and cover the negative
-and edge cases that define the obligation's boundary, not only the happy path. A criterion may arrive by reference to an
+with a yes/no answer; use precise units, tolerances, and thresholds for quantitative bounds, and cover the negative and
+edge cases that define the obligation's boundary, not only the happy path. A criterion may arrive by reference to an
 external standard's own conformance requirements. Where the means of checking a criterion is not obvious, say how
 satisfaction is determined in the same line. Bullets are the default form; switch to a table when several criteria share
 the same shape. If the criteria keep splitting into unrelated groups, consider whether the Statement carries more than
