@@ -27,6 +27,24 @@
       "path": "docs/adr/0004-treat-open-knowledge-format-as-an-influence.md",
       "status": "accepted",
       "title": "Treat Open Knowledge Format as an influence"
+    },
+    {
+      "governed-by": [
+        "SPECFUL-ADR-0002"
+      ],
+      "id": "SPECFUL-DESIGN-0001",
+      "kind": "design",
+      "path": "docs/specs/authoring/design/0001-identifier-allocation-and-scaffolding.md",
+      "satisfies": [
+        "SPECFUL-REQ-0001"
+      ],
+      "title": "Identifier allocation and scaffolding"
+    },
+    {
+      "id": "SPECFUL-REQ-0001",
+      "kind": "req",
+      "path": "docs/specs/authoring/requirements/0001-stable-identifier-allocation.md",
+      "title": "Stable identifier allocation"
     }
   ]
 }
