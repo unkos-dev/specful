@@ -144,11 +144,9 @@ fn has_brace_placeholder(text: &str) -> bool {
 /// Whether `text` still carries single-line template placeholder or
 /// instructional residue. Markers are taken verbatim from the templates:
 /// bracket placeholders (`{...}`), the bare `NNNN` sequence number token,
-/// and instructional HTML comments. The SPDX license comment is excluded:
-/// it is a machine-readable license notice documented in `README.md`, not
-/// authoring guidance.
+/// and instructional HTML comments.
 fn has_placeholder_residue(text: &str) -> bool {
-    if text.contains("<!--") && !text.contains("SPDX-License-Identifier") {
+    if text.contains("<!--") {
         return true;
     }
     if text.contains("NNNN") {
@@ -754,12 +752,12 @@ mod tests {
     }
 
     #[test]
-    fn spdx_comment_is_not_flagged() {
+    fn html_comment_is_flagged_as_residue() {
         let fm = json!({"title": "T"});
         let body = "<!-- SPDX-License-Identifier: CC0-1.0 -->\n\n# T\n\nbody content\n";
         let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
-            !findings
+            findings
                 .iter()
                 .any(|f| f.message.contains("placeholder residue"))
         );
