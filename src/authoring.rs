@@ -35,6 +35,12 @@ pub const SPECFUL_MARKER_END: &str = "<!-- SPECFUL:END -->";
 const AGENTS_BLOCK_BODY: &str = include_str!("../templates/agents-block.md");
 const SPECFUL_MD_CONTENT: &str = include_str!("../templates/SPECFUL.md");
 
+/// Scaffold sources: the only copies of artifact shape, so the CLI and the
+/// public templates cannot drift.
+const ADR_TEMPLATE: &str = include_str!("../templates/adr.md");
+const REQUIREMENT_TEMPLATE: &str = include_str!("../templates/requirement.md");
+const DESIGN_TEMPLATE: &str = include_str!("../templates/design.md");
+
 /// The documentation link must match the installed CLI, not a moving
 /// branch, so the release tag is substituted at write time.
 fn specful_md_content() -> String {
@@ -352,8 +358,8 @@ impl Drop for ConfigLock {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NewKind {
     Adr,
-    Msrs,
-    Msdd,
+    Requirement,
+    Design,
 }
 
 /// Result of a successful [`init`]: paths created fresh, and paths that
@@ -404,9 +410,8 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
         specful_version: env!("CARGO_PKG_VERSION").to_owned(),
         counters: BTreeMap::from([
             ("ADR".to_owned(), 1),
-            ("MSRS".to_owned(), 1),
             ("REQ".to_owned(), 1),
-            ("MSDD".to_owned(), 1),
+            ("DESIGN".to_owned(), 1),
         ]),
     };
 
@@ -524,14 +529,14 @@ pub fn new_artifact(
             )]);
         }
         (NewKind::Adr, None) => None,
-        (NewKind::Msrs | NewKind::Msdd, None) => {
+        (NewKind::Requirement | NewKind::Design, None) => {
             return Err(vec![Finding::new(
                 SPECS_DIR,
                 None,
-                "a module needs --scope, an architectural path such as backend or system/sync",
+                "a requirement or design needs --scope, an architectural path such as backend or system/sync",
             )]);
         }
-        (NewKind::Msrs | NewKind::Msdd, Some(scope)) => {
+        (NewKind::Requirement | NewKind::Design, Some(scope)) => {
             let well_formed = !scope.is_empty()
                 && scope.split('/').all(|segment| {
                     !segment.is_empty()
@@ -579,8 +584,8 @@ pub fn new_artifact(
 
     let counter_kind = match kind {
         NewKind::Adr => "ADR",
-        NewKind::Msrs => "MSRS",
-        NewKind::Msdd => "MSDD",
+        NewKind::Requirement => "REQ",
+        NewKind::Design => "DESIGN",
     };
     let sequence = allocate(&mut config, counter_kind)?;
     let id = format!("{}-{counter_kind}-{sequence:04}", config.project_key);
@@ -590,23 +595,19 @@ pub fn new_artifact(
             format!("{ADR_DIR}/{sequence:04}-{slug}.md"),
             adr_scaffold(&id, title),
         ),
-        NewKind::Msrs => {
-            let requirement_sequence = allocate(&mut config, "REQ")?;
-            let requirement_id = format!("{}-REQ-{requirement_sequence:04}", config.project_key);
-            (
-                format!(
-                    "{SPECS_DIR}/{}/msrs/{sequence:04}-{slug}.md",
-                    scope.unwrap()
-                ),
-                msrs_scaffold(&id, title, &requirement_id),
-            )
-        }
-        NewKind::Msdd => (
+        NewKind::Requirement => (
             format!(
-                "{SPECS_DIR}/{}/msdd/{sequence:04}-{slug}.md",
+                "{SPECS_DIR}/{}/requirements/{sequence:04}-{slug}.md",
                 scope.unwrap()
             ),
-            msdd_scaffold(&id, title),
+            requirement_scaffold(&id, title),
+        ),
+        NewKind::Design => (
+            format!(
+                "{SPECS_DIR}/{}/design/{sequence:04}-{slug}.md",
+                scope.unwrap()
+            ),
+            design_scaffold(&id, title),
         ),
     };
 
@@ -720,86 +721,74 @@ fn quote(text: &str) -> String {
     serde_json::to_string(text).expect("strings serialize")
 }
 
+/// Replaces, line by line, the first occurrence of each given field prefix
+/// with the same prefix followed by its substitute value; every other line
+/// of `template` passes through unchanged. Every template scaffold ends with
+/// a single trailing newline, so reassembling `lines()` with an appended `\n`
+/// per line reproduces it exactly.
+fn substitute_lines(template: &str, replacements: &[(&str, &str)]) -> String {
+    let mut out = String::with_capacity(template.len());
+    let mut done = vec![false; replacements.len()];
+    for line in template.lines() {
+        let mut wrote = false;
+        for (index, (prefix, value)) in replacements.iter().enumerate() {
+            if !done[index] && line.starts_with(prefix) {
+                out.push_str(prefix);
+                out.push_str(value);
+                out.push('\n');
+                done[index] = true;
+                wrote = true;
+                break;
+            }
+        }
+        if !wrote {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
 fn adr_scaffold(id: &str, title: &str) -> String {
-    format!(
-        "---\n\
-         kind: adr\n\
-         profile-version: 1\n\
-         id: {id}\n\
-         title: {quoted}\n\
-         status: proposed\n\
-         recorded-on: {date}\n\
-         decision-makers:\n\
-         \x20 - \"{{Decision maker}}\"\n\
-         ---\n\
-         \n\
-         # {title}\n\
-         \n\
-         ## Context and Problem Statement\n\
-         \n\
-         {{Decision context and problem statement}}\n\
-         \n\
-         ## Decision Drivers\n\
-         \n\
-         - {{Decision driver}}\n\
-         \n\
-         ## Considered Options\n\
-         \n\
-         - {{Option}}\n\
-         \n\
-         ## Decision Outcome\n\
-         \n\
-         Chosen option: **{{option}}**, because {{reason}}.\n\
-         \n\
-         ### Consequences\n\
-         \n\
-         - Positive: {{benefit}}\n\
-         - Negative: {{cost}}\n\
-         \n\
-         ### Confirmation\n\
-         \n\
-         {{Confirmation method}}\n",
-        quoted = quote(title),
-        date = today(),
+    substitute_lines(
+        ADR_TEMPLATE,
+        &[
+            ("id: \"", &format!("{}\"", quote_inner(id))),
+            ("title: \"", &format!("{}\"", quote_inner(title))),
+            ("recorded-on: \"", &format!("{}\"", today())),
+            ("# ", title),
+        ],
     )
 }
 
-fn msrs_scaffold(id: &str, title: &str, requirement_id: &str) -> String {
-    format!(
-        "---\n\
-         type: MSRS\n\
-         profile-version: 1\n\
-         id: {id}\n\
-         title: {quoted}\n\
-         requirements:\n\
-         \x20 {requirement_id}: {{}}\n\
-         ---\n\
-         \n\
-         # {title}\n\
-         \n\
-         ## Requirements\n\
-         \n\
-         ### {requirement_id}: {{Requirement title}}\n\
-         \n\
-         The system MUST {{describe one verifiable obligation}}.\n",
-        quoted = quote(title),
+fn requirement_scaffold(id: &str, title: &str) -> String {
+    substitute_lines(
+        REQUIREMENT_TEMPLATE,
+        &[
+            ("id: \"", &format!("{}\"", quote_inner(id))),
+            ("title: \"", &format!("{}\"", quote_inner(title))),
+            ("# ", title),
+        ],
     )
 }
 
-fn msdd_scaffold(id: &str, title: &str) -> String {
-    format!(
-        "---\n\
-         type: MSDD\n\
-         profile-version: 1\n\
-         id: {id}\n\
-         title: {quoted}\n\
-         ---\n\
-         \n\
-         # {title}\n\
-         \n\
-         {{Describe the current design of this scope.}}\n",
-        quoted = quote(title),
+fn design_scaffold(id: &str, title: &str) -> String {
+    substitute_lines(
+        DESIGN_TEMPLATE,
+        &[
+            ("id: \"", &format!("{}\"", quote_inner(id))),
+            ("title: \"", &format!("{}\"", quote_inner(title))),
+            ("# ", title),
+        ],
     )
+}
+
+/// The double-quoted scalar's inner content, without the surrounding quotes,
+/// for splicing into a `prefix: "..."` line already carrying the opening
+/// quote.
+fn quote_inner(text: &str) -> String {
+    let quoted = quote(text);
+    quoted[1..quoted.len() - 1].to_owned()
 }
 
 #[cfg(test)]

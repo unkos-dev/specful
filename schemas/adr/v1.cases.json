@@ -6,7 +6,7 @@
       "description": "minimal proposed ADR",
       "valid": true,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -21,7 +21,7 @@
       "description": "accepted ADR with optional participants and extension data",
       "valid": true,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "ACME2-ADR-0042",
         "title": "Use PostgreSQL",
@@ -52,7 +52,7 @@
       "description": "accepted brownfield ADR without a known decision date",
       "valid": true,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "REV-ADR-0012",
         "title": "Retain the existing deployment model",
@@ -67,7 +67,7 @@
       "description": "superseded ADR that previously superseded another ADR",
       "valid": true,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0012",
         "title": "Use repository-local schemas",
@@ -89,7 +89,7 @@
       "description": "missing a required field",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -101,7 +101,7 @@
       "description": "wrong artifact discriminator",
       "valid": false,
       "instance": {
-        "kind": "requirement",
+        "type": "REQ",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -116,7 +116,7 @@
       "description": "unknown profile version",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 2,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -131,7 +131,7 @@
       "description": "project key starts with a digit",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "2SPF-ADR-0001",
         "title": "Choose a database",
@@ -146,7 +146,7 @@
       "description": "sequence zero is invalid",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0000",
         "title": "Choose a database",
@@ -161,7 +161,7 @@
       "description": "sequence wider than four digits is invalid",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-10000",
         "title": "Choose a database",
@@ -176,7 +176,7 @@
       "description": "title has leading whitespace",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": " Choose a database",
@@ -191,7 +191,7 @@
       "description": "title contains a line break",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a\ndatabase",
@@ -206,7 +206,7 @@
       "description": "unknown status",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -221,7 +221,7 @@
       "description": "date is not zero padded",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -236,7 +236,7 @@
       "description": "proposal includes a decision date",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -252,7 +252,7 @@
       "description": "decision-maker list is empty",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -265,7 +265,7 @@
       "description": "core field is null",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": null,
@@ -280,7 +280,7 @@
       "description": "decision-maker entries are duplicated",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -296,7 +296,7 @@
       "description": "optional participant list is empty",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -312,7 +312,7 @@
       "description": "proposal declares a supersession relationship",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0002",
         "title": "Choose a database",
@@ -330,7 +330,7 @@
       "description": "accepted ADR declares a successor",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -348,7 +348,7 @@
       "description": "superseded ADR omits its successor",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -363,7 +363,7 @@
       "description": "superseded ADR declares multiple successors",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -382,7 +382,7 @@
       "description": "relationship list contains duplicates",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0003",
         "title": "Choose a database",
@@ -401,7 +401,7 @@
       "description": "relationship list is empty",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0003",
         "title": "Choose a database",
@@ -417,7 +417,7 @@
       "description": "unknown unprefixed field",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",
@@ -433,7 +433,7 @@
       "description": "extension key is not lowercase kebab-case",
       "valid": false,
       "instance": {
-        "kind": "adr",
+        "type": "ADR",
         "profile-version": 1,
         "id": "SPF-ADR-0001",
         "title": "Choose a database",

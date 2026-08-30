@@ -43,9 +43,8 @@ fn infer_kind(id: &str) -> Option<&'static str> {
     let segment = id.rsplit('-').nth(1)?;
     match segment {
         "ADR" => Some("adr"),
-        "MSRS" => Some("msrs"),
-        "MSDD" => Some("msdd"),
         "REQ" => Some("req"),
+        "DESIGN" => Some("design"),
         _ => None,
     }
 }
@@ -70,36 +69,13 @@ fn array_field(entry: &Entry, field: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Finds the MSRS module that declares `req_id` among its `requirements`.
-fn owning_module<'a>(entries: &'a [Entry], req_id: &str) -> Option<&'a Entry> {
-    entries.iter().find(|entry| {
-        entry["kind"] == "msrs"
-            && array_field(entry, "requirements")
-                .iter()
-                .any(|r| r == req_id)
-    })
-}
-
 /// Answers `specful show <id>`: one line per stored field of the identified
-/// artifact, or the owning module for a requirement identifier.
+/// artifact.
 pub fn show(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
     let entries = load_catalog(root)?;
     let Some(kind) = infer_kind(id) else {
         return Err(unknown(id));
     };
-
-    if kind == "req" {
-        let Some(module) = owning_module(&entries, id) else {
-            return Err(unknown(id));
-        };
-        let module_id = str_field(module, "id").unwrap_or_default();
-        let module_path = str_field(module, "path").unwrap_or_default();
-        let mut out = String::new();
-        out.push_str(&format!("id: {id}\n"));
-        out.push_str("kind: requirement\n");
-        out.push_str(&format!("module: {module_id} ({module_path})\n"));
-        return Ok(out);
-    }
 
     let Some(entry) = find(&entries, id) else {
         return Err(unknown(id));
@@ -118,13 +94,7 @@ pub fn show(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
     if let Some(status) = str_field(entry, "status") {
         out.push_str(&format!("status: {status}\n"));
     }
-    for field in [
-        "supersedes",
-        "superseded-by",
-        "governed-by",
-        "satisfies",
-        "requirements",
-    ] {
+    for field in ["supersedes", "superseded-by", "governed-by", "satisfies"] {
         let values = array_field(entry, field);
         if !values.is_empty() {
             out.push_str(&format!("{field}: {}\n", values.join(", ")));
@@ -152,41 +122,14 @@ pub fn trace(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
                 "trace is not defined for ADRs; use specful show",
             )])
         }
-        "msrs" => {
-            let Some(entry) = find(&entries, id) else {
-                return Err(unknown(id));
-            };
-            let requirements = array_field(entry, "requirements");
-            if requirements.is_empty() {
-                return Ok("(no requirements)\n".to_owned());
-            }
-            let mut out = String::new();
-            for req_id in requirements {
-                let mut satisfiers: Vec<&str> = entries
-                    .iter()
-                    .filter(|e| {
-                        e["kind"] == "msdd"
-                            && array_field(e, "satisfies").iter().any(|s| s == &req_id)
-                    })
-                    .filter_map(|e| str_field(e, "id"))
-                    .collect();
-                satisfiers.sort_unstable();
-                if satisfiers.is_empty() {
-                    out.push_str(&format!("{req_id} <- (untraced)\n"));
-                } else {
-                    out.push_str(&format!("{req_id} <- {}\n", satisfiers.join(", ")));
-                }
-            }
-            Ok(out)
-        }
         "req" => {
-            if owning_module(&entries, id).is_none() {
+            if find(&entries, id).is_none() {
                 return Err(unknown(id));
             }
             let mut satisfiers: Vec<(String, String)> = entries
                 .iter()
                 .filter(|e| {
-                    e["kind"] == "msdd" && array_field(e, "satisfies").iter().any(|s| s == id)
+                    e["kind"] == "design" && array_field(e, "satisfies").iter().any(|s| s == id)
                 })
                 .map(|e| {
                     (
@@ -207,23 +150,17 @@ pub fn trace(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
                 Ok(format!("{rendered}\n"))
             }
         }
-        "msdd" => {
+        "design" => {
             let Some(entry) = find(&entries, id) else {
                 return Err(unknown(id));
             };
             let mut satisfies = array_field(entry, "satisfies");
             satisfies.sort_unstable();
             if satisfies.is_empty() {
-                return Ok("(no satisfies links)\n".to_owned());
+                Ok("(no satisfies links)\n".to_owned())
+            } else {
+                Ok(format!("{}\n", satisfies.join(", ")))
             }
-            let mut out = String::new();
-            for req_id in satisfies {
-                let module_id = owning_module(&entries, &req_id)
-                    .and_then(|module| str_field(module, "id"))
-                    .unwrap_or("(unknown module)");
-                out.push_str(&format!("{req_id} -> {module_id}\n"));
-            }
-            Ok(out)
         }
         _ => Err(unknown(id)),
     }

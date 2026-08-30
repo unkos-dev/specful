@@ -1,0 +1,103 @@
+{
+  "$comment": "SPDX-License-Identifier: CC0-1.0",
+  "schema": "./v1.schema.json",
+  "cases": [
+    {
+      "description": "minimal ungoverned requirement",
+      "valid": true,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay"
+      }
+    },
+    {
+      "description": "governed requirement with an extension",
+      "valid": true,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0002",
+        "title": "Replay pacing",
+        "governed-by": ["SPF-ADR-0001"],
+        "x-risk": { "level": 2, "accepted": null }
+      }
+    },
+    {
+      "description": "empty governed-by array",
+      "valid": false,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay",
+        "governed-by": []
+      }
+    },
+    {
+      "description": "governed-by rejects non-decision identifiers",
+      "valid": false,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay",
+        "governed-by": ["SPF-REQ-0002"]
+      }
+    },
+    {
+      "description": "wrong artifact type",
+      "valid": false,
+      "instance": {
+        "type": "DESIGN",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay"
+      }
+    },
+    {
+      "description": "identifier sequence zero is invalid",
+      "valid": false,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0000",
+        "title": "Offline replay"
+      }
+    },
+    {
+      "description": "duplicate governed-by target",
+      "valid": false,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay",
+        "governed-by": ["SPF-ADR-0001", "SPF-ADR-0001"]
+      }
+    },
+    {
+      "description": "unknown unprefixed field",
+      "valid": false,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay",
+        "status": "accepted"
+      }
+    },
+    {
+      "description": "invalid extension key",
+      "valid": false,
+      "instance": {
+        "type": "REQ",
+        "profile-version": 1,
+        "id": "SPF-REQ-0001",
+        "title": "Offline replay",
+        "x-Risk": true
+      }
+    }
+  ]
+}

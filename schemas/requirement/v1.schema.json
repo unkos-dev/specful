@@ -1,21 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://unkos-dev.github.io/specful/schemas/msdd/v1.schema.json",
+  "$id": "https://unkos-dev.github.io/specful/schemas/requirement/v1.schema.json",
   "$comment": "SPDX-License-Identifier: CC0-1.0",
-  "title": "Specful MSDD profile v1 frontmatter",
+  "title": "Specful Requirement profile v1 frontmatter",
   "type": "object",
   "required": ["type", "profile-version", "id", "title"],
   "properties": {
-    "type": { "const": "MSDD" },
+    "type": { "const": "REQ" },
     "profile-version": { "const": 1 },
-    "id": { "$ref": "#/$defs/msdd-id" },
+    "id": { "$ref": "#/$defs/requirement-id" },
     "title": { "$ref": "#/$defs/title" },
-    "satisfies": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/requirement-id" },
-      "minItems": 1,
-      "uniqueItems": true
-    },
     "governed-by": {
       "type": "array",
       "items": { "$ref": "#/$defs/adr-id" },
@@ -28,11 +22,6 @@
   },
   "additionalProperties": false,
   "$defs": {
-    "msdd-id": {
-      "type": "string",
-      "pattern": "^[A-Z][A-Z0-9]{1,9}-MSDD-[0-9]{4}$",
-      "not": { "pattern": "-0000$" }
-    },
     "requirement-id": {
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,9}-REQ-[0-9]{4}$",

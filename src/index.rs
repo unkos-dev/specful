@@ -37,8 +37,8 @@ pub(crate) fn render_views(artifacts: &[Artifact]) -> BTreeMap<String, String> {
 fn kind_label(kind: ArtifactKind) -> &'static str {
     match kind {
         ArtifactKind::Adr => "adr",
-        ArtifactKind::Msrs => "msrs",
-        ArtifactKind::Msdd => "msdd",
+        ArtifactKind::Requirement => "req",
+        ArtifactKind::Design => "design",
     }
 }
 
@@ -63,7 +63,6 @@ fn render_catalog(artifacts: &[Artifact]) -> String {
                 ("superseded-by", &artifact.superseded_by),
                 ("satisfies", &artifact.satisfies),
                 ("governed-by", &artifact.governed_by),
-                ("requirements", &artifact.requirements),
             ] {
                 if !values.is_empty() {
                     object.insert(field.to_owned(), json!(values));
@@ -145,8 +144,8 @@ fn render_indexes(artifacts: &[Artifact]) -> BTreeMap<String, String> {
         let empty = Vec::new();
         let scope_modules = modules.get(scope).unwrap_or(&empty);
         for (kind, heading) in [
-            (ArtifactKind::Msrs, "Requirements modules"),
-            (ArtifactKind::Msdd, "Design modules"),
+            (ArtifactKind::Requirement, "Requirements"),
+            (ArtifactKind::Design, "Designs"),
         ] {
             let mut of_kind: Vec<&&Artifact> =
                 scope_modules.iter().filter(|a| a.kind == kind).collect();
