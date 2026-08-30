@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: SPECFUL-ADR-0002
 title: "Represent requirements as first-class artifacts"
@@ -12,7 +12,7 @@ decision-makers:
 
 # Represent requirements as first-class artifacts
 
-## Context and Problem Statement
+## Context and problem statement
 
 Specful needs a canonical unit for requirements knowledge. Established requirements practice, including the Markdown SRS
 templates attributed in `NOTICE.md`, supports several packagings: a monolithic specification document, a per-scope
@@ -21,7 +21,7 @@ assembly. The requirement is the unit that designs satisfy, readers retrieve, an
 choice decides whether that unit owns its own identity and metadata or resolves through a container. What is the
 canonical unit of requirements knowledge?
 
-## Decision Drivers
+## Decision drivers
 
 - Stable, independently retrievable identity for the unit that other artifacts reference.
 - Small reviews and concurrent changes without whole-document contention.
@@ -29,13 +29,13 @@ canonical unit of requirements knowledge?
 - Generated views, not authored containers, as the assembly mechanism.
 - Consistency with the decision model, where each record is one first-class file.
 
-## Considered Options
+## Considered options
 
 - First-class requirement artifacts with generated assembly
 - Authored per-scope specification modules holding requirement blocks
 - Both forms supported per scope
 
-## Decision Outcome
+## Decision outcome
 
 Chosen option: **first-class requirement artifacts with generated assembly**, because the requirement is the unit every
 relationship, retrieval, and review targets, and a container module would add identity and metadata surface without
@@ -66,7 +66,7 @@ choice was made is the role of an ADR, linked through `governed-by`.
 four-section record with its canonical headings and no standalone verification section; generated indexes list
 requirements directly; `show` and `trace` resolve requirement identifiers without an intermediate container.
 
-## Pros and Cons of the Options
+## Pros and cons of the options
 
 ### First-class requirement artifacts with generated assembly
 
@@ -86,7 +86,7 @@ requirements directly; `show` and `trace` resolve requirement identifiers withou
 - Negative: two canonical storage models with conversion rules, mixed-form policing, and doubled tooling, for a
   container form without a demonstrated need.
 
-## More Information
+## More information
 
 Informed by the Markdown SRS templates and decision-record practice attributed in `NOTICE.md`. Reconsider if
 requirements-only authoring proves unworkable for a real adopting repository.

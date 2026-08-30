@@ -1,5 +1,5 @@
 ---
-kind: adr
+type: ADR
 profile-version: 1
 id: SPECFUL-ADR-0003
 title: "Represent design as subject-oriented Design artifacts"
@@ -12,7 +12,7 @@ decision-makers:
 
 # Represent design as subject-oriented Design artifacts
 
-## Context and Problem Statement
+## Context and problem statement
 
 Specful needs a canonical unit for current design knowledge. Established design-description practice, including the
 Markdown SDD templates attributed in `NOTICE.md` and the architecture-description standards they align with, models
@@ -22,7 +22,7 @@ behaviour explain one another, and its readers include developers, maintainers, 
 same question of the same document. What is the canonical unit of design knowledge, and how much of the viewpoint
 framework does Specful adopt?
 
-## Decision Drivers
+## Decision drivers
 
 - A reader asking "how does this subject work?" should be answered by one document.
 - Designs serve developers, maintainers, adopters, and self-hosters alike.
@@ -30,13 +30,13 @@ framework does Specful adopt?
 - Related structure, data, and runtime behaviour explain each other and lose value when separated.
 - Stable, searchable document structure across the corpus.
 
-## Considered Options
+## Considered options
 
 - Subject-oriented Design artifacts with canonical sections
 - One artifact per viewpoint-scoped design view
 - Subject-oriented Design artifacts with flexible structure
 
-## Decision Outcome
+## Decision outcome
 
 Chosen option: **subject-oriented Design artifacts with canonical sections**, because the natural unit of design
 knowledge is the subject a reader needs to understand as one thing, and viewpoint-scoped fragmentation would optimise
@@ -67,7 +67,7 @@ Design profile; `trace` follows design-owned `satisfies` links from requirement 
 Designs directly; Design metadata, schemas, identifiers, relationships, and queries contain no viewpoint or view
 concepts.
 
-## Pros and Cons of the Options
+## Pros and cons of the options
 
 ### Subject-oriented Design artifacts with canonical sections
 
@@ -88,7 +88,7 @@ concepts.
 - Negative: cross-corpus searching and parsing cannot rely on stable heading vocabulary.
 - Negative: an omitted concern leaves no visible trace, and interpretation drifts from one document to the next.
 
-## More Information
+## More information
 
 Informed by the Markdown SDD templates attributed in `NOTICE.md` and by architecture-description standards terminology.
 Reconsider if subject-scale documents prove unmanageable in a real adopting repository.
