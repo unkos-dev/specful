@@ -867,7 +867,6 @@ mod tests {
     #[test]
     fn unterminated_multiline_guidance_block_is_flagged_to_end_of_input() {
         let fm = json!({"title": "T"});
-        // The author deleted the closing brace, so the block never rebalances.
         let body = "# T\n\n{INSTRUCTIONS. This block was\nleft open with no closing brace\nall the way down.\n\nbody content\n";
         let findings = findings_for(ArtifactKind::Design, fm, body);
         let flagged: Vec<usize> = findings
