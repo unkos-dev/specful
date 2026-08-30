@@ -9,8 +9,6 @@ governed-by:
   - "{PROJECT}-ADR-{NNNN}"
 ---
 
-<!-- SPDX-License-Identifier: CC0-1.0 -->
-
 # {Concise name of the design subject}
 
 {INSTRUCTIONS. This file was scaffolded from the Specful Design template; the frontmatter identifier was allocated by

@@ -7,8 +7,6 @@ governed-by:
   - "{PROJECT}-ADR-{NNNN}"
 ---
 
-<!-- SPDX-License-Identifier: CC0-1.0 -->
-
 # {Concise navigation title for the obligation}
 
 {INSTRUCTIONS. This file was scaffolded from the Specful Requirement template; the frontmatter identifier was allocated

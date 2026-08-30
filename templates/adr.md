@@ -18,8 +18,6 @@ superseded-by:
   - "{PROJECT}-ADR-{NNNN}"
 ---
 
-<!-- SPDX-License-Identifier: CC0-1.0 -->
-
 # {Short title naming the problem and chosen solution}
 
 {INSTRUCTIONS. This file was scaffolded from the Specful ADR template; the frontmatter identifier was allocated by
