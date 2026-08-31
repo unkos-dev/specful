@@ -14,9 +14,9 @@ decision-makers:
 ## Context and problem statement
 
 Specful supports multiple agent harnesses without giving any harness ownership of canonical project knowledge. A coding
-agent benefits from having the authoring workflow loaded at the moment it writes a
-Requirement, Design, or ADR, rather than relying on unaided discovery of `AGENTS.md` and `docs/SPECFUL.md`. Where should
-that harness support live, how should it reach users, and how should its releases be identified?
+agent benefits from having the authoring workflow loaded at the moment it writes a Requirement, Design, or ADR, rather
+than relying on unaided discovery of `AGENTS.md` and `docs/SPECFUL.md`. Where should that harness support live, how
+should it reach users, and how should its releases be identified?
 
 ## Decision drivers
 
