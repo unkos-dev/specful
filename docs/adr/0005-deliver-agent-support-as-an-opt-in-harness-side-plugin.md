@@ -62,8 +62,8 @@ Further harness-specific adapters follow the same pattern only when a harness ca
 - Positive: a release needs no version bookkeeping; the pin and its pull request are the complete release record.
 - Negative: users must install and update the plugin per harness; nothing in an adopting repository prompts them.
 - Negative: commit identifiers are opaque as version labels; readers cannot infer recency or compatibility from them.
-- Negative: no harness has yet exercised the Agent Plugins 1.0 installation path; Claude Code's marketplace adapter is
-  the only channel proven end to end.
+- Negative: harness coverage is not automatic; a harness is served only by consuming the standard package or by a
+  dedicated adapter carried in this repository.
 
 ### Confirmation
 
@@ -98,6 +98,5 @@ deferring to the adopting repository's `docs/SPECFUL.md`; no plugin-related tag 
 
 ## More information
 
-Reconsider the single-harness scope when a second harness's installation channel is exercised, and the no-version rule
-if real plugin release engineering ever exists. The still-deferred repository commit gate is a separate decision; plugin
-hooks are adopter-facing product capability, not a gate on this repository.
+Reconsider the no-version rule if plugin release engineering ever exists, and the adapter pattern if harness adoption of
+Agent Plugins 1.0 makes dedicated adapters unnecessary.
