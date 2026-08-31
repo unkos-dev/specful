@@ -47,10 +47,9 @@ documented in [`docs/configuration.md`](docs/configuration.md).
 
 ## Status
 
-The information model is implemented: first-class Requirement, Design, and ADR artifact profiles, JSON Schemas with
-language-neutral conformance cases, and rich authoring templates. The CLI (`init`, `new`, `validate`, `index`, `show`,
-`trace`) is implemented, the documentation site is live, and an opt-in agent plugin delivers authoring skills to
-supported harnesses.
+Specful is pre-1.0 and ready to adopt: the artifact profiles, schemas, templates, CLI, documentation site, and agent
+plugin all ship today. Until 1.0, a release may change the convention directly rather than through a compatibility
+layer; when one does, its release notes carry the conversion steps.
 
 ## Install
 
