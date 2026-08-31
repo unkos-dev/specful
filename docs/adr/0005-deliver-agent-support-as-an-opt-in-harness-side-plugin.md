@@ -82,8 +82,8 @@ deferring to the adopting repository's `docs/SPECFUL.md`; no plugin-related tag 
 ### Harness-neutral documentation only, no packaged support
 
 - Positive: nothing to package, host, or release.
-- Negative: leaves agents to unaided discovery of static documentation, with no workflow support loaded at the moment
-  of authoring.
+- Negative: leaves agents to unaided discovery of static documentation, with no workflow support loaded at the moment of
+  authoring.
 
 ### Versioned plugin releases through tags
 
