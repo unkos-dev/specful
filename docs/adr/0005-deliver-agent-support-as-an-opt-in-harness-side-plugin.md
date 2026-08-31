@@ -28,28 +28,32 @@ should it reach users, and how should its releases be identified?
 
 ## Considered options
 
-- Opt-in harness-side plugin from a self-hosted pinned marketplace
+- Opt-in harness-side plugin released by pinned commit
 - Repository-side skill installation at adoption
 - Harness-neutral documentation only, no packaged support
 - Versioned plugin releases through tags
 
 ## Decision outcome
 
-Chosen option: **opt-in harness-side plugin from a self-hosted pinned marketplace**, because it delivers workflow
-support to agents while keeping adopting repositories free of harness furniture and keeping the no-plugin path as the
-supported floor.
+Chosen option: **opt-in harness-side plugin released by pinned commit**, because it delivers workflow support to agents
+while keeping adopting repositories free of harness furniture and keeping the no-plugin path as the supported floor.
 
 Delivery is two-tier. Tier 1 is the CLI alone: `specful init`, `docs/SPECFUL.md`, and the shipped templates are the
 complete, minimal adoption path, and every capability must remain reachable this way. Tier 2 is a plugin installed once
-per user into the agent harness, never written into adopting repositories. One `plugin/` directory carries both an Agent
-Plugins 1.0 manifest and a Claude Code manifest over the same skill payload, and the skills are routers: each defers to
-the adopting repository's own `docs/SPECFUL.md` wherever they differ and links every rule to its canonical home.
+per user into the agent harness, never written into adopting repositories. The package is one `plugin/` directory in the
+Agent Plugins 1.0 shape, the vendor-neutral standard for packaging agent skills, and the skills are routers: each defers
+to the adopting repository's own `docs/SPECFUL.md` wherever they differ and links every rule to its canonical home.
+Harnesses that consume the standard install the package as it stands.
 
-The Specful repository is its own Claude Code marketplace. The marketplace entry pins the plugin payload to a commit on
-`main` by `sha` through the `git-subdir` source form; a release is a pull request advancing the pin, and the resolved
-commit is the version. Neither manifest carries a `version` field and no tags are created: the pinned commit is exact
-provenance, `main`'s own gates validate the payload at every candidate commit, and the existing version-shaped tag
-automation stays undisturbed.
+A release is a pull request pinning the plugin payload to a commit on `main` by `sha`; the resolved commit is the
+version. No manifest carries a `version` field and no tags are created: the pinned commit is exact provenance, `main`'s
+own gates validate the payload at every candidate commit, and the existing version-shaped tag automation stays
+undisturbed.
+
+Claude Code is the exception to the standard shape: it installs from its own marketplace format rather than Agent
+Plugins 1.0, so the package additionally carries a Claude Code manifest over the same skill payload, and the repository
+serves as its own Claude Code marketplace with one entry pinning that payload through the `git-subdir` source form.
+Further harness-specific adapters follow the same pattern only when a harness cannot consume the standard.
 
 ### Consequences
 
@@ -58,7 +62,8 @@ automation stays undisturbed.
 - Positive: a release needs no version bookkeeping; the pin and its pull request are the complete release record.
 - Negative: users must install and update the plugin per harness; nothing in an adopting repository prompts them.
 - Negative: commit identifiers are opaque as version labels; readers cannot infer recency or compatibility from them.
-- Negative: only Claude Code is a served harness until another harness's installation channel is exercised.
+- Negative: no harness has yet exercised the Agent Plugins 1.0 installation path; Claude Code's marketplace adapter is
+  the only channel proven end to end.
 
 ### Confirmation
 
@@ -68,7 +73,7 @@ deferring to the adopting repository's `docs/SPECFUL.md`; no plugin-related tag 
 
 ## Pros and cons of the options
 
-### Opt-in harness-side plugin from a self-hosted pinned marketplace
+### Opt-in harness-side plugin released by pinned commit
 
 - Positive: one installation serves every repository the user works in; no adopter-side coupling.
 - Negative: adds a package surface and its validation gates to this repository.
