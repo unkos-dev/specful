@@ -1,6 +1,6 @@
 config-version: 1
 project-key: SPECFUL
 specful-version: 0.2.0
-next-adr-sequence: 5
+next-adr-sequence: 6
 next-requirement-sequence: 2
 next-design-sequence: 2

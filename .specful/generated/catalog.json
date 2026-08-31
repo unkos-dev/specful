@@ -29,6 +29,13 @@
       "title": "Treat Open Knowledge Format as an influence"
     },
     {
+      "id": "SPECFUL-ADR-0005",
+      "kind": "adr",
+      "path": "docs/adr/0005-deliver-agent-support-as-an-opt-in-harness-side-plugin.md",
+      "status": "proposed",
+      "title": "Deliver agent support as an opt-in harness-side plugin"
+    },
+    {
       "governed-by": [
         "SPECFUL-ADR-0002"
       ],
