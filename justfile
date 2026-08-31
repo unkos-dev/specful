@@ -72,6 +72,15 @@ markdownlint:
 skills-ref:
     for skill in plugin/skills/*/; do skills-ref validate "$skill"; done
 
+# Every marketplace-pinned sha must exist and be an ancestor of origin/main: the
+# payload at that commit is already validated by main's own gates, so existence
+# plus ancestry is sufficient without re-running the plugin checks here.
+[group('lint')]
+marketplace-pins:
+    for sha in $(jq -r '.plugins[].source.sha' .claude-plugin/marketplace.json); do \
+        git cat-file -e "${sha}^{commit}" && git merge-base --is-ancestor "${sha}" origin/main; \
+    done
+
 # Workflow syntax and expression lint.
 [group('lint')]
 actionlint:
@@ -96,4 +105,4 @@ check: fmt-check clippy doc-lint test
 
 # Local gates CI also runs; see .github/workflows/README.md for the CI-only differences.
 [group('aggregate')]
-preflight: check doctests machete deny typos markdownlint skills-ref actionlint zizmor gitleaks
+preflight: check doctests machete deny typos markdownlint skills-ref marketplace-pins actionlint zizmor gitleaks

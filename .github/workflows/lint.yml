@@ -39,7 +39,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          mise-install-args: just typos rumdl pipx:git+https://github.com/agentskills/agentskills.git
+          mise-install-args: just jq typos rumdl pipx:git+https://github.com/agentskills/agentskills.git
 
       - name: Spell check (typos)
         run: just typos
@@ -49,6 +49,14 @@ jobs:
 
       - name: Validate plugin skills (skills-ref)
         run: just skills-ref
+
+      # The default checkout only fetches the current ref; the ancestry check below needs
+      # origin/main as a local ref to compare against.
+      - name: Fetch main for plugin pin ancestry check
+        run: git fetch origin main:refs/remotes/origin/main
+
+      - name: Validate plugin marketplace pins
+        run: just marketplace-pins
 
   secrets:
     runs-on: ubuntu-latest

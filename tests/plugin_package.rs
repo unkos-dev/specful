@@ -152,12 +152,48 @@ fn claude_code_manifest_carries_no_version_field() {
 }
 
 #[test]
-fn marketplace_manifest_lists_no_plugins_yet() {
+fn marketplace_manifest_pins_the_specful_plugin() {
     let manifest = read_json(&repo_root().join(".claude-plugin/marketplace.json"));
+    let plugins = manifest["plugins"]
+        .as_array()
+        .expect("marketplace manifest carries a plugins array");
+    assert_eq!(plugins.len(), 1, "the marketplace lists exactly one plugin");
+
+    let entry = &plugins[0];
+    assert_eq!(entry["name"], "specful");
+
+    let source = &entry["source"];
+    assert_eq!(source["source"], "git-subdir");
+    assert_eq!(source["path"], "plugin");
+
+    let sha = source["sha"]
+        .as_str()
+        .expect("the pinned entry carries a string sha");
     assert_eq!(
-        manifest["plugins"],
-        json!([]),
-        "the marketplace manifest ships with an empty plugin list; the pin PR adds the entry"
+        sha.len(),
+        40,
+        "the pinned sha is a full 40-character hex commit id"
+    );
+    assert!(
+        sha.bytes().all(|byte| byte.is_ascii_hexdigit()),
+        "the pinned sha must be hexadecimal"
+    );
+
+    assert!(
+        source.get("version").is_none(),
+        "the marketplace source must not carry a version field"
+    );
+    assert!(
+        source.get("ref").is_none(),
+        "the marketplace source must not carry a ref field"
+    );
+    assert!(
+        entry.get("version").is_none(),
+        "the marketplace entry must not carry a version field"
+    );
+    assert!(
+        entry.get("ref").is_none(),
+        "the marketplace entry must not carry a ref field"
     );
 }
 

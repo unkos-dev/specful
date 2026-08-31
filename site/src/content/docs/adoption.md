@@ -56,6 +56,22 @@ listing that is explicitly unstable.
 
 Run validation in your local gate and in continuous integration. Specful does not require commit hooks.
 
+## Install the agent plugin (optional)
+
+`specful init` is tier 1: the CLI and the harness-neutral files it writes work with no further installation. An opt-in
+plugin adds tier 2: skills for authoring, reviewing, and adopting the convention, installed once per user into the agent
+harness, never written into this or any other repository.
+
+In Claude Code:
+
+```sh
+claude plugin marketplace add unkos-dev/specful
+claude plugin install specful@specful
+```
+
+Each skill treats this repository's own `docs/SPECFUL.md` as authoritative wherever it differs from the skill's general
+guidance.
+
 ## Adopting into an existing repository
 
 Specful does not generate a specification from an undocumented codebase. Bring an existing repository under the

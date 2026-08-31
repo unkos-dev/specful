@@ -6,6 +6,10 @@ description: The end-to-end path an agent or person follows to change a Specful 
 This is the complete path from "something changed" to "the corpus reflects it, and validation proves that." Follow it in
 order; each step depends on the one before it.
 
+The `specful-author` and `specful-review` skills, part of the opt-in
+[agent plugin](/specful/adoption/#install-the-agent-plugin-optional), load this workflow in supported harnesses; this
+page stays the canonical copy either way.
+
 ## 1. Retrieve what already exists
 
 Start at `docs/specs/index.md` and follow the child indexes down to the module you need. Frontmatter carries each

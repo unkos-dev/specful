@@ -68,6 +68,22 @@ specful validate
 The project key (2 to 10 uppercase letters or digits, starting with a letter) prefixes every allocated artifact
 identifier.
 
+## Two tiers
+
+The CLI alone is the minimal adoption path: `specful init`, `docs/SPECFUL.md`, and the shipped templates work with no
+further installation, for a person or an agent working unaided.
+
+An opt-in agent plugin adds skills for authoring, reviewing, and adopting the convention, installed once per user into
+the agent harness, never written into an adopting repository. In Claude Code:
+
+```sh
+claude plugin marketplace add unkos-dev/specful
+claude plugin install specful@specful
+```
+
+Each skill defers to the adopting repository's own `docs/SPECFUL.md` wherever the two differ. See
+[Adoption](https://unkos-dev.github.io/specful/adoption/) for the full installation and update path.
+
 ## Documentation
 
 The current artifact profiles (Requirement, Design, ADR), the authoring workflow, and the CLI reference are published at
