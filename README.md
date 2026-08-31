@@ -45,12 +45,6 @@ profile is documented under [`docs/adr/`](docs/adr/README.md); the Requirement a
 schemas and templates under [`schemas/`](schemas/) and [`templates/`](templates/). Repository configuration is
 documented in [`docs/configuration.md`](docs/configuration.md).
 
-## Status
-
-Specful is pre-1.0 and ready to adopt: the artifact profiles, schemas, templates, CLI, documentation site, and agent
-plugin all ship today. Until 1.0, a release may change the convention directly rather than through a compatibility
-layer; when one does, its release notes carry the conversion steps.
-
 ## Install
 
 Install from crates.io with `cargo install --locked specful` (requires Rust 1.97.1 or newer), or download a prebuilt
