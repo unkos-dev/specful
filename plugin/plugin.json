@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "specful",
+  "description": "Skills for authoring, reviewing, and adopting Specful repository specifications.",
+  "license": "Apache-2.0",
+  "homepage": "https://unkos-dev.github.io/specful/",
+  "repository": "https://github.com/unkos-dev/specful"
+}

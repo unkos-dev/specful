@@ -39,13 +39,16 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          mise-install-args: just typos rumdl
+          mise-install-args: just typos rumdl pipx:git+https://github.com/agentskills/agentskills.git
 
       - name: Spell check (typos)
         run: just typos
 
       - name: Markdown lint (rumdl)
         run: just markdownlint
+
+      - name: Validate plugin skills (skills-ref)
+        run: just skills-ref
 
   secrets:
     runs-on: ubuntu-latest
