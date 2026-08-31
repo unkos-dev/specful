@@ -7,6 +7,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/unkos-dev/specful/compare/v0.2.0...v0.3.0) - 2026-08-31
+
+### Added
+
+- *(plugin)* publish the first marketplace pin ([#58](https://github.com/unkos-dev/specful/pull/58))
+- deliver the documentation site ([#50](https://github.com/unkos-dev/specful/pull/50))
+- [**breaking**] implement the Requirement and Design artifact model ([#49](https://github.com/unkos-dev/specful/pull/49))
+
+### Fixed
+
+- *(templates)* stop stamping scaffolded artifacts with an SPDX licence tag ([#56](https://github.com/unkos-dev/specful/pull/56))
+- *(deps)* update rust crate jsonschema to 0.52.0 ([#47](https://github.com/unkos-dev/specful/pull/47))
+
+### Other
+
+- adopt the Requirement and Design artifact model ([#48](https://github.com/unkos-dev/specful/pull/48))
+- use absolute masthead URLs in the README ([#41](https://github.com/unkos-dev/specful/pull/41))
+
 ## [0.2.0](https://github.com/unkos-dev/specful/compare/v0.1.2...v0.2.0) - 2026-08-28
 
 ### Other
