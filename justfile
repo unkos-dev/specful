@@ -66,6 +66,12 @@ typos:
 markdownlint:
     rumdl check .
 
+# Validate the plugin skills against the Agent Skills reference validator (a
+# demonstration tool; tests/plugin_package.rs backs it with direct Rust checks).
+[group('lint')]
+skills-ref:
+    for skill in plugin/skills/*/; do skills-ref validate "$skill"; done
+
 # Workflow syntax and expression lint.
 [group('lint')]
 actionlint:
@@ -90,4 +96,4 @@ check: fmt-check clippy doc-lint test
 
 # Local gates CI also runs; see .github/workflows/README.md for the CI-only differences.
 [group('aggregate')]
-preflight: check doctests machete deny typos markdownlint actionlint zizmor gitleaks
+preflight: check doctests machete deny typos markdownlint skills-ref actionlint zizmor gitleaks
