@@ -16,3 +16,110 @@ release_always = false
 # The GitHub release stays draft so the tag-triggered dist workflow
 # (release.yml) can attach binary archives before publishing it.
 git_release_draft = true
+
+[changelog]
+# Every commit on main is a squash-merged PR body: a `## Summary` (1-3
+# bullets), an optional `## Why`, and a `## Test plan`. The body template
+# below surfaces Summary and Why under each entry and drops Test plan and any
+# stray HTML comments, so the changelog carries the release story instead of
+# bare commit subjects. `protect_breaking_commits` keeps a breaking commit out
+# of the ordinary skip rules; the parser list below is what actually gives it
+# its own group.
+protect_breaking_commits = true
+
+# Order matters: the first matching parser wins. Breaking commits are pulled
+# out first so they never also land in Added/Fixed/Other, dependency commits
+# (chore(deps)/fix(deps), including Renovate's lock-file-maintenance PRs,
+# which carry the same scope) are pulled out next, and the remainder follows
+# upstream's Keep a Changelog grouping unchanged.
+commit_parsers = [
+  { field = "breaking", pattern = "^true$", group = "breaking" },
+  { message = "^(chore|fix)\\(deps\\)", group = "dependencies" },
+  { message = "^feat", group = "added" },
+  { message = "^changed", group = "changed" },
+  { message = "^deprecated", group = "deprecated" },
+  { message = "^removed", group = "removed" },
+  { message = "^fix", group = "fixed" },
+  { message = "^security", group = "security" },
+  { message = ".*", group = "other" },
+]
+
+# Every entry keeps release-plz's usual subject-line-plus-PR-link rendering,
+# then indents the commit's `## Summary` bullets and `## Why` prose beneath
+# it. A commit with no `## Summary` heading (an unstructured body, or one of
+# Renovate's own PR bodies) falls back to the subject line alone rather than
+# guessing at structure.
+body = """
+
+{% set breaking_commits = commits | filter(attribute="group", value="breaking") %}
+{%- set dependency_commits = commits | filter(attribute="group", value="dependencies") -%}
+## [{{ version }}]{%- if release_link -%}({{ release_link }}){% endif %} - {{ timestamp | date(format="%Y-%m-%d") }}
+{% if breaking_commits %}
+### Breaking changes
+
+{% for commit in breaking_commits %}
+{%- if commit.scope -%}
+- *({{ commit.scope }})* {{ commit.breaking_description }}{% if commit.links %} ({% for link in commit.links %}[{{ link.text }}]({{ link.href }}) {% endfor -%}){% endif %}
+{% else -%}
+- {{ commit.breaking_description }}{% if commit.links %} ({% for link in commit.links %}[{{ link.text }}]({{ link.href }}) {% endfor -%}){% endif %}
+{% endif -%}
+{%- set body_kept = commit.body | split_regex(pat="(?m)^## Test plan") | first | replace_regex(from="(?m)^## Summary[ \\t]*\\n+", to="") | replace_regex(from="(?m)^## Why[ \\t]*\\n+", to="") | replace_regex(from="(?s)<!--.*?-->", to="") | trim -%}
+{%- set summary_hits = commit.body | find_regex(pat="(?m)^## Summary") -%}
+{%- if summary_hits | length > 0 and body_kept | length > 0 %}
+{% for line in body_kept | split(pat="\\n") %}
+{%- if line | trim | length > 0 %}  {{ line }}
+{% else %}
+{% endif -%}
+{% endfor -%}
+{% if not loop.last %}
+{% endif -%}
+{%- endif -%}
+{% endfor -%}
+{% endif -%}
+{% for group, group_commits in commits | group_by(attribute="group") %}
+{%- if group != "breaking" and group != "dependencies" %}
+### {{ group | upper_first }}
+
+{% for commit in group_commits %}
+{%- if commit.scope -%}
+- *({{ commit.scope }})* {{ commit.message }}{% if commit.links %} ({% for link in commit.links %}[{{ link.text }}]({{ link.href }}) {% endfor -%}){% endif %}
+{% else -%}
+- {{ commit.message }}
+{% endif -%}
+{%- set body_kept = commit.body | split_regex(pat="(?m)^## Test plan") | first | replace_regex(from="(?m)^## Summary[ \\t]*\\n+", to="") | replace_regex(from="(?m)^## Why[ \\t]*\\n+", to="") | replace_regex(from="(?s)<!--.*?-->", to="") | trim -%}
+{%- set summary_hits = commit.body | find_regex(pat="(?m)^## Summary") -%}
+{%- if summary_hits | length > 0 and body_kept | length > 0 %}
+{% for line in body_kept | split(pat="\\n") %}
+{%- if line | trim | length > 0 %}  {{ line }}
+{% else %}
+{% endif -%}
+{% endfor -%}
+{% if not loop.last %}
+{% endif -%}
+{%- endif -%}
+{% endfor -%}
+{% endif -%}
+{% endfor -%}
+{% if dependency_commits %}
+### Dependencies
+
+{% for commit in dependency_commits %}
+{%- if commit.scope -%}
+- *({{ commit.scope }})* {{ commit.message }}{% if commit.links %} ({% for link in commit.links %}[{{ link.text }}]({{ link.href }}) {% endfor -%}){% endif %}
+{% else -%}
+- {{ commit.message }}
+{% endif -%}
+{%- set body_kept = commit.body | split_regex(pat="(?m)^## Test plan") | first | replace_regex(from="(?m)^## Summary[ \\t]*\\n+", to="") | replace_regex(from="(?m)^## Why[ \\t]*\\n+", to="") | replace_regex(from="(?s)<!--.*?-->", to="") | trim -%}
+{%- set summary_hits = commit.body | find_regex(pat="(?m)^## Summary") -%}
+{%- if summary_hits | length > 0 and body_kept | length > 0 %}
+{% for line in body_kept | split(pat="\\n") %}
+{%- if line | trim | length > 0 %}  {{ line }}
+{% else %}
+{% endif -%}
+{% endfor -%}
+{% if not loop.last %}
+{% endif -%}
+{%- endif -%}
+{% endfor -%}
+{% endif -%}
+"""
