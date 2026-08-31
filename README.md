@@ -47,8 +47,10 @@ documented in [`docs/configuration.md`](docs/configuration.md).
 
 ## Status
 
-The v0.1 information model is defined: artifact profiles, JSON Schemas with language-neutral conformance cases, and
-templates. The CLI (`init`, `new`, `validate`, `index`, `show`, `trace`) is implemented.
+The information model is implemented: first-class Requirement, Design, and ADR artifact profiles, JSON Schemas with
+language-neutral conformance cases, and rich authoring templates. The CLI (`init`, `new`, `validate`, `index`, `show`,
+`trace`) is implemented, the documentation site is live, and an opt-in agent plugin delivers authoring skills to
+supported harnesses.
 
 ## Install
 
@@ -68,13 +70,21 @@ specful validate
 The project key (2 to 10 uppercase letters or digits, starting with a letter) prefixes every allocated artifact
 identifier.
 
-## Two tiers
+## Agent skills
 
 The CLI alone is the minimal adoption path: `specful init`, `docs/SPECFUL.md`, and the shipped templates work with no
 further installation, for a person or an agent working unaided.
 
-An opt-in agent plugin adds skills for authoring, reviewing, and adopting the convention, installed once per user into
-the agent harness, never written into an adopting repository. In Claude Code:
+An opt-in agent plugin builds on that floor with three skills, loaded by the harness at the moment they apply:
+
+- `specful-author` walks an agent through the authoring workflow for a Requirement, Design, or ADR, from scaffolding
+  with `specful new` through validation and substantive review;
+- `specful-review` checks an artifact for what mechanical validation cannot: acceptance-criteria quality, artifact
+  boundaries, and current-state writing;
+- `specful-adopt` guides first-time adoption of a repository, wrapping `specful init` and the first artifacts.
+
+The plugin is installed once per user into the agent harness and is never written into an adopting repository. In Claude
+Code:
 
 ```sh
 claude plugin marketplace add unkos-dev/specful
