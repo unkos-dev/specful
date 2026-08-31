@@ -12,7 +12,7 @@
         "path": "plugin",
         "sha": "192b2dc7a5f323f55afddcc8255208c74ef902bd"
       },
-      "description": "Skills for authoring, reviewing, and adopting Specful repository specifications. The pin tracks a commit already on main and advances by pull request."
+      "description": "Skills for authoring, reviewing, and adopting Specful repository specifications."
     }
   ]
 }
