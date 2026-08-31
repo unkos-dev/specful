@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Claude Code PostToolUse hook: keep specification artifacts honest after an edit.
+
+Reads the hook payload from stdin, and for an Edit or Write under docs/specs/ or
+docs/adr/ in a Specful repository, runs `specful index --check` and
+`specful validate` so findings reach the agent loop.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+CONFIG_FILE = ".specful/config.yaml"
+ARTIFACT_DIRS = ("docs/specs", "docs/adr")
+
+
+def discover_root(start: Path) -> Path | None:
+    current = start
+    while True:
+        if (current / CONFIG_FILE).is_file():
+            return current
+        if current.parent == current:
+            return None
+        current = current.parent
+
+
+def under_artifact_dir(relative: Path) -> bool:
+    posix = relative.as_posix()
+    return any(posix == d or posix.startswith(f"{d}/") for d in ARTIFACT_DIRS)
+
+
+def warn(message: str) -> None:
+    print(message, file=sys.stderr)
+    sys.exit(2)
+
+
+def main() -> None:
+    try:
+        payload = json.load(sys.stdin)
+        file_path = payload["tool_input"]["file_path"]
+        cwd = payload.get("cwd", ".")
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return
+
+    edited = Path(file_path)
+    if not edited.is_absolute():
+        edited = Path(cwd) / edited
+
+    root = discover_root(edited.parent)
+    if root is None:
+        return
+
+    try:
+        relative = edited.resolve().relative_to(root.resolve())
+    except ValueError:
+        return
+    if not under_artifact_dir(relative):
+        return
+
+    if shutil.which("specful") is None:
+        # Not correctable by editing the artifact, so a non-2 exit keeps the
+        # warning out of the agent loop and in front of the user instead.
+        print(
+            "specful binary not found on PATH; skipping index and validate checks.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    outputs = []
+    for args in (["index", "--check"], ["validate"]):
+        result = subprocess.run(
+            ["specful", *args],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            outputs.append(result.stdout.strip() or result.stderr.strip())
+
+    if outputs:
+        warn("\n\n".join(outputs))
+
+
+if __name__ == "__main__":
+    main()
