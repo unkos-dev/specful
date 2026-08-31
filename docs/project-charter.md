@@ -148,11 +148,13 @@ The initial product scope includes:
 - stable identifiers and validated relationships;
 - generated per-scope indexes and a machine-readable catalog;
 - a CLI providing `init`, `new`, `validate`, `index`, `show`, and `trace`;
-- harness-neutral instruction content installed at adoption.
+- harness-neutral instruction content installed at adoption;
+- an opt-in agent plugin delivering Claude Code skills for authoring, reviewing, and adopting the convention, installed
+  once per user into the harness and never written into an adopting repository.
 
-Planned after the initial release: traceability views, harness-specific adapters and skills, managed instruction-file
-updates, verification and code-ownership relationship types, and brownfield adoption guidance for documenting existing
-repositories incrementally.
+Planned after the initial release: traceability views, harness-specific adapters beyond the delivered Claude Code
+plugin, managed instruction-file updates, verification and code-ownership relationship types, and brownfield adoption
+guidance for documenting existing repositories incrementally.
 
 ## Non-goals
 
