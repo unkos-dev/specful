@@ -21,6 +21,7 @@ should it reach users, and how should its releases be identified?
 ## Decision drivers
 
 - The convention is the product: a repository must remain fully usable with no harness support installed.
+- Support must reach several harnesses without forking the skill content per harness.
 - Harness furniture must not pollute adopting repositories or couple skill versions to every adopter.
 - Skills must route to canonical sources rather than becoming divergent policy copies.
 - Releases need exact provenance without inventing release engineering ahead of need.
@@ -46,14 +47,18 @@ to the adopting repository's own `docs/SPECFUL.md` wherever they differ and link
 Harnesses that consume the standard install the package as it stands.
 
 A release is a pull request pinning the plugin payload to a commit on `main` by `sha`; the resolved commit is the
-version. No manifest carries a `version` field and no tags are created: the pinned commit is exact provenance, `main`'s
-own gates validate the payload at every candidate commit, and the existing version-shaped tag automation stays
-undisturbed.
+version. No manifest carries a `version` field and no plugin-specific tags are created: the pinned commit is exact
+provenance, `main`'s own gates validate the payload at every candidate commit, and the existing version-shaped tag
+automation stays undisturbed. The repository's release tags identify the same validated payload for channels that
+resolve tags.
 
-Claude Code is the exception to the standard shape: it installs from its own marketplace format rather than Agent
-Plugins 1.0, so the package additionally carries a Claude Code manifest over the same skill payload, and the repository
-serves as its own Claude Code marketplace with one entry pinning that payload through the `git-subdir` source form.
-Further harness-specific adapters follow the same pattern only when a harness cannot consume the standard.
+The payload itself is harness-neutral: each skill follows the Agent Skills convention, which harnesses read directly, so
+one payload serves every harness without per-harness content. What varies per harness is the distribution channel over
+that unmodified payload. Claude Code installs through this repository's own marketplace, so the package carries a Claude
+Code manifest and the marketplace holds one entry pinning the payload through the `git-subdir` source form. Other
+harnesses install through the GitHub CLI's skill installer, which resolves the payload at a release tag by default and
+accepts an exact commit pin. Whatever the channel, installed behaviour is a function of immutable references: an
+installer resolves a tag or a pinned commit, never a mutable branch.
 
 ### Consequences
 
@@ -62,8 +67,8 @@ Further harness-specific adapters follow the same pattern only when a harness ca
 - Positive: a release needs no version bookkeeping; the pin and its pull request are the complete release record.
 - Negative: users must install and update the plugin per harness; nothing in an adopting repository prompts them.
 - Negative: commit identifiers are opaque as version labels; readers cannot infer recency or compatibility from them.
-- Negative: harness coverage is not automatic; a harness is served only by consuming the standard package or by a
-  dedicated adapter carried in this repository.
+- Negative: distribution rides channels this repository does not control; a harness or installer changing its behaviour
+  changes the install path the documentation can promise.
 
 ### Confirmation
 
@@ -98,5 +103,6 @@ deferring to the adopting repository's `docs/SPECFUL.md`; no plugin-related tag 
 
 ## More information
 
-Reconsider the no-version rule if plugin release engineering ever exists, and the adapter pattern if harness adoption of
-Agent Plugins 1.0 makes dedicated adapters unnecessary.
+Reconsider the no-version rule if plugin release engineering ever exists, and the reliance on external distribution
+channels if a channel the documentation depends on stalls or regresses; the recorded fallback is an installer owned by
+the `specful` binary resolving the same pinned payload.
