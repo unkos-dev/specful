@@ -27,18 +27,21 @@ pull request title and body, the durable sign-off record is each pull request's 
 
 ## Commit messages and branches
 
-Commit subjects and pull request titles follow Conventional Commits:
+Pull request titles follow Conventional Commits:
 
 ```text
 <type>(<scope>): <description>
 ```
 
 The accepted types are `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, and `test`
-(for example `feat: trace requirements to designs`). Explain the why in the body, not a changelog of the what.
+(for example `feat: trace requirements to designs`). Explain the why in the pull request body, not a changelog of the
+what.
 
 Branch names use the same type as their prefix (`feat/`, `fix/`, `docs/`, and so on through the same list).
 
-Squash merging makes the pull request title the commit subject on `main`, so pull request titles follow the same format.
+Squash merging makes the pull request title the commit subject on `main`, so the title is what must follow this format.
+Individual commits on a branch are not linted against it: they never land on `main`, only the DCO sign-off on each one
+does.
 
 No releases are cut yet. When they are, versions follow Semantic Versioning, derived from the commit types by release
 automation; versions are never edited by hand, in `Cargo.toml` or anywhere else. release-plz maintains a rolling release
