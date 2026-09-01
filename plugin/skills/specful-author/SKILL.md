@@ -8,9 +8,6 @@ compatibility: Requires specful 0.3.0 or later on PATH.
 
 # Authoring a Specful artifact
 
-The adopting repository's own `docs/SPECFUL.md` is authoritative. Where anything here differs from it, follow
-`docs/SPECFUL.md` instead.
-
 ## Workflow
 
 1. Read `docs/SPECFUL.md` in the repository root for the current record model, the writing rules (current-state prose,

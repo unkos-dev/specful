@@ -236,7 +236,6 @@ fn every_skill_directory_has_the_eight_expected_skills() {
             "specful-adopt",
             "specful-author",
             "specful-index",
-            "specful-new",
             "specful-review",
             "specful-show",
             "specful-trace",

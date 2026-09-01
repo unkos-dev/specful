@@ -8,9 +8,6 @@ compatibility: Requires specful 0.3.0 or later on PATH.
 
 # Adopting Specful in a repository
 
-The adopting repository's own `docs/SPECFUL.md` is authoritative once it exists. Where anything here differs from it,
-follow `docs/SPECFUL.md` instead.
-
 ## Workflow
 
 1. Confirm the repository has no `.specful/config.yaml` yet; `specful init` fails fast on an already-initialised

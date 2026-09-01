@@ -8,9 +8,6 @@ compatibility: Requires specful 0.3.0 or later on PATH.
 
 # Reviewing a Specful artifact
 
-The adopting repository's own `docs/SPECFUL.md` is authoritative. Where anything here differs from it, follow
-`docs/SPECFUL.md` instead.
-
 ## Before a substantive review
 
 Run `specful validate` first. It is necessary and catches schema and cross-reference defects, but it says nothing about
