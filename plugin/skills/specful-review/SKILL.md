@@ -2,15 +2,11 @@
 name: specful-review
 description: >-
   Use when reviewing a Specful Requirement, Design, or ADR, or a pull request that changes one, for substance rather
-  than mechanics. Loads the review checklist for what `specful validate` deliberately does not check: acceptance
-  criteria quality, the not-applicable discipline, the Requirement-versus-ADR boundary, and current-state writing.
+  than mechanics: acceptance criteria quality, the not-applicable discipline, and the Requirement-versus-ADR boundary.
 compatibility: Requires specful 0.3.0 or later on PATH.
 ---
 
 # Reviewing a Specful artifact
-
-The adopting repository's own `docs/SPECFUL.md` is authoritative. Where anything here differs from it, follow
-`docs/SPECFUL.md` instead.
 
 ## Before a substantive review
 
@@ -33,6 +29,6 @@ whether the content is any good. This skill covers the judgement calls validatio
 - **Links.** A Design's `satisfies` list and any `governed-by` citations should point at the Requirements and ADRs the
   change actually depends on, no more and no fewer.
 
-Route every rule above to its canonical home rather than re-deriving it: the repository's `docs/SPECFUL.md`, the scope
-indexes under `docs/specs/`, `specful --help`, and the full record model at
+Route every rule above to its canonical home rather than re-deriving it: the scope indexes and artifacts in the adopting
+repository, `specful --help`, and the full record model at
 <https://unkos-dev.github.io/specful/>.

@@ -2,7 +2,7 @@
 type: ADR
 profile-version: 1
 id: "SPECFUL-ADR-0005"
-title: "Deliver agent support as an opt-in harness-side plugin"
+title: "Deliver agent support as opt-in harness-side skills"
 status: "accepted"
 recorded-on: "2026-08-31"
 decided-on: "2026-09-01"
@@ -10,21 +10,20 @@ decision-makers:
   - "junkovich"
 ---
 
-# Deliver agent support as an opt-in harness-side plugin
+# Deliver agent support as opt-in harness-side skills
 
 ## Context and problem statement
 
 Specful supports multiple agent harnesses without giving any harness ownership of canonical project knowledge. A coding
-agent benefits from having the authoring workflow loaded at the moment it writes a Requirement, Design, or ADR, rather
-than relying on unaided discovery of `AGENTS.md` and `docs/SPECFUL.md`. Where should that harness support live, how
-should it reach users, and how should its releases be identified?
+agent benefits from having the relevant craft loaded at the moment it writes a Requirement, Design, or ADR. Where should
+that harness support live, how should it reach users, and how should its releases be identified?
 
 ## Decision drivers
 
 - The convention is the product: a repository must remain fully usable with no harness support installed.
 - Support must reach several harnesses without forking the skill content per harness.
 - Harness furniture must not pollute adopting repositories or couple skill versions to every adopter.
-- Skills must route to canonical sources rather than becoming divergent policy copies.
+- Skills must not become a harness-specific source of canonical project knowledge.
 - Releases need exact provenance without inventing release engineering ahead of need.
 - The repository's existing tag automation matches version-shaped tag names, so a second tag series carries risk.
 
@@ -39,15 +38,13 @@ should it reach users, and how should its releases be identified?
 ## Decision outcome
 
 Chosen option: **opt-in harness-side skills installed at immutable revisions through one channel**, because it delivers
-workflow support to agents while keeping adopting repositories free of harness furniture, keeping the no-plugin path as
+workflow support to agents while keeping adopting repositories free of harness furniture, keeping the no-skill path as
 the supported floor, and giving every harness the same install story.
 
-Delivery is two-tier. Tier 1 is the CLI alone: `specful init`, `docs/SPECFUL.md`, and the shipped templates are the
-complete, minimal adoption path, and every capability must remain reachable this way. Tier 2 is a set of skills
-installed once per user into the agent harness, never written into adopting repositories. The package is one `plugin/`
-directory in the Agent Plugins 1.0 shape, the vendor-neutral standard for packaging agent skills, and the skills are
-routers: each defers to the adopting repository's own `docs/SPECFUL.md` wherever they differ and links every rule to its
-canonical home.
+The convention and CLI remain usable without installed skills. Harness-side skills add artifact craft and structured
+substantive review without becoming canonical project knowledge. They are installed once per user into the harness and
+never written into adopting repositories. Adopting maintainers decide whether skill-based review is advisory or
+required.
 
 The payload is harness-neutral: each skill follows the Agent Skills convention, which harnesses read directly, so one
 payload serves every harness without per-harness content or per-harness channels. Installation for every harness is the
@@ -71,9 +68,9 @@ created; the existing version-shaped tag automation stays undisturbed.
 
 ### Confirmation
 
-`plugin/` contains one Agent Plugins 1.0 manifest without a `version` field; every skill passes the pinned Agent Skills
-validator; `specful init` output contains no harness-specific files; each skill opens by deferring to the adopting
-repository's `docs/SPECFUL.md`; no plugin-specific tag exists.
+Confirm the decision by verifying that every skill passes the pinned Agent Skills validator, a release installs through
+the single channel at an immutable reference, `specful init` writes no agent instruction or harness-specific files, and
+no plugin-specific tag exists.
 
 ## Pros and cons of the options
 

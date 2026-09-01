@@ -220,7 +220,7 @@ fn is_valid_skill_name(name: &str) -> bool {
 }
 
 #[test]
-fn every_skill_directory_has_the_three_expected_skills() {
+fn every_skill_directory_has_the_eight_expected_skills() {
     let names: Vec<_> = skill_directories()
         .iter()
         .map(|path| {
@@ -232,7 +232,16 @@ fn every_skill_directory_has_the_three_expected_skills() {
         .collect();
     assert_eq!(
         names,
-        vec!["specful-adopt", "specful-author", "specful-review"]
+        vec![
+            "specful-adr",
+            "specful-design",
+            "specful-index",
+            "specful-requirement",
+            "specful-review",
+            "specful-show",
+            "specful-trace",
+            "specful-validate",
+        ]
     );
 }
 
@@ -306,5 +315,10 @@ fn every_skill_has_valid_agent_skills_frontmatter() {
                 "{path_label} compatibility must be 1 to 500 characters"
             );
         }
+
+        assert!(
+            !split.body.trim().is_empty(),
+            "{path_label} must have a non-empty body after its frontmatter"
+        );
     }
 }

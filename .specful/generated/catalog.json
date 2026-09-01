@@ -33,7 +33,7 @@
       "kind": "adr",
       "path": "docs/adr/0005-deliver-agent-support-as-an-opt-in-harness-side-plugin.md",
       "status": "accepted",
-      "title": "Deliver agent support as an opt-in harness-side plugin"
+      "title": "Deliver agent support as opt-in harness-side skills"
     },
     {
       "governed-by": [

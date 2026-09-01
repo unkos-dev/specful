@@ -127,8 +127,8 @@ Diagnostics are human-readable text with a meaningful exit status. A `--json` fl
 listing that is explicitly unstable. There is no diagnostic rule registry, no severity policy, and no waiver system; a
 finding is fixed in the documents, not managed in configuration.
 
-Adopting repositories run validation in their local gate and continuous integration. Specful does not require commit
-hooks.
+Adopting maintainers decide whether validation runs on demand, in a local hook, in continuous integration, or through
+another repository-owned gate. Specful documents the commands but does not install or require an enforcement system.
 
 ## Portability boundary
 
@@ -136,8 +136,11 @@ The core schema, templates, lifecycle, and workflow are independent of agent har
 
 Adoption installs harness-neutral instructions in `docs/SPECFUL.md` and a small managed pointer block in the root
 `AGENTS.md`, teaching the convention: the retrieval recipe and the authoring workflow, including which artifact changes
-for which kind of work. Harness-specific adapters may generate native skills, commands, or context files, but those
-files are generated integration surfaces. They cannot become divergent copies of project policy or canonical knowledge.
+for which kind of work.
+
+Optional harness-side skills teach artifact craft, expose CLI operations, and provide structured substantive review.
+They remain integration surfaces, not canonical project knowledge. Adopting maintainers decide whether review is
+advisory or required and own the mechanism that enforces that choice.
 
 ## Initial scope
 
@@ -149,8 +152,8 @@ The initial product scope includes:
 - generated per-scope indexes and a machine-readable catalog;
 - a CLI providing `init`, `new`, `validate`, `index`, `show`, and `trace`;
 - harness-neutral instruction content installed at adoption;
-- an opt-in agent plugin delivering Claude Code skills for authoring, reviewing, and adopting the convention, installed
-  once per user into the harness and never written into an adopting repository.
+- opt-in harness-side skills for artifact-specific authoring, substantive review, validation, indexing, and retrieval,
+  installed once per user and never written into an adopting repository.
 
 Planned after the initial release: traceability views, harness-specific adapters beyond the delivered Claude Code
 plugin, managed instruction-file updates, verification and code-ownership relationship types, and brownfield adoption
