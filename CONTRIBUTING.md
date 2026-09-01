@@ -43,9 +43,9 @@ Squash merging makes the pull request title the commit subject on `main`, so the
 Individual commits on a branch are not linted against it: they never land on `main`, only the DCO sign-off on each one
 does.
 
-No releases are cut yet. When they are, versions follow Semantic Versioning, derived from the commit types by release
-automation; versions are never edited by hand, in `Cargo.toml` or anywhere else. release-plz maintains a rolling release
-pull request from commits merged to `main`; a maintainer merging that pull request is the release act.
+Versions follow Semantic Versioning, derived from the commit types by release automation; versions are never edited by
+hand, in `Cargo.toml` or anywhere else. release-plz maintains a rolling release pull request from commits merged to
+`main`; a maintainer merging that pull request is the release act.
 
 ## Pull request process
 
