@@ -49,7 +49,7 @@ through the `.github/actions/setup` composite action; the Rust toolchain comes f
 | `snyk.yml` | `code` | Snyk Code SAST, advisory only. |
 | `docs.yml` | `build` | Documentation site build-check (`site/`), path-filtered. |
 | `label.yml` | `label` | Labels from `.github/labeler.yml`. |
-| `pr-hygiene.yml` | `title` | Title lint. Standalone. |
+| `pr-hygiene.yml` | `title`, `body` | Title lint; PR body structure. Standalone. |
 | `release-plz.yml` | `release-pr`, `release` | Rolling release PR; publish. |
 | `release.yml` | `plan`, `build-local-artifacts`, `build-global-artifacts`, `host`, `announce` | dist binary release. |
 | `docs-deploy.yml` | `build`, `deploy` | Builds and publishes the documentation site to GitHub Pages. Standalone. |
@@ -71,8 +71,9 @@ Branch protection lists these exact `<caller> / <job>` strings:
 - `deps / review`
 - `docs / build`
 - `hygiene / title`
+- `hygiene / body`
 
-The `hygiene` context comes from `pr-hygiene.yml`'s own `name:` field rather than the composition, faux-namespaced to
+The `hygiene` contexts come from `pr-hygiene.yml`'s own `name:` fields rather than the composition, faux-namespaced to
 read the same in this list.
 
 `snyk` is advisory (its findings never fail the job) and `label` runs outside the composition, so neither carries a

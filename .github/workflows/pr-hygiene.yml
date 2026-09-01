@@ -1,15 +1,16 @@
 # Server-side gate: specful's DCO app and this workflow are the only checks
 # that enforce commit and PR-title hygiene; there is no local commit-msg hook
 # to fall back on, and none would run on a fork PR anyway. Lints the PR title,
-# the one subject a squash-merge produces; intermediate commit messages never
-# reach main and are not linted here.
+# the one subject a squash-merge produces, and the PR body sections
+# release-plz's changelog template actually reads; intermediate commit
+# messages never reach main and are not linted here.
 name: PR hygiene
 
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
   # A required context whose workflow lacks this trigger deadlocks the merge
-  # queue. The job below skips on it, and a skipped required check passes.
+  # queue. Both jobs below skip on it, and a skipped required check passes.
   merge_group:
 
 permissions: {}
@@ -56,3 +57,64 @@ jobs:
             revert
             style
             test
+
+  body:
+    name: hygiene / body
+    # Renovate and the specful-release app never produce a body with
+    # `## Summary`/`## Why` sections, so their PRs are exempt by authorship
+    # (github.event.pull_request.user.login) rather than by the triggering
+    # actor: a synchronize event on a bot PR can carry a different
+    # github.actor than the PR's own author.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login != 'renovate[bot]' &&
+      github.event.pull_request.user.login != 'specful-release[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # No permissions needed: the body comes from the pull_request event
+    # payload already attached to the job, not a further API call.
+    steps:
+      # The PR body is attacker-controlled; reading it from context.payload
+      # inside actions/github-script's Node sandbox, rather than shelling it
+      # out, means there is nothing here for a hostile body to inject into.
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const stripComments = (text) => text.replace(/<!--[\s\S]*?-->/g, '');
+
+            // Content between `## <heading>` and the next `## ` heading (or
+            // end of body). null means the heading itself is missing.
+            const section = (heading) => {
+              const start = new RegExp(`^##[ \\t]+${heading}[ \\t]*$`, 'm').exec(body);
+              if (!start) return null;
+              const rest = body.slice(start.index + start[0].length);
+              const next = rest.search(/^##[ \t]+/m);
+              return next === -1 ? rest : rest.slice(0, next);
+            };
+
+            const errors = [];
+
+            const summary = section('Summary');
+            if (summary === null) {
+              errors.push('Missing "## Summary" heading.');
+            } else if (!/^-[ \t]*\S/m.test(stripComments(summary))) {
+              errors.push('"## Summary" has no filled-in bullet.');
+            }
+
+            const why = section('Why');
+            if (why !== null && stripComments(why).trim() === '') {
+              errors.push('"## Why" heading is present but empty — fill it in or delete the heading.');
+            }
+
+            // release-plz truncates the changelog body at this heading
+            // (split_regex on "^## Test plan"); without it, anything after
+            // "## Why" leaks into the generated changelog. Its content is
+            // not inspected — only the heading's presence is release-relevant.
+            if (section('Test plan') === null) {
+              errors.push('Missing "## Test plan" heading.');
+            }
+
+            if (errors.length > 0) {
+              core.setFailed(errors.join(' '));
+            }
