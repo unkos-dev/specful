@@ -23,249 +23,14 @@ const LOCK_FILE: &str = ".specful/config.yaml.lock";
 /// and generated views.
 const CONFIG_DIR: &str = ".specful";
 
-const AGENTS_FILE: &str = "AGENTS.md";
-const SPECFUL_MD_FILE: &str = "docs/SPECFUL.md";
-
-/// Marker pair delimiting the managed block `init` installs in `AGENTS.md`.
-/// Shared by the writer and the upsert so a well-formed file always has
-/// exactly one of each, in this order.
-pub const SPECFUL_MARKER_START: &str = "<!-- SPECFUL:START -->";
-pub const SPECFUL_MARKER_END: &str = "<!-- SPECFUL:END -->";
-
-const AGENTS_BLOCK_BODY: &str = include_str!("../templates/agents-block.md");
-const SPECFUL_MD_CONTENT: &str = include_str!("../templates/SPECFUL.md");
-
 /// Scaffold sources: the only copies of artifact shape, so the CLI and the
 /// public templates cannot drift.
 const ADR_TEMPLATE: &str = include_str!("../templates/adr.md");
 const REQUIREMENT_TEMPLATE: &str = include_str!("../templates/requirement.md");
 const DESIGN_TEMPLATE: &str = include_str!("../templates/design.md");
 
-/// The documentation link must match the installed CLI, not a moving
-/// branch, so the release tag is substituted at write time.
-fn specful_md_content() -> String {
-    SPECFUL_MD_CONTENT.replace("{version}", concat!("v", env!("CARGO_PKG_VERSION")))
-}
-
-/// The marker span plus its body, without a trailing newline: the unit
-/// spliced into an existing well-formed span.
-fn block_span() -> String {
-    format!(
-        "{SPECFUL_MARKER_START}\n{}\n{SPECFUL_MARKER_END}",
-        AGENTS_BLOCK_BODY.trim_end()
-    )
-}
-
-/// The block as a standalone file body: used both for a fresh `AGENTS.md`
-/// and as the chunk appended after an existing file's content.
-fn wrapped_block() -> String {
-    format!("{}\n", block_span())
-}
-
-/// Where the marker pair sits in an `AGENTS.md` body, if at all.
-enum MarkerState {
-    /// Neither marker string occurs; the block can be appended.
-    Absent,
-    /// Exactly one of each, START before END. `end` is the byte offset just
-    /// past the END marker, so `content[start..end]` is the whole span.
-    WellFormed { start: usize, end: usize },
-    /// Any other arrangement: missing partner, reversed order, or
-    /// duplicates. Never written to; the caller reports a finding.
-    Malformed,
-}
-
-fn marker_state(content: &str) -> MarkerState {
-    let starts: Vec<usize> = content
-        .match_indices(SPECFUL_MARKER_START)
-        .map(|(index, _)| index)
-        .collect();
-    let ends: Vec<usize> = content
-        .match_indices(SPECFUL_MARKER_END)
-        .map(|(index, _)| index)
-        .collect();
-    match (starts.as_slice(), ends.as_slice()) {
-        ([], []) => MarkerState::Absent,
-        (&[start], &[end]) if start < end => MarkerState::WellFormed {
-            start,
-            end: end + SPECFUL_MARKER_END.len(),
-        },
-        _ => MarkerState::Malformed,
-    }
-}
-
-/// What `init` must do to `AGENTS.md`, resolved during the precondition
-/// pass so the write pass never needs to re-inspect or re-read the file.
-enum AgentsPlan {
-    /// No `AGENTS.md` exists yet; write one containing only the block.
-    Create,
-    /// The full replacement content for an existing `AGENTS.md`: the
-    /// block appended after a blank line, or spliced between well-formed
-    /// markers.
-    Upsert(String),
-}
-
-/// Precondition check for `AGENTS.md`: inspected without following
-/// symlinks, must be a regular file if present, must be readable, and its
-/// marker arrangement (if any) must be well-formed. Resolves the upsert
-/// content here so the write stage is a single atomic rename.
-fn plan_agents_md(path: &Path) -> Result<AgentsPlan, Vec<Finding>> {
-    let metadata = match std::fs::symlink_metadata(path) {
-        Ok(metadata) => metadata,
-        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(AgentsPlan::Create),
-        Err(error) => {
-            return Err(vec![Finding::new(
-                AGENTS_FILE,
-                None,
-                format!("cannot inspect {AGENTS_FILE}: {error}"),
-            )]);
-        }
-    };
-    if metadata.file_type().is_symlink() {
-        return Err(vec![Finding::new(AGENTS_FILE, None, "symlink not allowed")]);
-    }
-    if !metadata.is_file() {
-        return Err(vec![Finding::new(AGENTS_FILE, None, "not a regular file")]);
-    }
-    let content = std::fs::read_to_string(path).map_err(|error| {
-        vec![Finding::new(
-            AGENTS_FILE,
-            None,
-            format!("cannot read {AGENTS_FILE}: {error}"),
-        )]
-    })?;
-    match marker_state(&content) {
-        MarkerState::Absent => {
-            let mut next = content;
-            if !next.ends_with('\n') {
-                next.push('\n');
-            }
-            next.push('\n');
-            next.push_str(&wrapped_block());
-            Ok(AgentsPlan::Upsert(next))
-        }
-        MarkerState::WellFormed { start, end } => {
-            let mut next = String::with_capacity(content.len());
-            next.push_str(&content[..start]);
-            next.push_str(&block_span());
-            next.push_str(&content[end..]);
-            Ok(AgentsPlan::Upsert(next))
-        }
-        MarkerState::Malformed => Err(vec![Finding::new(
-            AGENTS_FILE,
-            None,
-            "markers are malformed: a well-formed file has exactly one START and one END marker, START first",
-        )]),
-    }
-}
-
-/// Writes `docs/SPECFUL.md`, the specful-owned instruction file. `docs/`
-/// already exists by this point: the directory scaffold created it.
-fn write_specful_md(root: &Path) -> Result<(), Vec<Finding>> {
-    match OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(root.join(SPECFUL_MD_FILE))
-    {
-        Ok(mut file) => {
-            if let Err(error) = file.write_all(specful_md_content().as_bytes()) {
-                drop(file);
-                let _ = std::fs::remove_file(root.join(SPECFUL_MD_FILE));
-                return Err(vec![Finding::new(
-                    SPECFUL_MD_FILE,
-                    None,
-                    format!("cannot write {SPECFUL_MD_FILE}: {error}"),
-                )]);
-            }
-            Ok(())
-        }
-        Err(error) if error.kind() == ErrorKind::AlreadyExists => Err(vec![Finding::new(
-            SPECFUL_MD_FILE,
-            None,
-            "file already exists",
-        )]),
-        Err(error) => Err(vec![Finding::new(
-            SPECFUL_MD_FILE,
-            None,
-            format!("cannot write {SPECFUL_MD_FILE}: {error}"),
-        )]),
-    }
-}
-
-/// Creates `AGENTS.md` containing only the marker block.
-fn create_agents_md(root: &Path) -> Result<(), Vec<Finding>> {
-    match OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(root.join(AGENTS_FILE))
-    {
-        Ok(mut file) => {
-            if let Err(error) = file.write_all(wrapped_block().as_bytes()) {
-                drop(file);
-                let _ = std::fs::remove_file(root.join(AGENTS_FILE));
-                return Err(vec![Finding::new(
-                    AGENTS_FILE,
-                    None,
-                    format!("cannot write {AGENTS_FILE}: {error}"),
-                )]);
-            }
-            Ok(())
-        }
-        Err(error) if error.kind() == ErrorKind::AlreadyExists => {
-            Err(vec![Finding::new(AGENTS_FILE, None, "file already exists")])
-        }
-        Err(error) => Err(vec![Finding::new(
-            AGENTS_FILE,
-            None,
-            format!("cannot write {AGENTS_FILE}: {error}"),
-        )]),
-    }
-}
-
-/// Stages `content` in a sibling temporary file, then renames it onto
-/// `target`: an interrupted run leaves either the old or the new content,
-/// never a truncation. Mirrors `ConfigLock::commit` without needing a
-/// separate lock file, since `.specful/config.yaml` already gates concurrent
-/// `init` calls before this ever runs.
-fn atomic_replace(target: &Path, content: &str) -> Result<(), Vec<Finding>> {
-    let tmp_path = target.with_extension("md.tmp");
-    match OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&tmp_path)
-    {
-        Ok(mut file) => {
-            if let Err(error) = file.write_all(content.as_bytes()) {
-                drop(file);
-                let _ = std::fs::remove_file(&tmp_path);
-                return Err(vec![Finding::new(
-                    AGENTS_FILE,
-                    None,
-                    format!("cannot write {AGENTS_FILE}: {error}"),
-                )]);
-            }
-        }
-        Err(error) => {
-            return Err(vec![Finding::new(
-                AGENTS_FILE,
-                None,
-                format!("cannot stage {AGENTS_FILE} update: {error}"),
-            )]);
-        }
-    }
-    if let Err(error) = std::fs::rename(&tmp_path, target) {
-        let _ = std::fs::remove_file(&tmp_path);
-        return Err(vec![Finding::new(
-            AGENTS_FILE,
-            None,
-            format!("cannot commit {AGENTS_FILE} update: {error}"),
-        )]);
-    }
-    Ok(())
-}
-
 /// Removes files this `init` invocation exclusively created, once a later
-/// write fails. Never called with a pre-existing `AGENTS.md`: the upsert
-/// path leaves that file untouched on failure instead.
+/// write fails.
 fn rollback(root: &Path, files: &[&str]) {
     for file in files {
         let _ = std::fs::remove_file(root.join(file));
@@ -362,25 +127,20 @@ pub enum NewKind {
     Design,
 }
 
-/// Result of a successful [`init`]: paths created fresh, and paths that
-/// already existed and were modified in place (only ever `AGENTS.md`).
+/// Result of a successful [`init`]: paths created fresh.
 #[derive(Debug, Clone, Default)]
 pub struct InitOutcome {
     pub created: Vec<String>,
-    pub updated: Vec<String>,
 }
 
-/// Initializes a Specful repository: configuration, the artifact directory
-/// skeleton, `docs/SPECFUL.md`, and the `AGENTS.md` pointer block. Refuses
-/// to touch an already-initialized root.
+/// Initializes a Specful repository with configuration and the artifact
+/// directory skeleton. Refuses to touch an already-initialized root.
 ///
 /// Preconditions run before any write, in order: project key,
 /// `.specful/config.yaml` absence (an early advisory check purely for error
 /// ordering; `create_new` below is the actual enforcement and the
-/// concurrency lock), `docs/SPECFUL.md` absence, and `AGENTS.md`
-/// well-formedness. A write failure after `.specful/config.yaml` is created
-/// rolls back every file this invocation
-/// exclusively created; it never touches a pre-existing `AGENTS.md`. If
+/// concurrency lock). A later write failure rolls back every file this
+/// invocation exclusively created. If
 /// configuration creation fails after the directories were created (for
 /// example a concurrent or prior `init`), those directories are left in
 /// place: they are empty and harmless, and a rerun completes the job
@@ -395,16 +155,6 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
             "repository is already initialized",
         )]);
     }
-    if root.join(SPECFUL_MD_FILE).exists() {
-        return Err(vec![Finding::new(
-            SPECFUL_MD_FILE,
-            None,
-            "file already exists",
-        )]);
-    }
-    let agents_path = root.join(AGENTS_FILE);
-    let agents_plan = plan_agents_md(&agents_path)?;
-
     let config = Config {
         project_key: project_key.to_owned(),
         specful_version: env!("CARGO_PKG_VERSION").to_owned(),
@@ -460,30 +210,6 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
     }
     created.push(CONFIG_FILE.to_owned());
 
-    if let Err(findings) = write_specful_md(root) {
-        rollback(root, &[CONFIG_FILE]);
-        return Err(findings);
-    }
-    created.push(SPECFUL_MD_FILE.to_owned());
-
-    let mut updated = Vec::new();
-    match agents_plan {
-        AgentsPlan::Create => match create_agents_md(root) {
-            Ok(()) => created.push(AGENTS_FILE.to_owned()),
-            Err(findings) => {
-                rollback(root, &[CONFIG_FILE, SPECFUL_MD_FILE]);
-                return Err(findings);
-            }
-        },
-        AgentsPlan::Upsert(content) => match atomic_replace(&agents_path, &content) {
-            Ok(()) => updated.push(AGENTS_FILE.to_owned()),
-            Err(findings) => {
-                rollback(root, &[CONFIG_FILE, SPECFUL_MD_FILE]);
-                return Err(findings);
-            }
-        },
-    }
-
     let generated_views = crate::index::render_views(&[]);
     // A view path that already exists is not this invocation's to remove:
     // run_index refuses author-owned files, and rollback must not delete
@@ -494,10 +220,7 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
         .collect();
     let view_findings = crate::index::run_index(root, false);
     if !view_findings.is_empty() {
-        let mut rollback_targets = vec![CONFIG_FILE, SPECFUL_MD_FILE];
-        if created.iter().any(|f| f == AGENTS_FILE) {
-            rollback_targets.push(AGENTS_FILE);
-        }
+        let mut rollback_targets = vec![CONFIG_FILE];
         rollback_targets.extend(
             generated_views
                 .keys()
@@ -509,7 +232,7 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
     }
     created.extend(generated_views.into_keys());
 
-    Ok(InitOutcome { created, updated })
+    Ok(InitOutcome { created })
 }
 
 /// Creates one artifact from its scaffold, allocating identifiers from the

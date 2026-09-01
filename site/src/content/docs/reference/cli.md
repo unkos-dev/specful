@@ -23,7 +23,8 @@ specful init --project-key <KEY> [ROOT]
 | `--project-key <KEY>` | Required. 2 to 10 uppercase letters or digits, starting with a letter. Immutable once set. |
 | `ROOT` | Repository root; defaults to the current directory. Never resolved by upward search. |
 
-Prints each file it creates or updates and exits successfully, or prints findings and exits with failure.
+Prints each path it creates and exits successfully, or prints findings and exits with failure. It does not create or
+modify agent instruction files.
 
 ## `specful new`
 

@@ -41,9 +41,3 @@ only when filesystem layout is part of the behaviour. Use `just cov` when covera
 
 [`CONTRIBUTING.md`](CONTRIBUTING.md) is the authority for commit messages, branch names, DCO sign-off, pull requests,
 licensing, releases, and security reporting. Follow it rather than duplicating those rules here.
-
-<!-- SPECFUL:START -->
-This repository uses Specful: specifications live in `docs/specs/`, decisions live in `docs/adr/`, and both are
-canonical. Read `docs/SPECFUL.md` before reading or changing either. After a spec change, run `specful index`, then
-`specful validate`, and commit the regenerated views.
-<!-- SPECFUL:END -->

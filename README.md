@@ -65,8 +65,8 @@ identifier.
 
 ## Agent skills
 
-The CLI alone is the minimal adoption path: `specful init`, `docs/SPECFUL.md`, and the shipped templates work with no
-further installation, for a person or an agent working unaided.
+The CLI and convention work without agent skills. `specful init` writes the repository configuration, artifact
+directories, and generated navigation views; it does not create or modify agent instruction files.
 
 Opt-in agent skills build on that floor, loaded by the harness at the moment they apply:
 
