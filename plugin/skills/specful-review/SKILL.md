@@ -29,6 +29,6 @@ whether the content is any good. This skill covers the judgement calls validatio
 - **Links.** A Design's `satisfies` list and any `governed-by` citations should point at the Requirements and ADRs the
   change actually depends on, no more and no fewer.
 
-Route every rule above to its canonical home rather than re-deriving it: the scope indexes under `docs/specs/`, the
-repository's own templates and schemas, `specful --help`, and the full record model at
+Route every rule above to its canonical home rather than re-deriving it: the scope indexes and artifacts in the adopting
+repository, `specful --help`, and the full record model at
 <https://unkos-dev.github.io/specful/>.

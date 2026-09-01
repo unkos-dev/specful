@@ -22,6 +22,7 @@ a plan, and what used to be true is Git history.
    `governed-by`. Describe the subject as it is, at the level a maintainer needs to change it safely; decision rationale
    belongs in an ADR, not here.
 4. Run `specful index`, then `specful validate`; commit the regenerated views with the change.
-5. Mechanical validation is necessary but not sufficient: load `specful-review` before treating the change as done.
+5. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
+   substantive review or the user asks for it.
 
 For the full Design profile and field-by-field guidance, see <https://unkos-dev.github.io/specful/>.

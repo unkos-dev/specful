@@ -23,7 +23,7 @@ or progress notes.
    with no credible alternative or no downside is advertising, not a decision record.
 4. Lifecycle belongs to the maintainer: a new record starts proposed, and only the maintainer accepts, rejects, or
    supersedes.
-5. Run `specful index`, then `specful validate`; commit the regenerated views with the change. Load `specful-review`
-   before treating the change as done.
+5. Run `specful index`, then `specful validate`; commit the regenerated views with the change. Use `specful-review` when
+   the adopting repository requires substantive review or the user asks for it.
 
 For the full ADR profile and field-by-field guidance, see <https://unkos-dev.github.io/specful/>.

@@ -85,7 +85,7 @@ claude plugin marketplace add unkos-dev/specful
 claude plugin install specful@specful
 ```
 
-Each skill defers to the adopting repository's own `docs/SPECFUL.md` wherever the two differ. See
+The skills use the CLI and the adopting repository's artifacts as ground truth. See
 [Adoption](https://unkos-dev.github.io/specful/adoption/) for the full installation and update path.
 
 ## Documentation

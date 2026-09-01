@@ -23,6 +23,7 @@ is a plan, and what used to be true is Git history.
    SHOULD, SHOULD NOT, MAY); cite governing ADRs through `governed-by`. Write obligations testably: a Requirement that
    no observable behaviour could violate is decoration, not specification.
 4. Run `specful index`, then `specful validate`; commit the regenerated views with the change.
-5. Mechanical validation is necessary but not sufficient: load `specful-review` before treating the change as done.
+5. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
+   substantive review or the user asks for it.
 
 For the full Requirement profile and field-by-field guidance, see <https://unkos-dev.github.io/specful/>.
