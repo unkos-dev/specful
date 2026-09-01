@@ -32,7 +32,7 @@
       "id": "SPECFUL-ADR-0005",
       "kind": "adr",
       "path": "docs/adr/0005-deliver-agent-support-as-an-opt-in-harness-side-plugin.md",
-      "status": "proposed",
+      "status": "accepted",
       "title": "Deliver agent support as an opt-in harness-side plugin"
     },
     {

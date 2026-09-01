@@ -3,8 +3,9 @@ type: ADR
 profile-version: 1
 id: "SPECFUL-ADR-0005"
 title: "Deliver agent support as an opt-in harness-side plugin"
-status: "proposed"
+status: "accepted"
 recorded-on: "2026-08-31"
+decided-on: "2026-09-01"
 decision-makers:
   - "junkovich"
 ---
@@ -50,14 +51,12 @@ canonical home.
 
 The payload is harness-neutral: each skill follows the Agent Skills convention, which harnesses read directly, so one
 payload serves every harness without per-harness content or per-harness channels. Installation for every harness is the
-GitHub CLI's skill installer, which resolves the payload at the latest release tag by default and accepts an exact
-commit pin. Installed behaviour is a function of immutable references: an installer resolves a tag or a pinned commit,
-never a mutable branch.
+GitHub CLI's skill installer. Installed behaviour is a function of immutable references: an install resolves a release
+tag or a pinned commit, never a mutable branch.
 
 A skill release is the repository's release tag: the payload at the tagged commit is the released payload, validated by
 `main`'s own gates at every candidate commit. No manifest carries a `version` field and no plugin-specific tags are
-created; the existing version-shaped tag automation stays undisturbed. Skill names carry the `specful-` prefix because
-installers place them in flat, shared skill directories where a bare generic name would collide.
+created; the existing version-shaped tag automation stays undisturbed.
 
 ### Consequences
 
@@ -73,8 +72,8 @@ installers place them in flat, shared skill directories where a bare generic nam
 ### Confirmation
 
 `plugin/` contains one Agent Plugins 1.0 manifest without a `version` field; every skill passes the pinned Agent Skills
-validator and carries the `specful-` name prefix; `specful init` output contains no harness-specific files; each skill
-opens by deferring to the adopting repository's `docs/SPECFUL.md`; no plugin-specific tag exists.
+validator; `specful init` output contains no harness-specific files; each skill opens by deferring to the adopting
+repository's `docs/SPECFUL.md`; no plugin-specific tag exists.
 
 ## Pros and cons of the options
 
@@ -112,6 +111,5 @@ opens by deferring to the adopting repository's `docs/SPECFUL.md`; no plugin-spe
 
 Reconsider the no-version rule if skill release engineering ever exists, and the single-channel rule when a capability
 arrives that the channel cannot carry: hooks are a known requirement and must be delivered harness-neutrally, so any
-packaging added for them is judged against every harness, not one. If the installer channel stalls or regresses, the
-recorded fallback is an installer owned by the `specful` binary resolving the same payload at the same immutable
-references.
+packaging added for them is judged against every harness, not one. Reconsider the channel itself if it stalls or
+regresses; the fallback is an installer owned by this repository over the same immutable references.
