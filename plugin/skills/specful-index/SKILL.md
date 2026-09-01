@@ -11,6 +11,6 @@ compatibility: Requires specful 0.3.0 or later on PATH.
 The adopting repository's own `docs/SPECFUL.md` is authoritative. Where anything here differs from it, follow
 `docs/SPECFUL.md` instead.
 
-Run `specful index $ARGUMENTS` and report the output. These views are generated and disposable: never hand-edit them.
-Use `--check` to report drift without writing, then re-run without it to fix. See `specful index --help` for its
-options.
+When asked whether the views are current, run `specful index --check` and report the drift; checking authorises no
+write. Run `specful index` to regenerate only when the user asked for an update or approves one, then confirm with
+`--check`. These views are generated and disposable: never hand-edit them. See `specful index --help` for its options.
