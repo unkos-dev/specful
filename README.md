@@ -68,13 +68,14 @@ identifier.
 The CLI alone is the minimal adoption path: `specful init`, `docs/SPECFUL.md`, and the shipped templates work with no
 further installation, for a person or an agent working unaided.
 
-An opt-in agent plugin builds on that floor with three skills, loaded by the harness at the moment they apply:
+Opt-in agent skills build on that floor, loaded by the harness at the moment they apply:
 
-- `specful-author` walks an agent through the authoring workflow for a Requirement, Design, or ADR, from scaffolding
+- `specful-requirement`, `specful-design`, and `specful-adr` each teach authoring one artifact type, from scaffolding
   with `specful new` through validation and substantive review;
 - `specful-review` checks an artifact for what mechanical validation cannot: acceptance-criteria quality, artifact
   boundaries, and current-state writing;
-- `specful-adopt` guides first-time adoption of a repository, wrapping `specful init` and the first artifacts.
+- `specful-validate`, `specful-index`, `specful-show`, and `specful-trace` wrap the matching CLI commands for direct
+  invocation mid-session.
 
 The plugin is installed once per user into the agent harness and is never written into an adopting repository. In Claude
 Code:

@@ -233,7 +233,6 @@ fn every_skill_directory_has_the_eight_expected_skills() {
     assert_eq!(
         names,
         vec![
-            "specful-adopt",
             "specful-adr",
             "specful-design",
             "specful-index",
