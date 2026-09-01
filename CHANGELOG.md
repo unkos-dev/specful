@@ -7,6 +7,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/unkos-dev/specful/compare/v0.3.0...v0.3.1) - 2026-09-01
+
+### Added
+
+- *(init)* retire installed instruction files ([#67](https://github.com/unkos-dev/specful/pull/67))
+
+  - Stop `specful init` from creating or modifying agent instruction
+  files.
+  - Remove the retired instruction templates, repository copy, and managed
+  `AGENTS.md` block.
+  - Update the charter and public documentation to describe the delivered
+  adoption boundary.
+
+  Installed instruction files duplicated the repository configuration,
+  schemas, templates, and artifact corpus, and could become a competing
+  source of project authority. Agent support now remains opt-in and
+  harness-side, consistent with ADR-0005, while the convention stays
+  usable through ordinary repository files.
+
+- *(plugin)* add focused authoring and CLI skills ([#64](https://github.com/unkos-dev/specful/pull/64))
+
+  - replace the shared authoring and adoption skills with focused
+  Requirement, Design, and ADR authoring skills
+  - add concise skills for validation, indexing, catalog lookup, and
+  traceability without granting write authority to checks
+  - align the charter and ADR with adopter-owned validation and
+  substantive-review policy
+
+  Skills should teach artifact-specific craft and make Specful operations
+  available when useful without becoming canonical project policy or
+  deciding how an adopting repository enforces review.
+
+### Other
+
+- *(readme)* surface the agent skills and refresh the status ([#61](https://github.com/unkos-dev/specful/pull/61))
+
+  - Renames the README's `Two tiers` section to `Agent skills` and names
+  the three skills (`specful-author`, `specful-review`, `specful-adopt`)
+  with what each does, keeping the install commands and the
+  defer-to-repository rule.
+  - Drops the `Status` section: the README describes what Specful is and
+  how to use it, and release maturity signalling belongs in the release
+  notes.
+
+  A reader scanning the README for agent support could miss the plugin
+  entirely: the section heading did not mention skills or agents, and the
+  skills were never named. The status section narrated delivery progress
+  in a document that introduces the current-state writing model.
+
 ## [0.3.0](https://github.com/unkos-dev/specful/compare/v0.2.0...v0.3.0) - 2026-08-31
 
 This release replaces the MSRS/MSDD artifact model with first-class Requirement and Design artifacts, following the
