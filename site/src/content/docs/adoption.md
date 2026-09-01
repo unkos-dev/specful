@@ -35,9 +35,9 @@ depend on scanning the tree.
 - `.specful/config.yaml`: canonical configuration, the root-discovery sentinel for every other command.
 - `docs/specs/`: the root of the requirements and design corpus.
 - `docs/adr/`: the flat directory for Architecture Decision Records.
-- `docs/SPECFUL.md`: harness-neutral instructions for people and agents working in this repository.
-- A managed pointer block in the root `AGENTS.md`, so a harness-specific agent discovers the convention without the
-  harness owning any canonical project knowledge.
+- Empty generated navigation views for the new artifact corpus.
+
+`init` does not create or modify agent instruction files.
 
 ## Validate
 
@@ -58,9 +58,8 @@ Run validation in your local gate and in continuous integration. Specful does no
 
 ## Install the agent plugin (optional)
 
-`specful init` is tier 1: the CLI and the harness-neutral files it writes work with no further installation. An opt-in
-plugin adds tier 2: skills for authoring, reviewing, and adopting the convention, installed once per user into the agent
-harness, never written into this or any other repository.
+The convention and CLI work without an agent plugin. An opt-in plugin adds skills for authoring, reviewing, and adopting
+the convention. It is installed once per user into the agent harness and never written into an adopting repository.
 
 In Claude Code:
 
@@ -69,8 +68,7 @@ claude plugin marketplace add unkos-dev/specful
 claude plugin install specful@specful
 ```
 
-Each skill treats this repository's own `docs/SPECFUL.md` as authoritative wherever it differs from the skill's general
-guidance.
+The skills use the CLI, configuration, schemas, templates, and repository artifacts as ground truth.
 
 ## Adopting into an existing repository
 

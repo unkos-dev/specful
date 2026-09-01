@@ -159,9 +159,6 @@ fn main() -> ExitCode {
                     for path in outcome.created {
                         println!("created {path}");
                     }
-                    for path in outcome.updated {
-                        println!("updated {path}");
-                    }
                     ExitCode::SUCCESS
                 }
                 Err(findings) => {

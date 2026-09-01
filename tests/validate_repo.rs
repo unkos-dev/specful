@@ -282,7 +282,7 @@ fn init_and_new_produce_a_schema_conformant_draft() {
         rerun_findings
             .iter()
             .any(|f| f.message == "repository is already initialized"),
-        "a rerun must report already-initialized before any instruction-file finding, got {rerun_findings:?}"
+        "a rerun must report already-initialized, got {rerun_findings:?}"
     );
     assert!(
         validate_repository(scratch).is_empty(),

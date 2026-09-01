@@ -134,9 +134,9 @@ another repository-owned gate. Specful documents the commands but does not insta
 
 The core schema, templates, lifecycle, and workflow are independent of agent harnesses.
 
-Adoption installs harness-neutral instructions in `docs/SPECFUL.md` and a small managed pointer block in the root
-`AGENTS.md`, teaching the convention: the retrieval recipe and the authoring workflow, including which artifact changes
-for which kind of work.
+Adoption writes the repository configuration, artifact directories, and generated navigation views. The convention
+remains readable through its ordinary Markdown artifacts, templates, schemas, configuration, and generated indexes.
+Adoption does not create or modify agent instruction files.
 
 Optional harness-side skills teach artifact craft, expose CLI operations, and provide structured substantive review.
 They remain integration surfaces, not canonical project knowledge. Adopting maintainers decide whether review is
@@ -151,13 +151,12 @@ The initial product scope includes:
 - stable identifiers and validated relationships;
 - generated per-scope indexes and a machine-readable catalog;
 - a CLI providing `init`, `new`, `validate`, `index`, `show`, and `trace`;
-- harness-neutral instruction content installed at adoption;
 - opt-in harness-side skills for artifact-specific authoring, substantive review, validation, indexing, and retrieval,
   installed once per user and never written into an adopting repository.
 
 Planned after the initial release: traceability views, harness-specific adapters beyond the delivered Claude Code
-plugin, managed instruction-file updates, verification and code-ownership relationship types, and brownfield adoption
-guidance for documenting existing repositories incrementally.
+plugin, verification and code-ownership relationship types, and brownfield adoption guidance for documenting existing
+repositories incrementally.
 
 ## Non-goals
 

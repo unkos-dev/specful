@@ -37,8 +37,7 @@ inside dot-directories such as `.changeset/config.json` and `.cargo/config.toml`
 
 ### Consequences
 
-- Positive: a single hidden directory is specful's whole root footprint, besides `docs/` content and the `AGENTS.md`
-  block.
+- Positive: a single hidden directory is specful's whole root footprint besides its `docs/` content.
 - Negative: dot-directories pattern-match to tool caches, so an adopter may gitignore `.specful/` wholesale, which would
   exclude the canonical configuration and its identifier counters. The failure only surfaces on a fresh clone. Recovery
   is bounded: counters can be reconstructed by scanning existing artifacts for the highest allocated identifier, with
