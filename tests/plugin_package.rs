@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! Package-shape checks for the `plugin/` tree against the vendored Agent Plugins 1.0 JSON
-//! Schema, manifest agreement between the two `plugin.json` files, and Agent Skills frontmatter
-//! validity for each shipped skill.
+//! Schema and Agent Skills frontmatter validity for each shipped skill.
 //!
 //! The vendored schema at `tests/fixtures/plugin/agent-plugins-1.0.0.plugin.schema.json` is
 //! `plugin.schema.json` from `agentplugins/agent-plugins-spec` commit
@@ -117,84 +116,16 @@ fn agent_plugins_schema_rejects_a_manifest_missing_required_fields() {
 }
 
 #[test]
-fn the_two_plugin_manifests_agree_on_their_shared_keys() {
-    let ap1 = read_json(&repo_root().join("plugin/plugin.json"));
-    let claude_code = read_json(&repo_root().join("plugin/.claude-plugin/plugin.json"));
-
-    assert_eq!(
-        ap1["name"], claude_code["name"],
-        "the two plugin.json files must agree on name"
-    );
-    if let (Some(ap1_description), Some(claude_code_description)) =
-        (ap1.get("description"), claude_code.get("description"))
-    {
-        assert_eq!(
-            ap1_description, claude_code_description,
-            "the two plugin.json files must agree on description when both carry one"
-        );
-    }
-}
-
-#[test]
-fn claude_code_manifest_carries_no_version_field() {
-    let manifest = read_json(&repo_root().join("plugin/.claude-plugin/plugin.json"));
-    assert!(
-        manifest.get("version").is_none(),
-        "plugin/.claude-plugin/plugin.json must not carry a version field"
-    );
-    let allowed = ["name", "description"];
-    for key in manifest.as_object().expect("manifest is an object").keys() {
+fn package_contains_no_harness_specific_manifests() {
+    for path in [
+        ".claude-plugin/marketplace.json",
+        "plugin/.claude-plugin/plugin.json",
+    ] {
         assert!(
-            allowed.contains(&key.as_str()),
-            "plugin/.claude-plugin/plugin.json has an unexpected key {key:?}"
+            !repo_root().join(path).exists(),
+            "harness-specific manifest must be absent: {path}"
         );
     }
-}
-
-#[test]
-fn marketplace_manifest_pins_the_specful_plugin() {
-    let manifest = read_json(&repo_root().join(".claude-plugin/marketplace.json"));
-    let plugins = manifest["plugins"]
-        .as_array()
-        .expect("marketplace manifest carries a plugins array");
-    assert_eq!(plugins.len(), 1, "the marketplace lists exactly one plugin");
-
-    let entry = &plugins[0];
-    assert_eq!(entry["name"], "specful");
-
-    let source = &entry["source"];
-    assert_eq!(source["source"], "git-subdir");
-    assert_eq!(source["path"], "plugin");
-
-    let sha = source["sha"]
-        .as_str()
-        .expect("the pinned entry carries a string sha");
-    assert_eq!(
-        sha.len(),
-        40,
-        "the pinned sha is a full 40-character hex commit id"
-    );
-    assert!(
-        sha.bytes().all(|byte| byte.is_ascii_hexdigit()),
-        "the pinned sha must be hexadecimal"
-    );
-
-    assert!(
-        source.get("version").is_none(),
-        "the marketplace source must not carry a version field"
-    );
-    assert!(
-        source.get("ref").is_none(),
-        "the marketplace source must not carry a ref field"
-    );
-    assert!(
-        entry.get("version").is_none(),
-        "the marketplace entry must not carry a version field"
-    );
-    assert!(
-        entry.get("ref").is_none(),
-        "the marketplace entry must not carry a ref field"
-    );
 }
 
 fn skill_directories() -> Vec<PathBuf> {

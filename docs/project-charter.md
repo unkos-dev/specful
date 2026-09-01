@@ -154,9 +154,8 @@ The initial product scope includes:
 - opt-in harness-side skills for artifact-specific authoring, substantive review, validation, indexing, and retrieval,
   installed once per user and never written into an adopting repository.
 
-Planned after the initial release: traceability views, harness-specific adapters beyond the delivered Claude Code
-plugin, verification and code-ownership relationship types, and brownfield adoption guidance for documenting existing
-repositories incrementally.
+Planned after the initial release: traceability views, verification and code-ownership relationship types, and
+brownfield adoption guidance for documenting existing repositories incrementally.
 
 ## Non-goals
 
