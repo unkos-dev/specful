@@ -2,8 +2,7 @@
 name: specful-author
 description: >-
   Use when writing or updating a Specful Requirement, Design, or ADR: a new specification, a change to normative
-  obligations or how the system works, or a durable decision record. Loads the authoring workflow so identifiers,
-  scaffolds, and generated views stay correct end to end.
+  obligations or how the system works, or a durable decision record.
 compatibility: Requires specful 0.3.0 or later on PATH.
 ---
 

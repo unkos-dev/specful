@@ -2,8 +2,7 @@
 name: specful-review
 description: >-
   Use when reviewing a Specful Requirement, Design, or ADR, or a pull request that changes one, for substance rather
-  than mechanics. Loads the review checklist for what `specful validate` deliberately does not check: acceptance
-  criteria quality, the not-applicable discipline, the Requirement-versus-ADR boundary, and current-state writing.
+  than mechanics: acceptance criteria quality, the not-applicable discipline, and the Requirement-versus-ADR boundary.
 compatibility: Requires specful 0.3.0 or later on PATH.
 ---
 

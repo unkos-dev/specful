@@ -1,8 +1,8 @@
 ---
 name: specful-adopt
 description: >-
-  Use when a repository has no Specful specifications yet and someone asks to adopt Specful, set up specifications, or
-  start tracking Requirements, Designs, and ADRs. Guides first-time `specful init` and the first artifacts.
+  Use when a repository has no Specful specifications yet and someone wants to adopt Specful or start tracking
+  Requirements, Designs, and ADRs.
 compatibility: Requires specful 0.3.0 or later on PATH.
 ---
 
