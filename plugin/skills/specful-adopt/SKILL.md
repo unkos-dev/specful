@@ -19,12 +19,10 @@ compatibility: Requires specful 0.3.0 or later on PATH.
    installs `docs/SPECFUL.md`, and upserts the managed block in the root `AGENTS.md`. See `specful init --help` and the
    configuration reference at <https://unkos-dev.github.io/specful/> for exactly what it creates and the rules for
    rerunning it safely.
-4. Read the freshly installed `docs/SPECFUL.md`; it is now the authoritative source for this repository's authoring
-   workflow and record model.
-5. Load the `specful-author` skill to write the first Requirement, Design, or ADR. A reasonable first artifact is a
-   Requirement for whatever capability prompted the adoption, so the repository has at least one real record to navigate
-   from.
-6. Run `specful index` and `specful validate`, then commit the initialised state together with the first artifact.
+4. Load `specful-requirement`, `specful-design`, or `specful-adr` to write the first artifact. A reasonable first
+   artifact is a Requirement for whatever capability prompted the adoption, so the repository has at least one real
+   record to navigate from.
+5. Run `specful index` and `specful validate`, then commit the initialised state together with the first artifact.
 
 ## Common pitfalls
 
@@ -32,5 +30,5 @@ compatibility: Requires specful 0.3.0 or later on PATH.
   cannot change later without re-issuing every identifier.
 - Hand-writing `docs/specs/index.md` or the catalog instead of running `specful index`; these are generated views and
   are overwritten on the next run regardless.
-- Skipping `docs/SPECFUL.md` and working from memory of a different repository's conventions; the record model and
-  writing rules are versioned per installation.
+- Working from memory of a different repository's conventions; the repository's own templates and `specful validate` are
+  the ground truth for what its installation expects.

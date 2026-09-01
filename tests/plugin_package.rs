@@ -234,8 +234,10 @@ fn every_skill_directory_has_the_eight_expected_skills() {
         names,
         vec![
             "specful-adopt",
-            "specful-author",
+            "specful-adr",
+            "specful-design",
             "specful-index",
+            "specful-requirement",
             "specful-review",
             "specful-show",
             "specful-trace",
