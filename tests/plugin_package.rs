@@ -253,3 +253,40 @@ fn every_skill_has_valid_agent_skills_frontmatter() {
         );
     }
 }
+
+#[test]
+fn review_skill_ships_named_non_empty_regular_references() {
+    let review_references = repo_root().join("plugin/skills/specful-review/references");
+    let expected = [
+        "adr-review.md",
+        "design-review.md",
+        "report-format.md",
+        "requirement-review.md",
+    ];
+
+    let mut actual: Vec<_> = fs::read_dir(&review_references)
+        .unwrap_or_else(|error| panic!("failed to read {}: {error}", review_references.display()))
+        .map(|entry| entry.expect("review reference entry should be readable"))
+        .map(|entry| entry.file_name().to_string_lossy().into_owned())
+        .collect();
+    actual.sort();
+    assert_eq!(actual, expected);
+
+    for name in expected {
+        let path = review_references.join(name);
+        let metadata = fs::symlink_metadata(&path)
+            .unwrap_or_else(|error| panic!("failed to inspect {}: {error}", path.display()));
+        assert!(
+            metadata.file_type().is_file(),
+            "{}/{} must be a regular file",
+            review_references.display(),
+            name
+        );
+        assert!(
+            metadata.len() > 0,
+            "{}/{} must not be empty",
+            review_references.display(),
+            name
+        );
+    }
+}

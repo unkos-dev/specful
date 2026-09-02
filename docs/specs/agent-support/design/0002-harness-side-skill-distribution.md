@@ -30,9 +30,10 @@ instructions, or any other repository control.
 The package lives under `plugin/`:
 
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
-- `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow;
-- `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming, and
-  frontmatter shape;
+- `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` also ships concise
+  Requirement, Design, ADR, and report-format references under its `references/` directory;
+- `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
+  frontmatter shape, and the named, regular, non-empty review references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
 
 All eight directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated
@@ -77,9 +78,13 @@ adopting repository.
 At invocation time, the harness matches a request against each skill's description and loads the corresponding body.
 Authoring skills scaffold through `specful new`, guide completion of one artifact type, and finish with indexing and
 mechanical validation. They point to substantive review when the adopting repository requires it or the user asks for
-it. Operation skills run the matching CLI command or commands and report the result. `specful-review` judges artifact
-qualities that schemas and cross-reference checks cannot establish. It does not change the meaning of
-`specful validate`, and the adopting maintainer decides whether either activity is advisory or blocking.
+it. Operation skills run the matching CLI command or commands and report the result. `specful-review` resolves an
+artifact, draft, immutable change, or bounded re-review target; validates first; loads only the references for artifact
+types in scope; and reports evidence-backed substantive findings with `SHIP`, `CONDITIONAL`, or `NO-SHIP`. Mechanical
+validation remains distinct from substantive judgement. The skill returns its compact report in the conversation only;
+it does not edit a repository or publish a pull-request comment or formal review. An interactive harness may offer
+independent or in-session execution, while the adopting maintainer decides whether review is advisory or blocking.
+Non-interactive invocation policy remains outside this package.
 
 ## Failure and recovery
 
