@@ -4,4 +4,5 @@
 
 ## Scopes
 
+- [agent-support](agent-support/index.md)
 - [authoring](authoring/index.md)

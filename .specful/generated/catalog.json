@@ -48,6 +48,15 @@
       "title": "Identifier allocation and scaffolding"
     },
     {
+      "governed-by": [
+        "SPECFUL-ADR-0005"
+      ],
+      "id": "SPECFUL-DESIGN-0002",
+      "kind": "design",
+      "path": "docs/specs/agent-support/design/0002-harness-side-skill-distribution.md",
+      "title": "Harness-side skill distribution"
+    },
+    {
       "id": "SPECFUL-REQ-0001",
       "kind": "req",
       "path": "docs/specs/authoring/requirements/0001-stable-identifier-allocation.md",
