@@ -151,7 +151,7 @@ fn is_valid_skill_name(name: &str) -> bool {
 }
 
 #[test]
-fn every_skill_directory_has_the_eight_expected_skills() {
+fn every_skill_directory_has_the_nine_expected_skills() {
     let names: Vec<_> = skill_directories()
         .iter()
         .map(|path| {
@@ -167,6 +167,7 @@ fn every_skill_directory_has_the_eight_expected_skills() {
             "specful-adr",
             "specful-design",
             "specful-index",
+            "specful-plan",
             "specful-requirement",
             "specful-review",
             "specful-show",
@@ -174,6 +175,38 @@ fn every_skill_directory_has_the_eight_expected_skills() {
             "specful-validate",
         ]
     );
+}
+
+#[test]
+fn plan_skill_ships_named_non_empty_regular_references() {
+    let plan_references = repo_root().join("plugin/skills/specful-plan/references");
+    let expected = ["arc-plan.md", "change-plan.md"];
+
+    let mut actual: Vec<_> = fs::read_dir(&plan_references)
+        .unwrap_or_else(|error| panic!("failed to read {}: {error}", plan_references.display()))
+        .map(|entry| entry.expect("plan reference entry should be readable"))
+        .map(|entry| entry.file_name().to_string_lossy().into_owned())
+        .collect();
+    actual.sort();
+    assert_eq!(actual, expected);
+
+    for name in expected {
+        let path = plan_references.join(name);
+        let metadata = fs::symlink_metadata(&path)
+            .unwrap_or_else(|error| panic!("failed to inspect {}: {error}", path.display()));
+        assert!(
+            metadata.file_type().is_file(),
+            "{}/{} must be a regular file",
+            plan_references.display(),
+            name
+        );
+        assert!(
+            metadata.len() > 0,
+            "{}/{} must not be empty",
+            plan_references.display(),
+            name
+        );
+    }
 }
 
 #[test]

@@ -6,7 +6,7 @@ description: The end-to-end path an agent or person follows to change a Specful 
 This is the complete path from "something changed" to "the corpus reflects it, and validation proves that." Follow it in
 order; each step depends on the one before it.
 
-The type-specific authoring skills and `specful-review`, part of the opt-in
+The type-specific authoring skills, `specful-plan`, and `specful-review`, part of the opt-in
 [agent skills](/specful/adoption/#install-agent-skills-optional), load this workflow in supported harnesses; this page
 stays the canonical copy either way.
 
@@ -70,10 +70,16 @@ placeholder.
 
 ## 6. Coordinate a multi-step transition, if this change is one
 
-A single Requirement, Design, or ADR edit needs no plan. A transition that spans several artifacts or several pull
-requests is coordinated with a plan file in `plans/`, copied by hand from `templates/change-plan.md` or
-`templates/arc-plan.md`. A plan is temporary: it never becomes the canonical home for durable rationale, which graduates
-to an ADR before the plan is archived or deleted.
+A settled change that fits one sitting may need no saved plan. Use `templates/change-plan.md` for one coherent
+deliverable that needs a persistent hand-off. Use `templates/arc-plan.md` when several independently deliverable changes
+need coordination, then create each child change plan when that boundary is ready to execute. `specful-plan` can select
+and fill the same structure. The adopting repository owns the plan location and retention policy; `plans/` is the
+default when it has no established convention.
+
+A plan is temporary. It cannot become the canonical home for durable rationale, which graduates to an ADR before the
+plan is archived or deleted. Its fixed sections keep execution context and progress visible across sessions without
+repeating scope, current behaviour, or verification in separate sections. A section that does not apply remains present
+with a reason.
 
 ## 7. Regenerate the navigation views
 

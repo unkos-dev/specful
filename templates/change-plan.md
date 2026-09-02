@@ -1,11 +1,11 @@
 ---
 type: change-plan
-status: "{draft | active | complete}"
+status: draft
 created: "{YYYY-MM-DD}"
-issue: "{tracker ID, one string}"
+issue: "{tracker ID or URL}"
 relates-to:
-  - "{specful identifier or path}"
-part-of: "{path to the umbrella arc plan}"
+  - "{Specful identifier or path}"
+part-of: "{path to the governing arc plan}"
 ---
 
 # {Plan title}
@@ -15,37 +15,59 @@ current specifications; the implementing change updates the corresponding Requir
 lifecycle. An unresolved conflict with a governing decision stops execution; a planned divergence from current state
 does not.
 
-All frontmatter fields are optional; a bare title is a valid plan. `status` is one of `draft`, `active`, or `complete`.
-`relates-to` holds specful identifiers or paths, uninterpreted; plans may cite other plans and committed specful
-artifacts, but Requirement, Design, and ADR artifacts never cite plans. `issue` is one tracker-agnostic string; a
-repository needing more lists them in prose. `part-of` names this change plan's umbrella arc plan; like other
-path-valued fields, it goes stale once a plan moves to `plans/archive/`, accepted for an authoring convention.
+`type`, `status`, and `created` are required. `status` is `draft`, `active`, `blocked`, or `complete`. `issue`,
+`relates-to`, and `part-of` are optional and are removed when they do not apply. `relates-to` holds Specful identifiers
+or paths without interpreting them. `part-of` links a child change plan back to its governing arc plan. Keep every
+section below; when one does not apply, state that briefly and give the reason.
 
-## Problem
+## Outcome
 
-{What needs to change, and why it matters now.}
+{The problem, intended result, why it matters, and what the change includes and excludes.}
 
-## Approach
+## Authority and evidence
 
-<!-- Optional. Remove if the tasks below are self-explanatory. -->
+{Governing artifacts, approved decisions, applicable standards, and the relevant current behaviour, integration points,
+and constraints.}
 
-{The chosen approach, and why a materially different alternative was not taken.}
+## Design
 
-## Tasks
+{The settled approach, material alternatives, and any owner-approved choices. Include a sequence, state, data-flow,
+architecture, or before-and-after model when it makes a material relationship easier to assess.}
 
-- {Task}
+## Acceptance criteria
 
-## Verification
+- {Observable completed behaviour and the proof that establishes it.}
 
-{Commands, tests, or checks that confirm the change is complete and correct.}
+## Context capsule
 
-## Deferred by decision
+- **Read first:** {Files and artifacts a fresh executor needs.}
+- **Binding invariants:** {Rules this change cannot violate.}
+- **Ownership:** {Branch, worktree, session, or external-system ownership where relevant.}
+- **Commands:** {Verified repository-native implementation and validation commands.}
 
-<!-- Optional. Remove if nothing was deliberately excluded. -->
+## Implementation
 
-- {Scope deliberately excluded from this plan, and why.}
+1. **{Outcome-sized task}**
+   - {Affected files or integration points.}
+   - {Behavioural test or evidence seam and material edge cases.}
+   - {Focused verification.}
 
-## Completion
+## Risks and contingencies
 
-Graduate durable rationale to an ADR, then move this file out of the active set, to `plans/archive/` or by deletion, per
-repository policy.
+- {Credible failure mode, compatibility concern, rollback need, or reason none applies.}
+
+## Progress and hand-off
+
+Current checkpoint: Not started.
+
+Next action: {The first concrete action.}
+
+Active blockers: None.
+
+### Amendments
+
+None.
+
+### Final disposition
+
+Pending.

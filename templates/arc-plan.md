@@ -1,86 +1,87 @@
 ---
 type: arc-plan
-status: "{draft | active | complete}"
+status: draft
 created: "{YYYY-MM-DD}"
-issue: "{tracker ID, one string}"
+issue: "{tracker ID or URL}"
 relates-to:
-  - "{specful identifier or path}"
+  - "{Specful identifier or path}"
 ---
 
 # {Arc plan title}
 
-This plan is temporary and cannot amend canonical artifacts by itself. It may describe an outcome that differs from the
+This plan is temporary and cannot amend canonical artifacts by itself. It may describe outcomes that differ from the
 current specifications; each implementing change updates the corresponding Requirement, Design, or ADR through its
 normal lifecycle. An unresolved conflict with a governing decision stops execution; a planned divergence from current
 state does not.
 
-All frontmatter fields are optional; a bare title is a valid plan. `status` is one of `draft`, `active`, or `complete`.
-`relates-to` holds specful identifiers or paths, uninterpreted; plans may cite other plans and committed specful
-artifacts, but Requirement, Design, and ADR artifacts never cite plans; like other path-valued fields, an entry goes
-stale once the file it names moves to `plans/archive/`, accepted for an authoring convention. `issue` is one
-tracker-agnostic string; a repository needing more lists them in prose.
+`type`, `status`, and `created` are required. `status` is `draft`, `active`, `blocked`, or `complete`. `issue` and
+`relates-to` are optional and are removed when they do not apply. `relates-to` holds Specful identifiers or paths
+without interpreting them. Keep every section below; when one does not apply, state that briefly and give the reason.
 
 ## Objective
 
-{The delivered outcome, one paragraph.}
+{The integrated outcome and why it requires more than one independently deliverable change.}
 
-## What this arc plan is and is not
+## Scope
 
-This arc plan decomposes execution across change-sized deliverables. A deliverable gets its own change-plan file, with
-`part-of` pointing back here, only when it needs standalone coordination; otherwise its step brief below is enough.
-Binding inputs constrain only the decisions they actually settle; executors must not contradict or silently reopen them.
-Implementation choices the inputs leave open are decided at the appropriate step and recorded in the changelog.
+{What the arc includes and excludes.}
 
-## Binding inputs
+## Binding inputs and decisions
 
-{Each binding authority, in prose, with what it locks. Cite accepted decisions and committed specifications; a proposed
-or superseded ADR is context, not authority.}
+{Each governing artifact or approved decision and what it locks. A proposed or superseded ADR is context, not
+authority.}
 
-## Dependency graph
+## Models and flows
 
-<!-- Optional. If steps are strictly sequential, one sentence suffices;
-delete the table and diagram. -->
+{A sequence, state, data-flow, architecture, or before-and-after model when it makes a material relationship easier to
+assess. Otherwise state why a model does not help.}
 
-| Step | Depends on (hard) | Soft edges | Parallel-eligible with |
+## Dependency model
+
+| Deliverable | Outcome | Hard dependencies | Exit criteria |
 |---|---|---|---|
-| {Step} | {Step or none} | {Step or none} | {Step or none} |
+| {A} | {Coherent outcome} | {None or deliverable IDs} | {Observable completion condition} |
 
-The table is normative; a diagram below is illustration only, and the table wins where they disagree.
+## Decision gates
 
-```mermaid
-graph TD
-    step1["{Step name}"] --> step2["{Step name}"]
-```
+{Unresolved choices that stop a deliverable and the owner who decides them. A change to a binding input stops for the
+arc owner rather than becoming a routine amendment.}
 
-## Steps
+## Integrated verification
 
-### {Step name}
+{End-to-end, compatibility, or cross-deliverable proof that no child plan establishes alone.}
 
-{Cold-start context brief: what an executor needs to know to start this step without reading the rest of the arc plan.}
+## Context capsule
 
-- {Task}
+- **Read first:** {Files and artifacts a fresh coordinator needs.}
+- **Binding invariants:** {Rules every deliverable must preserve.}
+- **Ownership:** {Branch, worktree, session, or external-system ownership where relevant.}
+- **Commands:** {Verified coordination and validation commands.}
 
-Verification: {how this step's outcome is checked, or a reference to the step's change plan, whose Verification section
-then applies.}
+## Risks and contingencies
 
-Exit criteria: {observable condition that marks this step done.}
+- {Credible cross-deliverable failure mode, compatibility concern, rollback need, or reason none applies.}
 
-## Verification
+## Progress and hand-off
 
-{How the integrated outcome is proven once the steps complete: the end-to-end, compatibility, or cross-step checks that
-no single step's exit criteria cover.}
+The status column uses the plan lifecycle values `draft`, `active`, `blocked`, and `complete`, applied to each
+deliverable rather than to the whole arc.
 
-## Mutation rule
+| Deliverable | Status | Child plan | Delivered evidence |
+|---|---|---|---|
+| {A} | draft | {Path or not created} | {Commit, pull request, artifact, or verification result} |
 
-Reality-driven changes to this plan (split, insert, skip, reorder, abandon a step) are made in the plan and logged in
-the changelog below. A change that touches a binding input is a stop-and-surface event for this plan's owner, not a
-routine edit.
+Current checkpoint: Not started.
 
-## Changelog
+Next action: {The first concrete action.}
 
-- {YYYY-MM-DD}: {Mutation or execution-time refinement, and why.}
+Active blockers: None.
 
-## Completion
+### Amendments
 
-Graduate durable rationale to an ADR, then move this file out of the active set, to `plans/archive/` or by deletion, per
-repository policy.
+None. A reality-driven split, insertion, skip, reorder, or abandoned deliverable is recorded here after its decision
+gate is cleared.
+
+### Final disposition
+
+Pending.

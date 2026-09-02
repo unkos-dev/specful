@@ -9,9 +9,10 @@ governed-by:
 
 # Harness-side skill distribution
 
-Specful packages eight harness-side skills in one repository tree and distributes them through `gh skill install`.
-Repository release tags identify released skill payloads. The skills add artifact craft, CLI operations, and substantive
-review while leaving canonical project knowledge in the adopting repository's ordinary files.
+Specful packages nine harness-side skills in one repository tree and distributes them through `gh skill install`.
+Repository release tags identify released skill payloads. The skills add artifact craft, implementation planning, CLI
+operations, and substantive review while leaving canonical project knowledge in the adopting repository's ordinary
+files.
 
 ## Purpose and boundaries
 
@@ -30,23 +31,24 @@ instructions, or any other repository control.
 The package lives under `plugin/`:
 
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
-- `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` also ships concise
-  Requirement, Design, ADR, and report-format references under its `references/` directory;
+- `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` ships concise
+  Requirement, Design, ADR, and report-format references, while `specful-plan` ships concise change-plan and arc-plan
+  references;
 - `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
-  frontmatter shape, and the named, regular, non-empty review references;
+  frontmatter shape, and the named, regular, non-empty review and planning references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
 
-All eight directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated
+All nine directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated
 packages in shared flat namespaces. The authoring set is `specful-requirement`, `specful-design`, and `specful-adr`.
-`specful-review` provides substantive artifact review. `specful-validate`, `specful-index`, `specful-show`, and
-`specful-trace` expose the matching CLI operations.
+`specful-plan` plans implementation work and `specful-review` provides substantive artifact review. `specful-validate`,
+`specful-index`, `specful-show`, and `specful-trace` expose the matching CLI operations.
 
 ## Interfaces and dependencies
 
-Each skill uses Agent Skills frontmatter for its name, trigger description, and compatibility declaration, followed by
-Markdown instructions that a harness loads when the skill applies. The skills require `specful` 0.3.0 or later on
-`PATH`. Each skill invokes the CLI where its workflow calls for it. Authoring and review skills also use repository
-artifacts and public documentation as source material.
+Each skill uses Agent Skills frontmatter for its name and trigger description, followed by Markdown instructions that a
+harness loads when the skill applies. Skills that invoke the CLI also declare their `specful` compatibility requirement
+and require `specful` 0.3.0 or later on `PATH`. Authoring, planning, and review skills also use repository artifacts and
+public documentation as source material.
 
 Users install the package through the GitHub CLI:
 
@@ -86,12 +88,20 @@ it does not edit a repository or publish a pull-request comment or formal review
 independent or in-session execution, while the adopting maintainer decides whether review is advisory or blocking.
 Non-interactive invocation policy remains outside this package.
 
+`specful-plan` first decides whether the work needs a saved plan. It uses a change plan for one coherent deliverable and
+an arc plan for several independently deliverable changes. An arc normally creates only its first executable child plan;
+later child plans are written when their boundaries are ready. The skill follows the adopting repository's plan location
+and retention policy, and proposes `plans/` when none exists. It settles material choices before writing an executable
+plan, avoids repeating the same evidence across change-plan sections, keeps stable execution context separate from
+changing progress, and stops after the authorised plan files are written. It does not implement the plan, publish it, or
+change an external tracker.
+
 ## Failure and recovery
 
-Package fixtures and `skills-ref` reject malformed metadata, unexpected skill names, and a manifest that carries an
-independent version. Installation failures and unsupported target selections are reported by GitHub CLI, which owns
-their recovery behaviour. A skill invocation reports a missing or incompatible `specful` binary through the harness or
-command failure rather than installing a binary or changing repository state.
+Package fixtures and `skills-ref` reject malformed metadata, unexpected skill names, missing reference files, and a
+manifest that carries an independent version. Installation failures and unsupported target selections are reported by
+GitHub CLI, which owns their recovery behaviour. A skill invocation reports a missing or incompatible `specful` binary
+through the harness or command failure rather than installing a binary or changing repository state.
 
 Skill updates become available with repository releases. To return to a known payload, a user installs an exact tag or
 commit. The convention remains usable without any installed skill, so an unavailable installer or harness does not block
