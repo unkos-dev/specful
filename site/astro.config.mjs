@@ -45,7 +45,13 @@ export default defineConfig({
             { label: 'ADR', slug: 'profiles/adr' },
           ],
         },
-        { label: 'CLI reference', slug: 'reference/cli' },
+        {
+          label: 'Reference',
+          items: [
+            { label: 'CLI', slug: 'reference/cli' },
+            { label: 'Validation integration', slug: 'reference/validation-integration' },
+          ],
+        },
       ],
     }),
     sitemap(),

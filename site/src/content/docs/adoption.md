@@ -54,7 +54,9 @@ template placeholder text absent, and every requirement statement uses at least 
 Diagnostics are human-readable text with a meaningful exit status; a `--json` flag emits a plain machine-readable
 listing that is explicitly unstable.
 
-Run validation in your local gate and in continuous integration. Specful does not require commit hooks.
+The [validation integration reference](/specful/reference/validation-integration/) shows the canonical read-only command
+sequence and examples for adopter-owned local hooks and continuous integration. Specful does not install or require
+either control.
 
 ## Install agent skills (optional)
 
