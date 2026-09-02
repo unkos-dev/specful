@@ -50,14 +50,6 @@ jobs:
       - name: Validate plugin skills (skills-ref)
         run: just skills-ref
 
-      # The default checkout only fetches the current ref; the ancestry check below needs
-      # origin/main as a local ref to compare against.
-      - name: Fetch main for plugin pin ancestry check
-        run: git fetch origin main:refs/remotes/origin/main
-
-      - name: Validate plugin marketplace pins
-        run: just marketplace-pins
-
   secrets:
     runs-on: ubuntu-latest
     timeout-minutes: 10

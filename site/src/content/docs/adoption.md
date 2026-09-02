@@ -56,17 +56,23 @@ listing that is explicitly unstable.
 
 Run validation in your local gate and in continuous integration. Specful does not require commit hooks.
 
-## Install the agent plugin (optional)
+## Install agent skills (optional)
 
-The convention and CLI work without an agent plugin. An opt-in plugin adds skills for authoring, reviewing, and adopting
-the convention. It is installed once per user into the agent harness and never written into an adopting repository.
+The convention and CLI work without agent skills. The optional skills add workflows for authoring, reviewing, indexing,
+validation, and retrieval. They are installed once per user into the selected agent harness and never written into an
+adopting repository.
 
-In Claude Code:
+Install all eight skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
-claude plugin marketplace add unkos-dev/specful
-claude plugin install specful@specful
+gh skill install unkos-dev/specful --all --scope user
 ```
+
+Specful validates the package against the Agent Skills specification. The GitHub CLI owns the supported-agent list and
+scope behaviour. For non-interactive installation, add `--agent` with a value from the current
+[`gh skill install` manual](https://cli.github.com/manual/gh_skill_install). Without an explicit pin, the installer uses
+the latest repository release, or the default branch when no release exists. Add `--pin` with a tag or commit when an
+exact revision is required.
 
 The skills use the CLI, configuration, schemas, templates, and repository artifacts as ground truth.
 

@@ -77,16 +77,17 @@ Opt-in agent skills build on that floor, loaded by the harness at the moment the
 - `specful-validate`, `specful-index`, `specful-show`, and `specful-trace` wrap the matching CLI commands for direct
   invocation mid-session.
 
-The plugin is installed once per user into the agent harness and is never written into an adopting repository. In Claude
-Code:
+Install all eight skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
-claude plugin marketplace add unkos-dev/specful
-claude plugin install specful@specful
+gh skill install unkos-dev/specful --all --scope user
 ```
 
-The skills use the CLI and the adopting repository's artifacts as ground truth. See
-[Adoption](https://unkos-dev.github.io/specful/adoption/) for the full installation and update path.
+Specful validates the package against the Agent Skills specification. The GitHub CLI owns the supported-agent list and
+scope behaviour. For non-interactive installation, add `--agent` with a value from its
+[`gh skill install` manual](https://cli.github.com/manual/gh_skill_install). The skills use the CLI and the adopting
+repository's artifacts as ground truth. See [Adoption](https://unkos-dev.github.io/specful/adoption/) for the full
+installation and update path.
 
 ## Documentation
 
