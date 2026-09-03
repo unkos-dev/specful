@@ -6,7 +6,7 @@ description: The end-to-end path an agent or person follows to change a Specful 
 This is the complete path from "something changed" to "the corpus reflects it, and validation proves that." Follow it in
 order; each step depends on the one before it.
 
-The type-specific authoring skills, `specful-plan`, and `specful-review`, part of the opt-in
+The type-specific authoring skills, `specful-plan`, `specful-implement`, and `specful-review`, part of the opt-in
 [agent skills](/specful/adoption/#install-agent-skills-optional), load this workflow in supported harnesses; this page
 stays the canonical copy either way.
 
@@ -70,17 +70,20 @@ placeholder.
 
 ## 6. Coordinate a multi-step transition, if this change is one
 
-A settled change that fits one sitting may need no saved plan. Use `templates/change-plan.md` for one coherent
-deliverable that needs a persistent hand-off. Use `templates/arc-plan.md` when several independently deliverable changes
-need coordination, then create each child change plan when that boundary is ready to execute. `specful-plan` can select
-and fill the same structure. The adopting repository owns the plan location and retention policy; `plans/` is the
-default when it has no established convention.
+A settled change that fits one sitting may need no saved plan. Use `templates/change-plan.md` for one coherent work
+order that needs a persistent hand-off. Use `templates/arc-plan.md` when several independently deliverable changes need
+coordination. An arc contains the ordered steps, and each step is one pull request with its own context, tasks,
+rollback, verification, and exit criteria. Write a separate change plan only when a step needs a standalone execution
+packet.
+
+`specful-plan` selects and fills the same templates. Every statement in the resulting plan is exact unless its task
+states an open choice and the reason. `specful-implement` executes one step, stops when the repository contradicts the
+plan or correctness requires a deviation, records the evidence, and waits for approval. It never merges. The adopting
+repository owns the plan location, branch and publication rules, and retention policy; `plans/` is the default when it
+has no established planning convention.
 
 A plan is temporary. It cannot become the canonical home for durable rationale, which graduates to an ADR before the
-plan is archived or deleted. Change plans use typed sections for the outcome, recommendation, root cause, visuals,
-implementation context, scope, tasks, acceptance, validation, risks, and progress. Arc plans replace task detail with
-binding inputs, deliverables, decision gates, and integrated verification. Every fixed section remains present; a
-section that does not apply gives the reason.
+plan is archived or deleted. Every fixed section remains present; a section that does not apply gives the reason.
 
 ## 7. Regenerate the navigation views
 

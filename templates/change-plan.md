@@ -10,127 +10,85 @@ part-of: "{path to the governing arc plan}"
 
 # {Plan title}
 
-This plan is temporary and cannot amend canonical artifacts by itself. It may describe an outcome that differs from the
-current specifications; the implementing change updates the corresponding Requirement, Design, or ADR through its normal
-lifecycle. An unresolved conflict with a governing decision stops execution; a planned divergence from current state
-does not.
-
-`type`, `status`, and `created` are required. `status` is `draft`, `active`, `blocked`, or `complete`. `issue`,
-`relates-to`, and `part-of` are optional and are removed when they do not apply. `relates-to` holds Specful identifiers
-or paths without interpreting them. `part-of` links a child change plan back to its governing arc plan. Keep every
-section below; when one does not apply, state that briefly and give the reason.
+Every statement in this plan is exact. A deviation stops for approval.
 
 ## Outcome
 
 - **Problem:** {The specific problem and who experiences it.}
-- **Affected user:** {The user, operator, or system experiencing it.}
 - **Outcome:** {What becomes possible or reliably different.}
 - **Invariant:** {The observable property every acceptable solution preserves, without naming a mechanism.}
 - **Success signal:** {Evidence of improvement, or why acceptance fully captures it.}
-- **Approach:** {The chosen solution in one sentence.}
 
-## Recommendation
+## Not building
 
-{Why this is the smallest coherent approach the repository supports, which primitives it reuses, and what machinery it
-avoids.}
+- {Exclusion and the reason it is out of scope.}
 
-### Evidence
+## Binding inputs
 
-- `{path}:{lines}`: {Decisive behaviour, primitive, authority, or convention.}
+| Artifact | Lines | What it locks |
+|---|---|---|
+| `{path or identifier}` | {lines} | {Decision or constraint.} |
 
-### Alternatives
+## Design decisions
 
-- {Rejected alternative and why it loses against the invariant, evidence, or ownership cost.}
+1. **{Decision}:** {Rationale, and the alternative it beats.}
+
+## Open decisions
+
+| Decision | Options | Recommendation | Owner | Consequence if different |
+|---|---|---|---|---|
+| {Decision} | {Options} | {Recommendation} | {Owner} | {How the plan changes.} |
 
 ## Root cause
 
-{For asserted broken behaviour: observed failure, causal chain, fix boundary, regression proof, and uncertainty.
-Otherwise state why this section does not apply.}
+{For asserted broken behaviour: observed failure, causal chain, fix boundary as `path:line`, regression proof. Otherwise
+state that no broken behaviour was asserted.}
 
-## Visuals
-
-{A useful before-and-after flow or ownership, state, component, or data-flow diagram. Otherwise state why a model does
-not help.}
-
-## Implementation context
-
-### Reading
+## Reading
 
 | File | Lines | Why |
 |---|---|---|
-| `{path}` | {lines} | {Primitive, contract, integration point, or test precedent.} |
+| `{path}` | {lines} | {Primitive, contract, integration point, or precedent it carries.} |
 
-### Patterns and primitives
-
-- `{path}:{lines}`: {Precedent or primitive to reuse.}
-
-### Integration points
-
-- `{path}:{line}`: {Current role and how the change connects.}
-
-### Verified commands
-
-- `{command}`
-
-## Scope
-
-### In scope
-
-- {Agreed outcome.}
-
-### Not building
-
-- {Explicit exclusion and why it falls outside the invariant or belongs later.}
-
-## Implementation
+## Tasks
 
 ### 1. {Outcome}
 
-#### Files and integration points
+**Files:**
 
-- `{path}:{line}` - {CREATE or UPDATE} - {Why this location owns the change.}
+- `{path}:{line}` — {CREATE or UPDATE} — {Why this location owns the change.}
 
-#### Implementation
+**Do:**
 
-- {Concrete behaviour, contract, or data flow, with a precedent cited by path and lines.}
-- {Load-bearing boundary, failure behaviour, or gotcha.}
+1. {Verb-first instruction, with the precedent to mirror by `path:lines`.}
+2. {Verb-first instruction. Open choice: {what is open}, because {reason}.}
 
-#### Tests
+**Verify:**
 
-- {Behaviour to prove and the test surface that proves it.}
-
-#### Validation
-
-- `{command}` - {Expected observable result; the command fails when the behaviour is absent.}
+- `{command}` — {Expected output; fails when this task's behaviour is absent.}
 
 ## Acceptance
 
 - **AC1:** {Observable outcome or preserved invariant.}
 
-## Validation
+## Verification
 
 | Gate | Command or procedure | Proves |
 |---|---|---|
 | {Gate} | `{command}` | {AC numbers} |
 
-## Risks and decisions
+## Risks
 
-| Decision or risk | Recommendation | Evidence or mitigation | Consequence if different |
-|---|---|---|---|
-| {Decision or risk} | {Recommendation} | {Evidence or mitigation} | {Consequence} |
+| Risk | Mitigation | Task |
+|---|---|---|
+| {Risk} | {Mitigation} | {Task number} |
 
-## Progress and hand-off
+## Progress
 
-Current checkpoint: Not started.
+Checkpoint: {Last completed state.}
 
-Next action: {The first concrete action.}
+Next: {The next task.}
 
-Active blockers: None.
+Blocked: {Deviation awaiting approval with its evidence, or `None`.}
 
-### Amendments
-
-None.
-
-### Final disposition
-
-Pending.
+Amendments: {Approved deviations, dated, or `None`.}

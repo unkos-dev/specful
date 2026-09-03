@@ -60,11 +60,11 @@ either control.
 
 ## Install agent skills (optional)
 
-The convention and CLI work without agent skills. The optional skills add workflows for authoring, planning, reviewing,
-indexing, validation, and retrieval. They are installed once per user into the selected agent harness and never written
-into an adopting repository.
+The convention and CLI work without agent skills. The optional skills add workflows for authoring, planning,
+step-by-step implementation, reviewing, indexing, validation, and retrieval. They are installed once per user into the
+selected agent harness and never written into an adopting repository.
 
-Install all nine skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
+Install all ten skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
 gh skill install unkos-dev/specful --all --scope user

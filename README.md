@@ -75,10 +75,11 @@ Opt-in agent skills build on that floor, loaded by the harness at the moment the
 - `specful-review` checks an artifact for what mechanical validation cannot: acceptance-criteria quality, artifact
   boundaries, and current-state writing;
 - `specful-plan` creates a right-sized implementation plan or coordinating arc when work needs a persistent hand-off;
+- `specful-implement` executes a named plan one step at a time, stopping when the repository contradicts it;
 - `specful-validate`, `specful-index`, `specful-show`, and `specful-trace` wrap the matching CLI commands for direct
   invocation mid-session.
 
-Install all nine skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
+Install all ten skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
 gh skill install unkos-dev/specful --all --scope user

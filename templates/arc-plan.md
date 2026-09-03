@@ -9,35 +9,15 @@ relates-to:
 
 # {Arc plan title}
 
-This plan is temporary and cannot amend canonical artifacts by itself. It may describe outcomes that differ from the
-current specifications; each implementing change updates the corresponding Requirement, Design, or ADR through its
-normal lifecycle. An unresolved conflict with a governing decision stops execution; a planned divergence from current
-state does not.
-
-`type`, `status`, and `created` are required. `status` is `draft`, `active`, `blocked`, or `complete`. `issue` and
-`relates-to` are optional and are removed when they do not apply. `relates-to` holds Specful identifiers or paths
-without interpreting them. Keep every section below; when one does not apply, state that briefly and give the reason.
+Every statement in this plan is exact. A deviation stops for approval.
 
 ## Objective
 
-- **Problem:** {The specific problem and who experiences it.}
-- **Affected user:** {The user, operator, or system experiencing it.}
-- **Outcome:** {What becomes possible or reliably different.}
-- **Invariant:** {The observable property every acceptable solution preserves, without naming a mechanism.}
-- **Success signal:** {Evidence of improvement, or why acceptance fully captures it.}
-- **Approach:** {The chosen coordinating solution in one sentence.}
+{What is delivered and why.}
 
-## Recommendation
+## Not building
 
-{Why an arc is the smallest coherent shape, which primitives it reuses, and what machinery it avoids.}
-
-### Evidence
-
-- `{path}:{lines}`: {Decisive behaviour, primitive, authority, or convention.}
-
-### Alternatives
-
-- {Rejected decomposition and why it loses against the invariant, evidence, or ownership cost.}
+- {Exclusion and the reason it is out of scope.}
 
 ## Binding inputs
 
@@ -45,53 +25,73 @@ without interpreting them. Keep every section below; when one does not apply, st
 |---|---|---|
 | `{path or identifier}` | {lines} | {Decision or constraint.} |
 
-## Visuals
+## Design decisions
 
-{A useful dependency, sequence, state, ownership, architecture, or before-and-after model. Otherwise state why a model
-does not help.}
+1. **{Decision}:** {Rationale.}
 
-## Deliverables
+## Open decisions
 
-| Deliverable | Outcome | Hard dependencies | Exit criteria | Child plan |
+| Decision | Options | Recommendation | Owner | Consequence if different |
 |---|---|---|---|---|
-| {A} | {Coherent outcome} | {None or deliverable IDs} | {Observable completion condition} | {Path or not created} |
+| {Decision} | {Options} | {Recommendation} | {Owner} | {How the plan changes.} |
 
-## Decision gates
+## Prerequisites
 
-| Gate | Options | Recommendation | Owner | Consequence if different |
-|---|---|---|---|---|
-| {Gate} | {Options} | {Recommendation} | {Owner} | {How the arc changes.} |
+- [ ] `{command}` — {Expected result before Step 01.}
 
-## Integrated verification
+## Dependency graph
 
-| Gate | Command or procedure | Proves |
+```mermaid
+graph LR
+    s01[Step 01] --> s02[Step 02] --> s04[Step 04]
+    s01 --> s03[Step 03] --> s04
+```
+
+Parallel: {Steps that share no files and no outputs, or `None`.}
+
+## Steps
+
+One step is one pull request.
+
+### Step 01: {Title}
+
+**Depends on:** {Step numbers or `None`}
+
+**Context:** {The state of the repository when this step starts, as an executor with no history needs it.}
+
+**Tasks:**
+
+1. {Verb-first instruction.}
+2. {Verb-first instruction. Open choice: {what is open}, because {reason}.}
+
+**Rollback:** `{command}` — {What it restores.}
+
+**Verification:**
+
+- `{command}` — {Expected output.}
+
+**Exit criteria:** {The resulting state, checkable without judgement.}
+
+## Verification
+
+| When | Command or procedure | Proves |
 |---|---|---|
-| {Gate} | `{command or procedure}` | {Acceptance criteria or invariant.} |
+| Every step | `{command}` | {Property that must hold throughout.} |
+| Completion | `{command}` | {Objective it proves.} |
 
-## Risks and decisions
+## Risks
 
-| Decision or risk | Recommendation | Evidence or mitigation | Consequence if different |
-|---|---|---|---|
-| {Decision or risk} | {Recommendation} | {Evidence or mitigation} | {Consequence} |
+| Risk | Mitigation | Step |
+|---|---|---|
+| {Risk} | {Mitigation} | {Step number} |
 
-## Progress and hand-off
+## Progress log
 
-The status column uses `draft`, `active`, `blocked`, or `complete` for each deliverable, not for the whole arc.
+This table is the only record of execution state.
 
-| Deliverable | Status | Child plan | Delivered evidence |
-|---|---|---|---|
-| {A} | draft | {Path or not created} | {Commit, pull request, artifact, or verification result} |
+| Step | Status | Branch | PR | Notes |
+|---|---|---|---|---|
+| 01 | pending | — | — | — |
 
-Current checkpoint: Not started.
-
-Next action: {The first concrete action.}
-
-Active blockers: None.
-
-### Amendments
-
-None. Record a reality-driven split, insertion, skip, reorder, or abandoned deliverable after its decision gate clears.
-
-### Final disposition
-
-Pending.
+Status is `pending`, `active`, `blocked`, `complete`, or `skipped`. A deviation awaiting approval is recorded in Notes
+with the step `blocked`.

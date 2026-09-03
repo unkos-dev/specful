@@ -9,10 +9,10 @@ governed-by:
 
 # Harness-side skill distribution
 
-Specful packages nine harness-side skills in one repository tree and distributes them through `gh skill install`.
-Repository release tags identify released skill payloads. The skills add artifact craft, implementation planning, CLI
-operations, and substantive review while leaving canonical project knowledge in the adopting repository's ordinary
-files.
+Specful packages ten harness-side skills in one repository tree and distributes them through `gh skill install`.
+Repository release tags identify released skill payloads. The skills add artifact craft, implementation planning and
+execution, CLI operations, and substantive review while leaving canonical project knowledge in the adopting repository's
+ordinary files.
 
 ## Purpose and boundaries
 
@@ -32,23 +32,24 @@ The package lives under `plugin/`:
 
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
 - `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` ships concise
-  Requirement, Design, ADR, and report-format references, while `specful-plan` ships concise change-plan and arc-plan
-  contracts plus a planning-craft reference;
+  Requirement, Design, ADR, and report-format references, while `specful-plan` ships change-plan and arc-plan templates
+  plus a planning-craft reference;
 - `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
   frontmatter shape, and the named, regular, non-empty review and planning references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
 
-All nine directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated
+All ten directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated
 packages in shared flat namespaces. The authoring set is `specful-requirement`, `specful-design`, and `specful-adr`.
-`specful-plan` plans implementation work and `specful-review` provides substantive artifact review. `specful-validate`,
-`specful-index`, `specful-show`, and `specful-trace` expose the matching CLI operations.
+`specful-plan` plans implementation work, `specful-implement` executes a named plan one step at a time, and
+`specful-review` provides substantive artifact review. `specful-validate`, `specful-index`, `specful-show`, and
+`specful-trace` expose the matching CLI operations.
 
 ## Interfaces and dependencies
 
 Each skill uses Agent Skills frontmatter for its name and trigger description, followed by Markdown instructions that a
 harness loads when the skill applies. Skills that invoke the CLI also declare their `specful` compatibility requirement
-and require `specful` 0.3.0 or later on `PATH`. Authoring, planning, and review skills also use repository artifacts and
-public documentation as source material.
+and require `specful` 0.3.0 or later on `PATH`. Authoring, planning, implementation, and review skills also use
+repository artifacts and public documentation as source material.
 
 Users install the package through the GitHub CLI:
 
@@ -90,13 +91,15 @@ Non-interactive invocation policy remains outside this package.
 
 `specful-plan` first decides whether the work needs a saved plan. Before judging the design, it loads planning craft
 that separates the invariant from a proposed mechanism and searches for the smallest supported solution. It then loads
-only the change-plan or arc-plan contract selected for the work. A change plan covers one coherent deliverable; an arc
-covers several independently deliverable changes and normally creates only its first executable child plan. Later child
-plans are written when their boundaries are ready.
+the change-plan or arc-plan template selected for the work. A change plan is one coherent work order. An arc divides
+several independently deliverable changes into ordered steps, where each step is one pull request and carries its own
+context, tasks, rollback, verification, and exit criteria.
 
-The skill follows the adopting repository's plan location and retention policy, and proposes `plans/` when none exists.
-Typed sections give evidence, implementation context, decisions, validation, and progress one owner. The skill stops
-after the authorised plan files are written. It does not implement the plan, publish it, or change an external tracker.
+The planning skill follows the adopting repository's plan location and retention policy, and proposes `plans/` when none
+exists. It stops after the authorised plan files are written. `specful-implement` executes the named plan one step at a
+time under its exact-by-default contract. It stops on a contradiction or required deviation, records the evidence in the
+plan, and waits for approval. The implementation skill follows repository-owned branch, commit, and publication rules
+and never merges. Neither skill changes an external tracker.
 
 ## Failure and recovery
 
