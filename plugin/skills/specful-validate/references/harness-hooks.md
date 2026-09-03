@@ -15,8 +15,8 @@ The push hook is advisory. The other two report findings. None of them blocks a 
 
 ## Claude Code
 
-The block goes in the project's `.claude/settings.json` (committed) or in `~/.claude/settings.json` for one user across
-every repository, and project hooks run only after the workspace trust prompt is accepted.
+The block goes in the project's `.claude/settings.json`, which is committed, or in `~/.claude/settings.json` for one
+user across every repository. Project hooks run only after the workspace trust prompt is accepted.
 
 ```json
 {
@@ -62,8 +62,8 @@ every repository, and project hooks run only after the workspace trust prompt is
 
 ## Codex
 
-The file is `.codex/hooks.json` in the project or `~/.codex/hooks.json` for the user, project hooks load only when the
-project `.codex` layer is trusted, and the only difference is the edit matcher.
+The file is `.codex/hooks.json` in the project or `~/.codex/hooks.json` for the user. Project hooks load only when the
+project `.codex` layer is trusted. The only difference from the Claude Code block is the edit matcher.
 
 ```json
 {
@@ -112,4 +112,5 @@ project `.codex` layer is trusted, and the only difference is the edit matcher.
 - Delete any hook entry not wanted.
 - The push hook falls back to `origin/main` when the branch has no upstream.
 - The commands need only `sh`, `git`, `grep`, and `specful`.
+- The hooks run whichever `specful` is first on PATH, so keep that install at the version the repository targets.
 - Exit status 2 is the harness convention that returns stderr to the agent.
