@@ -42,6 +42,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   continue to own branching, publication, and
   merging.
 
+- *(review)* add substantive review contract ([#72](https://github.com/unkos-dev/specful/pull/72))
+
+  - Define substantive review boundaries for individual Specful artifacts,
+  aggregate changes, and correction re-reviews.
+  - Add minimum-context Requirement, Design, and ADR lenses plus a compact
+  conversational report format.
+  - Package-test the exact supporting reference set and document the
+  delivered harness-side behaviour.
+
+  The existing review skill was a single checklist. It did not distinguish
+  draft from gate-grade review, tie validation evidence to the reviewed
+  target, or give correction reviews a bounded contract. The revised skill
+  keeps mechanical validation separate from substantive judgement while
+  leaving invocation and enforcement policy with adopting maintainers.
+
 - *(skills)* retire Claude marketplace ([#68](https://github.com/unkos-dev/specful/pull/68))
 
   - remove the Claude marketplace manifests and their dedicated pin gate

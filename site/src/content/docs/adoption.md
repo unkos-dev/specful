@@ -76,7 +76,9 @@ scope behaviour. For non-interactive installation, add `--agent` with a value fr
 the latest repository release, or the default branch when no release exists. Add `--pin` with a tag or commit when an
 exact revision is required.
 
-The skills use the CLI, configuration, schemas, templates, and repository artifacts as ground truth.
+The skills use the CLI, configuration, schemas, templates, and repository artifacts as ground truth. The
+`specful-validate` skill also carries the [harness hooks](/specful/reference/validation-integration/#harness-hooks)
+blocks that run the checks automatically from Claude Code or Codex and ask for a review before a push.
 
 ## Adopting into an existing repository
 
