@@ -33,3 +33,10 @@ rules:
     # SHA pins are the control; Renovate's `# vN` comments lag upstream tag
     # moves, so this false-fails on a schedule nobody here controls.
     disable: true
+  self-repository:
+    # The `$/` self-repository form it asks for is rejected by actionlint
+    # (latest 1.7.12 at time of writing), which runs in the same job, so the
+    # in-repo `./.github/actions` references stay workspace-relative. Lost:
+    # the fully pinned resolution `$/` gives external callers, which these
+    # internal actions have none of. Re-enable once actionlint accepts `$/`.
+    disable: true
