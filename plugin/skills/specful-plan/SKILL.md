@@ -39,7 +39,8 @@ when its result can materially change the plan. The workflow must remain executa
 - Create later child plans just in time from delivered evidence. Do not expand every future child from assumptions.
 
 Follow the repository's existing plan location, plan template, tracking, and retention policy. When none exists, propose
-`plans/` and ask once whether plans should be tracked or ignored before writing. An explicit user choice wins.
+`plans/` and ask once whether plans should be tracked or ignored before writing. When the repository defines no filename
+convention, use `YYYY-MM-DD-<descriptive-slug>.md`. An explicit user choice wins.
 
 ## Write the plan
 
@@ -49,7 +50,8 @@ the repository's own plan template when it exists. Otherwise use the selected re
 
 Keep exact paths, symbols, commands, and line references only where verified and useful. Tasks are outcome-sized and
 name their integration points, behavioural evidence, material edge cases, and focused checks. Add procedural detail only
-where its absence would force consequential rediscovery.
+where its absence would force consequential rediscovery. State each fact once in the section that owns it. In other
+sections, refer to that section when needed instead of restating the fact.
 
 Issue and tracker inputs may supply context. Follow discussion and linked material only while they can change scope,
 authority, or decisions. Never publish or update external state without separate authority.
