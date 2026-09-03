@@ -72,7 +72,7 @@ Before completing the plan:
 - check that fixed sections remain present and not-applicable reasons are specific;
 - confirm decisive references carry real paths and line numbers, every validation command exists and states its expected
   result, and no placeholders remain;
-- confirm each package a task imports is already declared by the package that will import it, or make the dependency
+- confirm dependency availability from the importing package's manifest, not its lockfile, and make any dependency
   change explicit;
 - confirm Implementation context holds stable cold-start context while Progress and hand-off holds changing state;
 - run the repository's applicable document checks, or report that none are defined after checking its instructions and
