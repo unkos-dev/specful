@@ -7,6 +7,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.3.2](https://github.com/unkos-dev/specful/compare/v0.3.1...v0.3.2) - 2026-09-03
+
+### Added
+
+- *(hooks)* add harness hook adapters for validation and review ([#77](https://github.com/unkos-dev/specful/pull/77))
+
+  - Add committed Claude Code (`.claude/settings.json`) and Codex
+  (`.codex/hooks.json`) hook adapters that run `specful index --check` and
+  `specful validate` after every edit and on stop, and nudge a
+  `specful-review` pass before a `git push` touching `docs/specs`,
+  `docs/adr`, or `.specful`.
+  - Document the hooks in a new `specful-validate` skill reference
+  (`harness-hooks.md`) and link it from the skill body and description.
+  - Add a "Harness hooks" section to the validation integration reference
+  docs, between local hooks and CI.
+
+- *(skills)* add planning and execution workflows ([#73](https://github.com/unkos-dev/specful/pull/73))
+
+  - add `specful-plan` and `specful-implement` as the ninth and tenth
+  optional harness-side skills
+  - package exact change-plan and arc-plan templates with planning-craft
+  guidance
+  - update the charter, package Design, canonical templates, attribution,
+  and public workflow documentation
+
+  Persistent plans need to give an agent enough exact context to execute
+  the work without rediscovery or invention. The
+  planning skill now produces complete work orders and separates
+  unresolved choices from settled tasks. The implementation
+  skill executes one step at a time, records progress in the plan, and
+  stops for approval when the repository contradicts
+  the plan or correctness requires a deviation. Repository instructions
+  continue to own branching, publication, and
+  merging.
+
+- *(skills)* retire Claude marketplace ([#68](https://github.com/unkos-dev/specful/pull/68))
+
+  - remove the Claude marketplace manifests and their dedicated pin gate
+  - document `gh skill install` as the single installation channel
+  - retain the harness-neutral manifest and Agent Skills validation
+
+  The Claude marketplace duplicated the common skill payload without
+  providing an additional capability. One installation channel now serves
+  every harness supported by the GitHub CLI while keeping Specful
+  responsible only for Agent Skills conformance.
+
+### Other
+
+- *(validation)* document adopter-owned gates ([#70](https://github.com/unkos-dev/specful/pull/70))
+
+  - add a validation integration reference with the canonical read-only
+  command sequence
+  - show concise examples for an existing local hook and CI job
+  - link the reference from Adoption and the documentation sidebar
+
+  Adopters need a clear way to run Specful checks without implying that
+  `specful init` installs or owns enforcement. The guidance keeps hook and
+  CI policy with each adopting repository.
+
 ## [0.3.1](https://github.com/unkos-dev/specful/compare/v0.3.0...v0.3.1) - 2026-09-01
 
 ### Added
