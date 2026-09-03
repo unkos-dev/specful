@@ -19,9 +19,13 @@ materially inform its design:
   terms used by Specful.
 - [Codex ExecPlans](https://github.com/openai/openai-agents-python/blob/main/PLANS.md)
   informs the private, living implementation-plan model.
+- [PRP](https://github.com/Wirasm/prp), licensed under MIT, informs implementation planning with precise codebase
+  context, existing precedents, and executable validation.
+- [Blueprint](https://github.com/antbotlab/blueprint), licensed under MIT, informs agent-readable work packages with
+  explicit context, tasks, rollback, verification, and completion criteria.
 
-No third-party source code or explanatory template text is incorporated at this stage. Future adaptations must retain
-the notices and license terms required by their sources.
+No third-party source code is incorporated at this stage. Adapted structure carries attribution above. Future
+adaptations must retain the notices and licence terms required by their sources.
 
 Specful's own implementation and general repository content are licensed under Apache-2.0. Reusable templates, schemas,
 examples, and Specful's interest in generated project artifacts are dedicated under CC0-1.0.
