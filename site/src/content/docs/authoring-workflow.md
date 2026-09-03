@@ -77,9 +77,10 @@ and fill the same structure. The adopting repository owns the plan location and 
 default when it has no established convention.
 
 A plan is temporary. It cannot become the canonical home for durable rationale, which graduates to an ADR before the
-plan is archived or deleted. Its fixed sections keep execution context and progress visible across sessions without
-repeating scope, current behaviour, or verification in separate sections. A section that does not apply remains present
-with a reason.
+plan is archived or deleted. Change plans use typed sections for the outcome, recommendation, root cause, visuals,
+implementation context, scope, tasks, acceptance, validation, risks, and progress. Arc plans replace task detail with
+binding inputs, deliverables, decision gates, and integrated verification. Every fixed section remains present; a
+section that does not apply gives the reason.
 
 ## 7. Regenerate the navigation views
 

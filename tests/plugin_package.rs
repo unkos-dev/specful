@@ -180,7 +180,7 @@ fn every_skill_directory_has_the_nine_expected_skills() {
 #[test]
 fn plan_skill_ships_named_non_empty_regular_references() {
     let plan_references = repo_root().join("plugin/skills/specful-plan/references");
-    let expected = ["arc-plan.md", "change-plan.md"];
+    let expected = ["arc-plan.md", "change-plan.md", "planning-craft.md"];
 
     let mut actual: Vec<_> = fs::read_dir(&plan_references)
         .unwrap_or_else(|error| panic!("failed to read {}: {error}", plan_references.display()))

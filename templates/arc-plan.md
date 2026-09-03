@@ -20,52 +20,63 @@ without interpreting them. Keep every section below; when one does not apply, st
 
 ## Objective
 
-{The integrated outcome and why it requires more than one independently deliverable change.}
+- **Problem:** {The specific problem and who experiences it.}
+- **Affected user:** {The user, operator, or system experiencing it.}
+- **Outcome:** {What becomes possible or reliably different.}
+- **Invariant:** {The observable property every acceptable solution preserves, without naming a mechanism.}
+- **Success signal:** {Evidence of improvement, or why acceptance fully captures it.}
+- **Approach:** {The chosen coordinating solution in one sentence.}
 
-## Scope
+## Recommendation
 
-{What the arc includes and excludes.}
+{Why an arc is the smallest coherent shape, which primitives it reuses, and what machinery it avoids.}
 
-## Binding inputs and decisions
+### Evidence
 
-{Each governing artifact or approved decision and what it locks. A proposed or superseded ADR is context, not
-authority.}
+- `{path}:{lines}`: {Decisive behaviour, primitive, authority, or convention.}
 
-## Models and flows
+### Alternatives
 
-{A sequence, state, data-flow, architecture, or before-and-after model when it makes a material relationship easier to
-assess. Otherwise state why a model does not help.}
+- {Rejected decomposition and why it loses against the invariant, evidence, or ownership cost.}
 
-## Dependency model
+## Binding inputs
 
-| Deliverable | Outcome | Hard dependencies | Exit criteria |
-|---|---|---|---|
-| {A} | {Coherent outcome} | {None or deliverable IDs} | {Observable completion condition} |
+| Artifact | Lines | What it locks |
+|---|---|---|
+| `{path or identifier}` | {lines} | {Decision or constraint.} |
+
+## Visuals
+
+{A useful dependency, sequence, state, ownership, architecture, or before-and-after model. Otherwise state why a model
+does not help.}
+
+## Deliverables
+
+| Deliverable | Outcome | Hard dependencies | Exit criteria | Child plan |
+|---|---|---|---|---|
+| {A} | {Coherent outcome} | {None or deliverable IDs} | {Observable completion condition} | {Path or not created} |
 
 ## Decision gates
 
-{Unresolved choices that stop a deliverable and the owner who decides them. A change to a binding input stops for the
-arc owner rather than becoming a routine amendment.}
+| Gate | Options | Recommendation | Owner | Consequence if different |
+|---|---|---|---|---|
+| {Gate} | {Options} | {Recommendation} | {Owner} | {How the arc changes.} |
 
 ## Integrated verification
 
-{End-to-end, compatibility, or cross-deliverable proof that no child plan establishes alone.}
+| Gate | Command or procedure | Proves |
+|---|---|---|
+| {Gate} | `{command or procedure}` | {Acceptance criteria or invariant.} |
 
-## Context capsule
+## Risks and decisions
 
-- **Read first:** {Files and artifacts a fresh coordinator needs.}
-- **Binding invariants:** {Rules every deliverable must preserve.}
-- **Ownership:** {Branch, worktree, session, or external-system ownership where relevant.}
-- **Commands:** {Verified coordination and validation commands.}
-
-## Risks and contingencies
-
-- {Credible cross-deliverable failure mode, compatibility concern, rollback need, or reason none applies.}
+| Decision or risk | Recommendation | Evidence or mitigation | Consequence if different |
+|---|---|---|---|
+| {Decision or risk} | {Recommendation} | {Evidence or mitigation} | {Consequence} |
 
 ## Progress and hand-off
 
-The status column uses the plan lifecycle values `draft`, `active`, `blocked`, and `complete`, applied to each
-deliverable rather than to the whole arc.
+The status column uses `draft`, `active`, `blocked`, or `complete` for each deliverable, not for the whole arc.
 
 | Deliverable | Status | Child plan | Delivered evidence |
 |---|---|---|---|
@@ -79,8 +90,7 @@ Active blockers: None.
 
 ### Amendments
 
-None. A reality-driven split, insertion, skip, reorder, or abandoned deliverable is recorded here after its decision
-gate is cleared.
+None. Record a reality-driven split, insertion, skip, reorder, or abandoned deliverable after its decision gate clears.
 
 ### Final disposition
 

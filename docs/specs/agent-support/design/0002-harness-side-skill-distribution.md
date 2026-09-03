@@ -33,7 +33,7 @@ The package lives under `plugin/`:
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
 - `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` ships concise
   Requirement, Design, ADR, and report-format references, while `specful-plan` ships concise change-plan and arc-plan
-  references;
+  contracts plus a planning-craft reference;
 - `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
   frontmatter shape, and the named, regular, non-empty review and planning references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
@@ -88,13 +88,15 @@ it does not edit a repository or publish a pull-request comment or formal review
 independent or in-session execution, while the adopting maintainer decides whether review is advisory or blocking.
 Non-interactive invocation policy remains outside this package.
 
-`specful-plan` first decides whether the work needs a saved plan. It uses a change plan for one coherent deliverable and
-an arc plan for several independently deliverable changes. An arc normally creates only its first executable child plan;
-later child plans are written when their boundaries are ready. The skill follows the adopting repository's plan location
-and retention policy, and proposes `plans/` when none exists. It settles material choices before writing an executable
-plan, avoids repeating the same evidence across change-plan sections, keeps stable execution context separate from
-changing progress, and stops after the authorised plan files are written. It does not implement the plan, publish it, or
-change an external tracker.
+`specful-plan` first decides whether the work needs a saved plan. Before judging the design, it loads planning craft
+that separates the invariant from a proposed mechanism and searches for the smallest supported solution. It then loads
+only the change-plan or arc-plan contract selected for the work. A change plan covers one coherent deliverable; an arc
+covers several independently deliverable changes and normally creates only its first executable child plan. Later child
+plans are written when their boundaries are ready.
+
+The skill follows the adopting repository's plan location and retention policy, and proposes `plans/` when none exists.
+Typed sections give evidence, implementation context, decisions, validation, and progress one owner. The skill stops
+after the authorised plan files are written. It does not implement the plan, publish it, or change an external tracker.
 
 ## Failure and recovery
 

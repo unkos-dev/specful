@@ -22,39 +22,102 @@ section below; when one does not apply, state that briefly and give the reason.
 
 ## Outcome
 
-{The problem, intended result, why it matters, and what the change includes and excludes.}
+- **Problem:** {The specific problem and who experiences it.}
+- **Affected user:** {The user, operator, or system experiencing it.}
+- **Outcome:** {What becomes possible or reliably different.}
+- **Invariant:** {The observable property every acceptable solution preserves, without naming a mechanism.}
+- **Success signal:** {Evidence of improvement, or why acceptance fully captures it.}
+- **Approach:** {The chosen solution in one sentence.}
 
-## Authority and evidence
+## Recommendation
 
-{Governing artifacts, approved decisions, applicable standards, and the relevant current behaviour, integration points,
-and constraints.}
+{Why this is the smallest coherent approach the repository supports, which primitives it reuses, and what machinery it
+avoids.}
 
-## Design
+### Evidence
 
-{The settled approach, material alternatives, and any owner-approved choices. Include a sequence, state, data-flow,
-architecture, or before-and-after model when it makes a material relationship easier to assess.}
+- `{path}:{lines}`: {Decisive behaviour, primitive, authority, or convention.}
 
-## Acceptance criteria
+### Alternatives
 
-- {Observable completed behaviour and the proof that establishes it.}
+- {Rejected alternative and why it loses against the invariant, evidence, or ownership cost.}
 
-## Context capsule
+## Root cause
 
-- **Read first:** {Files and artifacts a fresh executor needs.}
-- **Binding invariants:** {Rules this change cannot violate.}
-- **Ownership:** {Branch, worktree, session, or external-system ownership where relevant.}
-- **Commands:** {Verified repository-native implementation and validation commands.}
+{For asserted broken behaviour: observed failure, causal chain, fix boundary, regression proof, and uncertainty.
+Otherwise state why this section does not apply.}
+
+## Visuals
+
+{A useful before-and-after flow or ownership, state, component, or data-flow diagram. Otherwise state why a model does
+not help.}
+
+## Implementation context
+
+### Reading
+
+| File | Lines | Why |
+|---|---|---|
+| `{path}` | {lines} | {Primitive, contract, integration point, or test precedent.} |
+
+### Patterns and primitives
+
+- `{path}:{lines}`: {Precedent or primitive to reuse.}
+
+### Integration points
+
+- `{path}:{line}`: {Current role and how the change connects.}
+
+### Verified commands
+
+- `{command}`
+
+## Scope
+
+### In scope
+
+- {Agreed outcome.}
+
+### Not building
+
+- {Explicit exclusion and why it falls outside the invariant or belongs later.}
 
 ## Implementation
 
-1. **{Outcome-sized task}**
-   - {Affected files or integration points.}
-   - {Behavioural test or evidence seam and material edge cases.}
-   - {Focused verification.}
+### 1. {Outcome}
 
-## Risks and contingencies
+#### Files and integration points
 
-- {Credible failure mode, compatibility concern, rollback need, or reason none applies.}
+- `{path}:{line}` - {CREATE or UPDATE} - {Why this location owns the change.}
+
+#### Implementation
+
+- {Concrete behaviour, contract, or data flow, with a precedent cited by path and lines.}
+- {Load-bearing boundary, failure behaviour, or gotcha.}
+
+#### Tests
+
+- {Behaviour to prove and the test surface that proves it.}
+
+#### Validation
+
+- `{command}` - {Expected observable result; the command fails when the behaviour is absent.}
+
+## Acceptance
+
+- **AC1:** {Observable outcome or preserved invariant.}
+
+## Validation
+
+| Gate | Command or procedure | Proves |
+|---|---|---|
+| {Gate} | `{command}` | {AC numbers} |
+
+## Risks and decisions
+
+| Decision or risk | Recommendation | Evidence or mitigation | Consequence if different |
+|---|---|---|---|
+| {Decision or risk} | {Recommendation} | {Evidence or mitigation} | {Consequence} |
 
 ## Progress and hand-off
 

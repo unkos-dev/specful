@@ -22,9 +22,14 @@ explicitly approved decisions. Surface contrary evidence instead of silently reo
 
 ## Decide whether design is settled
 
-Proceed directly when the governing artifacts and approved discussion settle the material design. Otherwise inspect the
-repository, gather only evidence that can change the approach, present credible options with a recommendation, and wait
-for the user's decision before writing implementation tasks.
+Read [planning craft](references/planning-craft.md) and state the invariant before judging the design. Proceed directly
+when the governing artifacts and approved discussion settle the material design. Otherwise inspect the repository,
+gather only evidence that can change the approach, present credible options with a recommendation, and wait for the
+user's decision before writing implementation tasks.
+
+Gather evidence the executor would otherwise rediscover: precise `path:line` references, the primitives and extension
+points that already exist, the closest useful precedent, the repository's verified validation commands, and the
+conventions the change must preserve. Inspect the decisive files directly.
 
 Diagnose asserted broken behaviour before planning a fix. Use external research, a throwaway spike, or delegation only
 when its result can materially change the plan. The workflow must remain executable by one capable agent.
@@ -40,7 +45,8 @@ when its result can materially change the plan. The workflow must remain executa
 
 Follow the repository's existing plan location, plan template, tracking, and retention policy. When none exists, propose
 `plans/` and ask once whether plans should be tracked or ignored before writing. When the repository defines no filename
-convention, use `YYYY-MM-DD-<descriptive-slug>.md`. An explicit user choice wins.
+convention, use `YYYY-MM-DD-<descriptive-slug>.md`. A template is a file the repository designates as one; prior plans
+are evidence of convention, not templates. An explicit user choice wins.
 
 ## Write the plan
 
@@ -64,7 +70,11 @@ Before completing the plan:
 - map every accepted outcome to implementation work and verification;
 - confirm material decisions are approved and active blockers name an owner and exit condition;
 - check that fixed sections remain present and not-applicable reasons are specific;
-- confirm the Context capsule contains stable cold-start context while Progress and hand-off contains changing state;
+- confirm decisive references carry real paths and line numbers, every validation command exists and states its expected
+  result, and no placeholders remain;
+- confirm each package a task imports is already declared by the package that will import it, or make the dependency
+  change explicit;
+- confirm Implementation context holds stable cold-start context while Progress and hand-off holds changing state;
 - run the repository's applicable document checks, or report that none are defined after checking its instructions and
   command surfaces.
 
