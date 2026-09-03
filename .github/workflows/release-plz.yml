@@ -95,8 +95,13 @@ jobs:
           # Narrow the minted token below the App's own installation grant:
           # tagging and creating the GitHub release needs contents write;
           # reading the merged PR for the changelog needs pull-requests read.
+          # GitHub refuses to create a tag or release for a commit whose
+          # workflow files differ from the default branch unless the token
+          # may modify workflows, and main can move under the release when
+          # an automerged dependency bump touches a workflow.
           permission-contents: write
           permission-pull-requests: read
+          permission-workflows: write
 
       - name: Run release-plz release
         uses: release-plz/action@2eb1d8bcb770b4c48ccfaad919734b38b51958c9 # v0.5.131

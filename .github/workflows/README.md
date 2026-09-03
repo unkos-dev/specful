@@ -87,10 +87,15 @@ editing it by hand. The action SHA pins come from `[dist.github-action-commits]`
 the release PR makes release-plz publish to crates.io, push the tag, and create a draft GitHub release carrying the
 changelog body (`git_release_draft = true`); the tag push triggers `release.yml`, which builds the target archives and
 checksums, attaches them to the draft, and publishes it. The tag reaches the repository via the release-plz App token,
-which unlike `GITHUB_TOKEN` can trigger workflows. Recovery from a failed dist run: re-run the workflow for transient
-failures. For a repository defect, never recreate the tag: crates.io already holds the source for that version, so the
-tag must keep pointing at it. Fix `main`, delete the binary-less draft, and ship the fix as the next patch release. No
-secrets beyond the workflow's own `GITHUB_TOKEN` are involved.
+which unlike `GITHUB_TOKEN` can trigger workflows and carries the App's Workflows permission. That permission matters
+because GitHub refuses to create a tag or release for a commit whose workflow files differ from the default branch
+unless the token may modify workflows, and an automerged dependency bump touching a workflow can land on `main` between
+the release merge and the tag. `GITHUB_TOKEN` can never be authorised for that case, so when the same race catches the
+generated dist workflow, its undraft step fails after the assets are uploaded; publish the draft with a user token
+holding the `workflow` scope (`gh release edit <tag> --draft=false`). Recovery from any other failed dist run: re-run
+the workflow for transient failures. For a repository defect, never recreate the tag: crates.io already holds the source
+for that version, so the tag must keep pointing at it. Fix `main`, delete the binary-less draft, and ship the fix as the
+next patch release. No secrets beyond the workflow's own `GITHUB_TOKEN` are involved.
 
 ## Documentation site
 
