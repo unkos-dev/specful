@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q 'git push' || exit 0; git diff --name-only \"$(git rev-parse -q --verify '@{push}' 2>/dev/null || echo origin/main)\" HEAD -- docs/specs docs/adr .specful 2>/dev/null | grep -q . || exit 0; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Outgoing commits change Specful artifacts. Before pushing, run the specful-review skill as a change review of the commits not yet on the remote, and do not push on a NO-SHIP verdict.\"}}'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "specful index --check >&2 && specful validate >&2 || exit 2",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q '\"stop_hook_active\": *true' && exit 0; specful index --check >&2 && specful validate >&2 || exit 2",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
