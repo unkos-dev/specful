@@ -27,7 +27,7 @@ user across every repository. Project hooks run only after the workspace trust p
         "hooks": [
           {
             "type": "command",
-            "command": "grep -q 'git push' || exit 0; git diff --name-only \"$(git rev-parse -q --verify '@{push}' 2>/dev/null || echo origin/main)\" HEAD -- docs/specs docs/adr .specful 2>/dev/null | grep -q . || exit 0; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Outgoing commits change Specful artifacts. Before pushing, run the specful-review skill as a change review of the commits not yet on the remote, and do not push on a NO-SHIP verdict.\"}}'",
+            "command": "grep -q 'git push' || exit 0; b=$(git rev-parse -q --verify '@{push}' 2>/dev/null || git rev-parse -q --verify \"$(git remote | head -n1)/HEAD\" 2>/dev/null); if [ -n \"$b\" ]; then git diff --name-only \"$b\" HEAD -- docs/specs docs/adr .specful | grep -q . || exit 0; m='Outgoing commits change Specful artifacts. Before pushing, run the specful-review skill as a change review of the commits not yet on the remote, and do not push on a NO-SHIP verdict.'; else m='The outgoing range could not be determined from the push target or the remote default branch. If these commits change Specful artifacts, run the specful-review skill as a change review before pushing, and do not push on a NO-SHIP verdict.'; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"%s\"}}' \"$m\"",
             "timeout": 10
           }
         ]
@@ -74,7 +74,7 @@ project `.codex` layer is trusted. The only difference from the Claude Code bloc
         "hooks": [
           {
             "type": "command",
-            "command": "grep -q 'git push' || exit 0; git diff --name-only \"$(git rev-parse -q --verify '@{push}' 2>/dev/null || echo origin/main)\" HEAD -- docs/specs docs/adr .specful 2>/dev/null | grep -q . || exit 0; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Outgoing commits change Specful artifacts. Before pushing, run the specful-review skill as a change review of the commits not yet on the remote, and do not push on a NO-SHIP verdict.\"}}'",
+            "command": "grep -q 'git push' || exit 0; b=$(git rev-parse -q --verify '@{push}' 2>/dev/null || git rev-parse -q --verify \"$(git remote | head -n1)/HEAD\" 2>/dev/null); if [ -n \"$b\" ]; then git diff --name-only \"$b\" HEAD -- docs/specs docs/adr .specful | grep -q . || exit 0; m='Outgoing commits change Specful artifacts. Before pushing, run the specful-review skill as a change review of the commits not yet on the remote, and do not push on a NO-SHIP verdict.'; else m='The outgoing range could not be determined from the push target or the remote default branch. If these commits change Specful artifacts, run the specful-review skill as a change review before pushing, and do not push on a NO-SHIP verdict.'; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"%s\"}}' \"$m\"",
             "timeout": 10
           }
         ]
@@ -110,7 +110,8 @@ project `.codex` layer is trusted. The only difference from the Claude Code bloc
 ## Adjusting
 
 - Delete any hook entry not wanted.
-- The push hook falls back to `origin/main` when the branch has no upstream.
+- The push hook compares against the branch's push target, or the first remote's default branch when the branch has no
+  upstream. When neither exists it says so and still asks for the review rather than staying silent.
 - The commands need only `sh`, `git`, `grep`, and `specful`.
 - The hooks run whichever `specful` is first on PATH, so keep that install at the version the repository targets.
 - Exit status 2 is the harness convention that returns stderr to the agent.
