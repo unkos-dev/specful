@@ -21,7 +21,7 @@ materially inform its design:
   informs the private, living implementation-plan model.
 - [PRP](https://github.com/Wirasm/prp), licensed under MIT, informs implementation planning with precise codebase
   context, existing precedents, and executable validation.
-- [Blueprint](https://github.com/owainlewis/blueprint), licensed under MIT, informs agent-readable work packages with
+- [Blueprint](https://github.com/antbotlab/blueprint), licensed under MIT, informs agent-readable work packages with
   explicit context, tasks, rollback, verification, and completion criteria.
 
 No third-party source code is incorporated at this stage. Adapted structure carries attribution above. Future

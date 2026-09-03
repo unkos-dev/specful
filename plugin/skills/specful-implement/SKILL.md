@@ -14,6 +14,10 @@ evidence, and the branch when one exists. Next names the current task and nothin
 its evidence. Amendments records approved deviations with their dates. While a step with its own change plan is active,
 that plan's frontmatter is authoritative and the arc row is updated from it at the step boundary.
 
+A change plan starts in `draft`; treat that as its pending state. For a change plan, references below to Notes mean
+Blocked for a deviation and Amendments for an approved change. Its Verification table supplies the Completion
+verification rows.
+
 ## Read
 
 1. Read the plan in full, then the artifacts its Binding inputs cite at the cited lines.

@@ -27,7 +27,7 @@ Every statement in this plan is exact. A deviation stops for approval.
 
 ## Design decisions
 
-1. **{Decision}:** {Rationale.}
+1. **{Decision}:** {Rationale, and the alternative it beats.}
 
 ## Open decisions
 

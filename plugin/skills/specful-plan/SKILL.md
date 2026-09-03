@@ -54,13 +54,13 @@ are evidence of convention, not templates. An explicit user choice wins.
 For a change plan, read [the change-plan template](references/change-plan.md). For an arc, read
 [the arc-plan template](references/arc-plan.md). Use the repository's own plan template when it exists. Keep every
 section; a section that does not apply says so with the reason. Remove an optional frontmatter field that does not
-apply.
+apply. `type`, `status`, and `created` are required. `issue`, `relates-to`, and `part-of` are optional where present.
 
 Every statement in a plan is exact; the executor treats deviation as a stop. State an open choice in its task with the
 reason. Write tasks verb-first. Every task verifies with a command and its expected output, and the command fails when
-that task's behaviour is absent. When a task creates a short file whose content is the specification, quote the exact
-content in the task. A step's Context describes the repository state when the step starts, not the history that produced
-it.
+that task's behaviour is absent. When a task creates or replaces a short file whose content is the specification, quote
+the exact content in the task. A step's Context describes the repository state when the step starts, not the history
+that produced it.
 
 Issue and tracker inputs may supply context. Follow discussion and linked material only while they can change scope,
 authority, or decisions. Never publish or update external state without separate authority.
