@@ -33,6 +33,20 @@ specful validate
 Local hooks provide early feedback, but they run in each contributor's checkout and can be bypassed. Specful does not
 install a hook or require a hook manager.
 
+## Harness hooks
+
+An agent harness can run the same two commands after every edit and when the agent tries to stop, and return the
+findings to the agent instead of waiting for a commit. A third hook asks the agent to run the `specful-review` skill
+before a `git push` that carries changes under `docs/specs`, `docs/adr`, or `.specful`. All three call the `specful`
+binary already on PATH, so nothing is installed; the adopting repository owns the config.
+
+For Claude Code the block lives in the project's `.claude/settings.json`; for Codex it lives in `.codex/hooks.json`,
+differing only in the edit-tool matcher. The `specful-validate` skill ships both blocks in its
+[harness hooks reference](https://github.com/unkos-dev/specful/blob/main/plugin/skills/specful-validate/references/harness-hooks.md),
+and this repository commits both files as a working example.
+
+Harness hooks are advisory feedback for the agent in the session. They do not replace a repository gate.
+
 ## Continuous integration
 
 Add the same commands to an existing CI job after that job installs the repository's chosen Specful version. For
