@@ -64,10 +64,10 @@ mints a Requirement and links it back through `governed-by`.
 This profile derives from the MADR 4.0.0 complete template and is tighter than MADR on every axis it touches: a
 canonical MADR record does not validate against it unchanged. Section headings are sentence case and compared exactly,
 so `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers, Consequences,
-and Confirmation are required here where MADR marks them optional. `recorded-on` and `decided-on` replace MADR's single
-`date` field. `decision-makers`, `consulted`, and `informed` are lists rather than free text. `status` drops MADR's
-`rejected` value. No frontmatter key outside the profile is accepted. A MADR record joins the profile by being
-re-recorded, never edited in place; see
+and Confirmation are required here where MADR marks them optional. `recorded-on`, with `decided-on` when the decision
+predates the record, replaces MADR's single `date` field. `decision-makers`, `consulted`, and `informed` are lists
+rather than free text. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other
+than an `x-` extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
 [adopting into an existing repository](/specful/adoption/#adopting-into-an-existing-repository).
 
 ## Requirement versus ADR

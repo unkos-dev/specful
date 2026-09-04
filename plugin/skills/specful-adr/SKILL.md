@@ -19,8 +19,9 @@ or progress notes.
    contradicts an accepted one supersedes it rather than silently disagreeing.
 2. Scaffold with `specful new adr --title <TITLE>`. Never hand-allocate an identifier; the command owns the counter. A
    decision recorded before the profile existed enters it the same way: scaffold a new record, carry the original
-   decision date in `decided-on` and the re-recording date in `recorded-on`, link the older record under More
-   information, and then retire that older record under its own convention. It is never edited into the profile's shape.
+   decision date in `decided-on` and the re-recording date in `recorded-on`, name the older record by its title and
+   original path under More information, and then retire that older record under its own convention; Git holds its
+   history at that path afterwards. It is never edited into the profile's shape.
 3. Complete the placeholders. State the decision in present tense; represent the credible alternatives honestly rather
    than as strawmen for a preferred answer; record negative consequences with the same care as positive ones. An ADR
    with no credible alternative or no downside is advertising, not a decision record.
