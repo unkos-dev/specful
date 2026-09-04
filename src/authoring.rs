@@ -157,7 +157,6 @@ pub fn init(root: &Path, project_key: &str) -> Result<InitOutcome, Vec<Finding>>
     }
     let config = Config {
         project_key: project_key.to_owned(),
-        specful_version: env!("CARGO_PKG_VERSION").to_owned(),
         counters: BTreeMap::from([
             ("ADR".to_owned(), 1),
             ("REQ".to_owned(), 1),
