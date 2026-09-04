@@ -88,10 +88,11 @@ Update the binary with the same command that installed it, or with the next preb
 cargo install --locked specful
 ```
 
-Update installed skills with the GitHub CLI:
+Update the skills by running the install command again with `--force`, which overwrites the installed copies from the
+latest release and adds any skill the release introduced:
 
 ```sh
-gh skill update
+gh skill install unkos-dev/specful --all --scope user --force
 ```
 
 After either update, run `specful validate` in the repository. A compatible release reports no findings. When a release
