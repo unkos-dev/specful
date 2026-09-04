@@ -20,8 +20,10 @@ is a plan, and what used to be true is Git history.
 2. Scaffold with `specful new requirement --title <TITLE>`. Never hand-allocate an identifier; the command owns the
    counter.
 3. Complete the placeholders. The Statement section carries at least one uppercase BCP 14 keyword (MUST, MUST NOT,
-   SHOULD, SHOULD NOT, MAY); cite governing ADRs through `governed-by`. Write obligations testably: a Requirement that
-   no observable behaviour could violate is decoration, not specification.
+   SHOULD, SHOULD NOT, MAY); cite governing ADRs through `governed-by`, naming only the ADR whose rationale this
+   obligation embodies, never a related or organising decision such as the decision to adopt a convention, and omit the
+   field when that record does not exist in the profile. Write obligations testably: a Requirement that no observable
+   behaviour could violate is decoration, not specification.
 4. Run `specful index`, then `specful validate`; commit the regenerated views with the change.
 5. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
    substantive review or the user asks for it.

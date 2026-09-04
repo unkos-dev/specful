@@ -108,8 +108,13 @@ convention incrementally:
 1. Run `specful init` to install the layout.
 2. Start with the requirements and designs that matter most for the next piece of work, using `specful new requirement`
    and `specful new design`, rather than attempting to document everything at once.
-3. Record any durable decision that already governs the repository as an ADR with `specful new adr`, even when its
-   original context predates Specful.
+3. Leave a decision record that predates the profile where it is, in its own shape: an accepted record is never edited
+   into the profile. Bring one into the profile by re-recording it, either on demand when a Requirement or Design needs
+   to cite it through `governed-by`, or through a deliberate review that retires the records kept only by ceremony and
+   re-records the survivors. Either way, scaffold the new record with `specful new adr`, carry the original decision
+   date in `decided-on` and the re-recording date in `recorded-on`, name the older record by its title and original path
+   under More information, and then retire that older record under its own convention; Git holds its history at that
+   path afterwards.
 4. Run `specful index` to regenerate the navigation views, then `specful validate`, and commit both the source documents
    and the regenerated views together.
 
