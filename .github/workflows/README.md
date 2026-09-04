@@ -55,7 +55,7 @@ through the `.github/actions/setup` composite action; the Rust toolchain comes f
 | `docs-deploy.yml` | `build`, `deploy` | Builds and publishes the documentation site to GitHub Pages. Standalone. |
 
 Every third-party action is pinned to a full commit SHA with a trailing version comment that Renovate keeps current.
-`.github/zizmor.yml` records the one audit rule that is disabled and why.
+`.github/zizmor.yml` records each audit rule that is disabled and why.
 
 ## Required contexts
 
