@@ -20,23 +20,27 @@ verification rows.
 
 ## Read
 
-1. Read the plan in full, then the artifacts its Binding inputs cite at the cited lines.
+1. Read the plan in full, then the artifacts its Binding inputs cite at the cited lines, in the checkout the plan was
+   written against.
 2. Read the Progress log. The first `pending` or `active` step is the current step; never repeat a `complete` or
    `skipped` step.
 3. For an `active` step, check its branch when the repository has one. With commits, judge the work against the step's
-   Exit criteria. Without commits, treat the step as `pending`.
+   Exit criteria. With a merged pull request, set the step `complete`. Without commits, treat the step as `pending`.
 4. Confirm every Prerequisite with its command before the first step.
 
 ## Execute one step
 
-1. Set the step `active` in the Progress log and record the branch when the repository has one.
+1. Set the step `active` in the Progress log and record the branch when the repository has one. For a change plan, set
+   frontmatter `status: active`.
 2. Read the step's Context and confirm it matches the repository. A mismatch is a deviation.
 3. Do the tasks in order. Every statement is exact. An open choice stated in the task with a reason is the executor's;
    record the choice made in Notes. Where the plan is silent, follow the repository's instructions and do what is
    correct.
 4. Run each task's Verify command and compare the output to the expected result. A mismatch is a deviation.
 5. Run the step's Verification and the plan's every-step rows. Check the Exit criteria.
-6. Set the step `complete` with its evidence in Notes, then stop and report. The user starts the next step.
+6. Record the evidence in Notes, report the pull request and every Merge condition unrun, then stop. The step stays
+   `active` until its pull request merges, and a review change is an amendment on the active step. The user starts the
+   next step.
 
 ## Deviation
 
@@ -45,7 +49,7 @@ plan states, or any verification that does not match its expected result.
 
 1. Stop the step. Do not work around it.
 2. Set the step `blocked`. Record in Notes what the plan states, what was found, and the proposed change with its
-   evidence.
+   evidence. When a tool wrote a verdict, quote that line before any inferred cause.
 3. Report and wait. On approval, record the change under Amendments with the date, then continue.
 
 ## Mutate

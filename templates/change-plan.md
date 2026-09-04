@@ -26,7 +26,7 @@ Every statement in this plan is exact. A deviation stops for approval.
 ## Binding inputs
 
 | Artifact | Lines | What it locks |
-|---|---|---|
+| --- | --- | --- |
 | `{path or identifier}` | {lines} | {Decision or constraint.} |
 
 ## Design decisions
@@ -36,7 +36,7 @@ Every statement in this plan is exact. A deviation stops for approval.
 ## Open decisions
 
 | Decision | Options | Recommendation | Owner | Consequence if different |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | {Decision} | {Options} | {Recommendation} | {Owner} | {How the plan changes.} |
 
 ## Root cause
@@ -47,7 +47,7 @@ state that no broken behaviour was asserted.}
 ## Reading
 
 | File | Lines | Why |
-|---|---|---|
+| --- | --- | --- |
 | `{path}` | {lines} | {Primitive, contract, integration point, or precedent it carries.} |
 
 ## Tasks
@@ -74,13 +74,18 @@ state that no broken behaviour was asserted.}
 ## Verification
 
 | Gate | Command or procedure | Proves |
-|---|---|---|
+| --- | --- | --- |
 | {Gate} | `{command}` | {AC numbers} |
+
+## Merge conditions
+
+- {Act a maintainer performs after the pull request is green and before merge, with its rollback. The executor reports
+  it unrun.}
 
 ## Risks
 
 | Risk | Mitigation | Task |
-|---|---|---|
+| --- | --- | --- |
 | {Risk} | {Mitigation} | {Task number} |
 
 ## Progress
