@@ -7,7 +7,6 @@
   "required": [
     "config-version",
     "project-key",
-    "specful-version",
     "next-adr-sequence",
     "next-requirement-sequence",
     "next-design-sequence"
@@ -15,7 +14,6 @@
   "properties": {
     "config-version": { "const": 1 },
     "project-key": { "$ref": "#/$defs/project-key" },
-    "specful-version": { "$ref": "#/$defs/specful-version" },
     "next-adr-sequence": { "$ref": "#/$defs/counter" },
     "next-requirement-sequence": { "$ref": "#/$defs/counter" },
     "next-design-sequence": { "$ref": "#/$defs/counter" }
@@ -25,10 +23,6 @@
     "project-key": {
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9]{1,9}$"
-    },
-    "specful-version": {
-      "type": "string",
-      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$"
     },
     "counter": {
       "type": "integer",

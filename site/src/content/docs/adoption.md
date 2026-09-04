@@ -96,8 +96,8 @@ gh skill update
 
 After either update, run `specful validate` in the repository. A compatible release reports no findings. When a release
 changes the profiles, its notes on the [releases](https://github.com/unkos-dev/specful/releases) page carry the
-conversion steps: apply them, set `specful-version` in `.specful/config.yaml` to that release, then run `specful index`
-and `specful validate`. Harness hook blocks are copied by hand, so copy them again only when the reference changes.
+conversion steps: apply them, then run `specful index` and `specful validate`. Harness hook blocks are copied by hand,
+so copy them again only when the reference changes.
 
 ## Adopting into an existing repository
 

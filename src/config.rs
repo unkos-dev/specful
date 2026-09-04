@@ -41,7 +41,6 @@ const COUNTER_KINDS: [(&str, &str); 3] = [
 #[derive(Debug, Clone)]
 pub struct Config {
     pub project_key: String,
-    pub specful_version: String,
     /// Allocation counters keyed by identifier kind (ADR, REQ, DESIGN).
     pub counters: BTreeMap<String, i64>,
 }
@@ -54,12 +53,10 @@ impl Config {
         format!(
             "config-version: 1\n\
              project-key: {}\n\
-             specful-version: {}\n\
              next-adr-sequence: {}\n\
              next-requirement-sequence: {}\n\
              next-design-sequence: {}\n",
             self.project_key,
-            self.specful_version,
             self.counters.get("ADR").copied().unwrap_or(1),
             self.counters.get("REQ").copied().unwrap_or(1),
             self.counters.get("DESIGN").copied().unwrap_or(1),
@@ -129,10 +126,6 @@ pub fn load_config(root: &Path, findings: &mut Vec<Finding>) -> Option<Config> {
 
     Some(Config {
         project_key: value["project-key"]
-            .as_str()
-            .expect("schema guarantees a string")
-            .to_owned(),
-        specful_version: value["specful-version"]
             .as_str()
             .expect("schema guarantees a string")
             .to_owned(),

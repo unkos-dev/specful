@@ -8,7 +8,6 @@
       "instance": {
         "config-version": 1,
         "project-key": "SPF",
-        "specful-version": "0.1.0",
         "next-adr-sequence": 1,
         "next-requirement-sequence": 1,
         "next-design-sequence": 1
@@ -20,7 +19,6 @@
       "instance": {
         "config-version": 1,
         "project-key": "ACME2",
-        "specful-version": "1.4.0",
         "next-adr-sequence": 10000,
         "next-requirement-sequence": 10000,
         "next-design-sequence": 10000
@@ -32,7 +30,6 @@
       "instance": {
         "config-version": 2,
         "project-key": "SPF",
-        "specful-version": "0.1.0",
         "next-adr-sequence": 1,
         "next-requirement-sequence": 1,
         "next-design-sequence": 1
@@ -44,7 +41,6 @@
       "instance": {
         "config-version": 1,
         "project-key": "S",
-        "specful-version": "0.1.0",
         "next-adr-sequence": 1,
         "next-requirement-sequence": 1,
         "next-design-sequence": 1
@@ -56,33 +52,21 @@
       "instance": {
         "config-version": 1,
         "project-key": "SPF",
-        "specful-version": "0.1.0",
         "next-adr-sequence": 10001,
         "next-requirement-sequence": 1,
         "next-design-sequence": 1
       }
     },
     {
-      "description": "missing specful version",
+      "description": "retired specful-version key is rejected",
       "valid": false,
       "instance": {
         "config-version": 1,
         "project-key": "SPF",
         "next-adr-sequence": 1,
         "next-requirement-sequence": 1,
-        "next-design-sequence": 1
-      }
-    },
-    {
-      "description": "prefixed specful version is invalid",
-      "valid": false,
-      "instance": {
-        "config-version": 1,
-        "project-key": "SPF",
-        "specful-version": "v0.1.0",
-        "next-adr-sequence": 1,
-        "next-requirement-sequence": 1,
-        "next-design-sequence": 1
+        "next-design-sequence": 1,
+        "specful-version": "0.3.0"
       }
     },
     {
@@ -91,7 +75,6 @@
       "instance": {
         "config-version": 1,
         "project-key": "SPF",
-        "specful-version": "0.1.0",
         "next-adr-sequence": 1,
         "next-requirement-sequence": 1,
         "next-design-sequence": 1,
@@ -104,7 +87,6 @@
       "instance": {
         "config-version": 1,
         "project-key": "SPF",
-        "specful-version": "0.1.0",
         "next-adr-sequence": 1,
         "next-requirement-sequence": 1
       }
