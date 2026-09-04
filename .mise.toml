@@ -14,7 +14,7 @@ just = "1.58.0"
 rumdl = "0.2.62"
 snyk = "1.1307.0"
 typos = "1.50.0"
-zizmor = "1.29.0"
+zizmor = "1.30.0"
 
 # Reference validator for the Agent Skills spec, pinned to an exact commit of its
 # subdirectory in the upstream monorepo; it is a demonstration tool, so Rust
