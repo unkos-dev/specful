@@ -16,7 +16,8 @@ The project key contains 2 to 10 uppercase ASCII letters or digits and starts wi
 first valid snapshot. Every stable identifier within the selected root uses that key.
 
 The `specful-version` field records the Specful release that last initialized or migrated the repository, as a plain
-`MAJOR.MINOR.PATCH` string. Tooling reads it to know the repository's vintage and never interprets it as policy.
+`MAJOR.MINOR.PATCH` string. `init` writes it; the conversion steps in a release's notes set it to that release. Tooling
+reads it to know the repository's vintage and never interprets it as policy.
 
 Each counter ranges from `1` through `10000`, is strictly greater than every corresponding sequence in the current
 snapshot, and never decreases. The value `10000` is the exhausted sentinel and is not allocated.

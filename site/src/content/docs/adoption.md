@@ -80,6 +80,25 @@ The skills use the CLI, configuration, schemas, templates, and repository artifa
 `specful-validate` skill also carries the [harness hooks](/specful/reference/validation-integration/#harness-hooks)
 blocks that run the checks automatically from Claude Code or Codex and ask for a review before a push.
 
+## Updating
+
+Update the binary with the same command that installed it, or with the next prebuilt archive:
+
+```sh
+cargo install --locked specful
+```
+
+Update installed skills with the GitHub CLI:
+
+```sh
+gh skill update
+```
+
+After either update, run `specful validate` in the repository. A compatible release reports no findings. When a release
+changes the profiles, its notes on the [releases](https://github.com/unkos-dev/specful/releases) page carry the
+conversion steps: apply them, set `specful-version` in `.specful/config.yaml` to that release, then run `specful index`
+and `specful validate`. Harness hook blocks are copied by hand, so copy them again only when the reference changes.
+
 ## Adopting into an existing repository
 
 Specful does not generate a specification from an undocumented codebase. Bring an existing repository under the
