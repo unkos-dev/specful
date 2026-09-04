@@ -6,6 +6,17 @@ Specful Architecture Decision Records use a project profile derived from
 An ADR explains why a durable architectural choice was made. It does not define current requirements, duplicate the
 current design description, or serve as an implementation diary.
 
+## Relationship to MADR
+
+The profile is derived from the MADR 4.0.0 complete template and is tighter than MADR on every axis it touches, so a
+canonical MADR record does not validate unchanged. Section headings are sentence case and compared exactly, so
+`Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers, Consequences, and
+Confirmation are required where MADR marks them optional. `recorded-on` and `decided-on` replace MADR's single `date`
+field. `decision-makers`, `consulted`, and `informed` are lists rather than free text. `status` has no `rejected` value.
+No frontmatter key outside the profile is accepted. A MADR record enters the profile by being re-recorded rather than
+converted in place; see
+[adopting into an existing repository](https://unkos-dev.github.io/specful/adoption/#adopting-into-an-existing-repository).
+
 ## Authoring template
 
 New ADRs start from [`templates/adr.md`](../../templates/adr.md). The guided template is based on MADR's complete

@@ -13,7 +13,9 @@ material claim. Check whether:
   Statement;
 - not-applicable sections state a reason when the profile permits them, and that reason fits the artifact;
 - the Requirement keeps implementation design, transition history, and durable decision rationale in their proper
-  artifacts.
+  artifacts;
+- `governed-by` relationships are exact, each cited ADR being the one whose rationale the obligation embodies, and the
+  Requirement does not duplicate that rationale.
 
 Report design leakage only when it constrains how the system must work without an externally imposed contract. Do not
 report a stated not-applicable reason merely because it is brief, infer missing implementation detail where the
