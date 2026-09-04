@@ -20,12 +20,13 @@ verification rows.
 
 ## Read
 
-1. Read the plan in full, then the artifacts its Binding inputs cite at the cited lines, in the checkout the plan was
-   written against.
+1. Read the plan in full, then the artifacts its Binding inputs cite at the cited lines, before any task creates a
+   branch or worktree. A cited line that no longer carries what the table says it locks is a deviation.
 2. Read the Progress log. The first `pending` or `active` step is the current step; never repeat a `complete` or
    `skipped` step.
 3. For an `active` step, check its branch when the repository has one. With commits, judge the work against the step's
-   Exit criteria. With a merged pull request, set the step `complete`. Without commits, treat the step as `pending`.
+   Exit criteria. With a merged pull request, set the step `complete`; the merge is the maintainer's confirmation of
+   every Merge condition. Without commits, treat the step as `pending`.
 4. Confirm every Prerequisite with its command before the first step.
 
 ## Execute one step
