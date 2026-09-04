@@ -7,6 +7,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/unkos-dev/specful/compare/v0.4.0...v0.4.1) - 2026-09-04
+
+### Fixed
+
+- *(skills)* close the planning and execution gaps the first pilot found ([#85](https://github.com/unkos-dev/specful/pull/85))
+
+  - Add a Merge conditions section to the change-plan and arc-plan
+  templates for maintainer-owned acts that must happen
+    after the pull request is green and before merge.
+  - Extend the specful-plan review checklist to require running every
+  Verify command, checking absence-asserting checks
+  against the current tree, keeping path-keyed ignore entries in step with
+  file moves, and searching the whole tree for
+    renamed identifiers.
+  - Update specful-implement's hand-off rules so a step stays active until
+  its pull request merges, reports unrun merge
+    conditions, and quotes a tool's verdict before any inferred cause.
+
+  The first adopter pilot ran a plan through the implement skill, and
+  every executor stop traced to a gap in the plan
+  skill's checklist, the templates, or the implement skill's hand-off
+  rules.
+
 ## [0.4.0](https://github.com/unkos-dev/specful/compare/v0.3.2...v0.4.0) - 2026-09-04
 
 ### Breaking changes
