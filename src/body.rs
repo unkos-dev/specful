@@ -130,6 +130,50 @@ fn contains_bcp14_term(text: &str) -> bool {
         .any(|term| contains_word_token(text, term))
 }
 
+/// Returns `text` with every backtick code span removed, since inline code is
+/// exempt from placeholder residue checks the same way a fenced block is.
+fn strip_code_spans(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut out = String::with_capacity(text.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'`' {
+            let open_start = i;
+            while i < bytes.len() && bytes[i] == b'`' {
+                i += 1;
+            }
+            let open_len = i - open_start;
+            // A span closes only with a run of the same length; a shorter or
+            // longer run of backticks is ordinary span content to skip over.
+            let mut j = i;
+            let mut close: Option<usize> = None;
+            while j < bytes.len() {
+                if bytes[j] == b'`' {
+                    let run_start = j;
+                    while j < bytes.len() && bytes[j] == b'`' {
+                        j += 1;
+                    }
+                    if j - run_start == open_len {
+                        close = Some(j);
+                        break;
+                    }
+                } else {
+                    j += 1;
+                }
+            }
+            match close {
+                Some(end) => i = end,
+                None => out.push_str(&text[open_start..i]),
+            }
+            continue;
+        }
+        let ch_len = text[i..].chars().next().map_or(1, char::len_utf8);
+        out.push_str(&text[i..i + ch_len]);
+        i += ch_len;
+    }
+    out
+}
+
 /// Whether `text` contains one non-empty `{...}` pair on a single line, the
 /// bracket placeholder convention used throughout the templates.
 fn has_brace_placeholder(text: &str) -> bool {
@@ -146,13 +190,14 @@ fn has_brace_placeholder(text: &str) -> bool {
 /// bracket placeholders (`{...}`), the bare `NNNN` sequence number token,
 /// and instructional HTML comments.
 fn has_placeholder_residue(text: &str) -> bool {
+    let text = strip_code_spans(text);
     if text.contains("<!--") {
         return true;
     }
     if text.contains("NNNN") {
         return true;
     }
-    has_brace_placeholder(text)
+    has_brace_placeholder(&text)
 }
 
 /// Finds every line that belongs to a `{...}` block whose opening brace is
@@ -170,8 +215,9 @@ fn multiline_brace_residue(lines: &[Line<'_>]) -> HashSet<usize> {
         if line.in_fence {
             continue;
         }
-        let opens = line.text.matches('{').count() as i32;
-        let closes = line.text.matches('}').count() as i32;
+        let stripped = strip_code_spans(line.text);
+        let opens = stripped.matches('{').count() as i32;
+        let closes = stripped.matches('}').count() as i32;
         if balance == 0 && opens > closes {
             open_start = Some(idx);
         }
@@ -784,6 +830,96 @@ mod tests {
             !findings
                 .iter()
                 .any(|f| f.message.contains("placeholder residue"))
+        );
+    }
+
+    #[test]
+    fn placeholder_inside_code_span_is_ignored() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\nthe file lives at `docs/specs/{id}.md`\n\ninline expression `${{ github.token }}` in prose\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn nnnn_inside_code_span_is_ignored() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\nfollows the `NNNN-short-slug.md` convention\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn double_backtick_span_is_ignored() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\na span like ``{a}`b`` here\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn placeholder_outside_code_span_is_still_flagged() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n`code` but {still a placeholder}\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue") && f.line == Some(3)),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn unmatched_backtick_does_not_hide_placeholder() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\ntext ` then {placeholder}\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue") && f.line == Some(3)),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn code_span_does_not_break_multiline_balance() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n{Start of block\nmiddle line with `{x}` span\nend of block}\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        for line in [3usize, 4, 5] {
+            assert!(
+                findings
+                    .iter()
+                    .any(|f| f.message.contains("placeholder residue") && f.line == Some(line)),
+                "expected line {line} flagged, got {findings:?}"
+            );
+        }
+
+        let fm = json!({"title": "T"});
+        let body = "# T\n\na span with `{` unbalanced brace\n\nfollowing prose stays untouched\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "{findings:?}"
         );
     }
 
