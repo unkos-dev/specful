@@ -7,6 +7,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/unkos-dev/specful/compare/v0.3.2...v0.4.0) - 2026-09-04
+
+### Breaking changes
+
+- *(config)* drop the specful-version field ([#83](https://github.com/unkos-dev/specful/pull/83))
+
+  - Remove the `specful-version` field from the config schema, its cases,
+  `init`, `Config`, and every repository fixture
+  - Drop the corresponding sentence from `docs/configuration.md`
+  - Add an Updating section to the adoption page covering the binary, the
+  skills, validation after an update, and conversion steps carried by
+  release notes
+
+  The field was written by `init` and read by no code path, so it drifted
+  from the truth as soon as a migration forgot
+  to set it. Existing repositories delete the `specful-version` line from
+  `.specful/config.yaml`, because the schema
+  rejects unknown keys.
+
+### Other
+
+- *(adoption)* update skills by reinstalling with --force ([#84](https://github.com/unkos-dev/specful/pull/84))
+
+  - Replace the bare `gh skill update` instruction with the install
+  command plus `--force`, which refreshes the installed skills and adds
+  ones a release introduced.
+
+  `gh skill update` without arguments walks every installed skill and
+  prompts for a source repository on each skill installed by other means,
+  and it does not add skills that a release introduced. The install
+  command with `--force` covers both cases in one step.
+
+- point adoption at harness hooks and record the review contract ([#80](https://github.com/unkos-dev/specful/pull/80))
+
+  - Link the harness hooks blocks from the adoption page's skills section.
+  - Add the substantive review contract ([#72](https://github.com/unkos-dev/specful/pull/72)) to the 0.3.2 changelog
+  section so it matches the published release notes.
+
 ## [0.3.2](https://github.com/unkos-dev/specful/compare/v0.3.1...v0.3.2) - 2026-09-03
 
 ### Added
