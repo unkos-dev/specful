@@ -59,8 +59,11 @@ apply. `type`, `status`, and `created` are required. `issue`, `relates-to`, and 
 Every statement in a plan is exact; the executor treats deviation as a stop. State an open choice in its task with the
 reason. Write tasks verb-first. Every task verifies with a command and its expected output, and the command fails when
 that task's behaviour is absent. When a task creates or replaces a short file whose content is the specification, quote
-the exact content in the task. A step's Context describes the repository state when the step starts, not the history
-that produced it.
+the exact content in the task. Quote an indented replacement line in a fenced block, never a code span. A step's Context
+describes the repository state when the step starts, not the history that produced it.
+
+A maintainer-owned act that must happen after the pull request is green and before merge, such as a required-check
+change, is recorded under Merge conditions. It is never a task or a prerequisite, and the executor reports it unrun.
 
 Issue and tracker inputs may supply context. Follow discussion and linked material only while they can change scope,
 authority, or decisions. Never publish or update external state without separate authority.
@@ -78,11 +81,19 @@ Check the plan against each item, then fix what fails:
 - every declared dependency edge matches an artifact one step produces and another consumes;
 - every open choice names what is open and why;
 - every deliverable in the objective maps to a task and a verification row;
+- every Verify command has been run once against the current tree and fails as absence predicts; a command the
+  repository's hooks refuse is rewritten, and a command that would mutate the tree is run in its dry or frozen form;
+- every check that asserts absence names what its pattern matches on the current tree, and each match is something a
+  task removes;
+- every file a task moves has every path-keyed ignore or allowlist entry for it updated in the same task, because what
+  commit hooks do to a file at its path is task state;
+- a whole-tree search for every identifier and path the change renames has been run, and every hit is a Do step;
 - every count and quantity stated in prose matches its source;
 - no placeholder, narrative paragraph, or generic example remains.
 
-Run the repository's applicable document checks, or report that none are defined after checking its instructions and
-command surfaces.
+Run the repository's applicable document checks, naming the plan file's path when the plan directory is ignored by
+version control, or report that none are defined after checking its instructions and command surfaces. Record defects in
+the convention or its skills in the adopter's own record, never in the plan.
 
 Report the written paths, selected shape, approved decisions, open decisions, first executable step, and verified
 commands. Stop there. The user separately decides whether to review or implement the plan.

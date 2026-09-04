@@ -22,7 +22,7 @@ Every statement in this plan is exact. A deviation stops for approval.
 ## Binding inputs
 
 | Artifact | Lines | What it locks |
-|---|---|---|
+| --- | --- | --- |
 | `{path or identifier}` | {lines} | {Decision or constraint.} |
 
 ## Design decisions
@@ -32,7 +32,7 @@ Every statement in this plan is exact. A deviation stops for approval.
 ## Open decisions
 
 | Decision | Options | Recommendation | Owner | Consequence if different |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | {Decision} | {Options} | {Recommendation} | {Owner} | {How the plan changes.} |
 
 ## Prerequisites
@@ -75,14 +75,19 @@ One step is one pull request.
 ## Verification
 
 | When | Command or procedure | Proves |
-|---|---|---|
+| --- | --- | --- |
 | Every step | `{command}` | {Property that must hold throughout.} |
 | Completion | `{command}` | {Objective it proves.} |
+
+## Merge conditions
+
+- {Act a maintainer performs after the pull request is green and before merge, with its rollback. The executor reports
+  it unrun.}
 
 ## Risks
 
 | Risk | Mitigation | Step |
-|---|---|---|
+| --- | --- | --- |
 | {Risk} | {Mitigation} | {Step number} |
 
 ## Progress log
@@ -90,7 +95,7 @@ One step is one pull request.
 This table is the only record of execution state.
 
 | Step | Status | Branch | PR | Notes |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 01 | pending | — | — | — |
 
 Status is `pending`, `active`, `blocked`, `complete`, or `skipped`. A deviation awaiting approval is recorded in Notes
