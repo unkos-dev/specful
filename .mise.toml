@@ -13,7 +13,7 @@ just = "1.58.0"
 # Node toolchain in a Rust-only repository.
 rumdl = "0.2.62"
 snyk = "1.1307.0"
-typos = "1.50.0"
+typos = "1.50.1"
 zizmor = "1.30.0"
 
 # Reference validator for the Agent Skills spec, pinned to an exact commit of its
