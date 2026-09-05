@@ -19,16 +19,25 @@ docs/specs/<architectural-scope...>/design/<sequence>-<subject...>.md
 
 ## Frontmatter
 
-| Field | Meaning |
-|---|---|
-| `type` | Always `DESIGN`. |
-| `profile-version` | The Design profile version this document conforms to. |
-| `id` | The allocated `PROJECT-DESIGN-NNNN` identifier. |
-| `title` | Concise name of the design subject. |
-| `satisfies` | Requirement identifiers this design contributes to satisfying. Omit the field entirely when empty. |
-| `governed-by` | ADR identifiers whose durable rationale this design embodies. Omit the field entirely when empty. |
+| Field | Meaning | Read by |
+|---|---|---|
+| `type` | Always `DESIGN`. | validate (selects the schema) |
+| `profile-version` | The Design profile version this document conforms to. | validate (schema requires `1`) |
+| `id` | The allocated `PROJECT-DESIGN-NNNN` identifier. | validate; index; show; trace |
+| `title` | Concise name of the design subject. | validate (H1 parity); index; show |
+| `satisfies` | Requirements this design contributes to satisfying. Omit when empty. | validate; index; show; trace |
+| `governed-by` | ADRs whose rationale this design embodies. Omit when empty. | validate; index; show |
 
 ## Sections
+
+`specful validate` checks structure, not judgement. It requires the seven canonical headings, from Purpose and
+boundaries through Security and operations, in that exact order and wording; subject-specific sections added between
+them do not break the check. Each required heading must appear exactly once, in order, and carry content; a missing,
+duplicated, out-of-order, or empty required section is a finding. When present, More information must be non-empty. The
+document H1 must match the frontmatter `title`, and no template placeholder residue may remain outside a code span. The
+tool cannot tell whether a "not applicable" reason is honest, whether the structure described matches the real system,
+or whether a failure mode was left out: that judgement is the author's and reviewer's, and the authoring skills teach
+it.
 
 A Design carries a canonical section set as a completeness baseline, not a ceiling: subject-specific sections may be
 added freely. Headings are never renamed; where a required section does not apply, keep the heading and state why, since
@@ -52,7 +61,7 @@ and is removed completely when it adds nothing.
   observability, troubleshooting entry points, and what a self-hoster must understand to run this subject safely.
 - **More information** (optional): links to canonical user documentation, runbooks, external references, and other
   material a reader may need next. It never restates a `satisfies` or `governed-by` relationship the frontmatter already
-  carries; `specful trace` renders those edges.
+  carries; `specful show` renders those edges.
 
 ## Cohesion, not length
 

@@ -24,7 +24,7 @@ is a plan, and what used to be true is Git history.
    obligation embodies, never a related or organising decision such as the decision to adopt a convention, and omit the
    field when that record does not exist in the profile. Write obligations testably: a Requirement that no observable
    behaviour could violate is decoration, not specification. More information is optional and is removed completely when
-   it adds nothing; it never restates a `governed-by` edge as a link, since `specful trace` already renders it.
+   it adds nothing; it never restates a `governed-by` edge as a link, since `specful show` already renders it.
 4. Run `specful index`, then `specful validate`; commit the regenerated views with the change.
 5. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
    substantive review or the user asks for it.

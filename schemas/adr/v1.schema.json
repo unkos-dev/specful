@@ -44,12 +44,6 @@
     "decision-makers": {
       "$ref": "#/$defs/participants"
     },
-    "consulted": {
-      "$ref": "#/$defs/participants"
-    },
-    "informed": {
-      "$ref": "#/$defs/participants"
-    },
     "supersedes": {
       "$ref": "#/$defs/adr-id-list"
     },
