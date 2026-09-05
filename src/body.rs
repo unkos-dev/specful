@@ -475,15 +475,57 @@ fn check_required_sections_in_order(
     findings
 }
 
-const REQUIREMENT_REQUIRED_H2: [&str; 4] = [
-    "Statement",
-    "Rationale",
-    "Acceptance criteria",
-    "More information",
-];
+/// Optional sections carry no presence or ordering requirement, only a non-empty check when present.
+fn check_optional_sections_nonempty(
+    lines: &[Line<'_>],
+    path: &str,
+    level: usize,
+    optional: &[&str],
+) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let marker = "#".repeat(level);
+
+    let headings: Vec<(usize, &str, usize)> = lines
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, l)| {
+            if l.in_fence {
+                return None;
+            }
+            heading_level_and_text(l.text)
+                .filter(|(lvl, _)| *lvl == level)
+                .map(|(_, text)| (idx, text, l.file_line))
+        })
+        .collect();
+
+    for (idx, text, fl) in &headings {
+        if optional.contains(text) {
+            let end = section_end(lines, *idx, level);
+            if !section_nonempty(lines, *idx, end) {
+                findings.push(Finding::new(
+                    path,
+                    Some(*fl),
+                    format!("\"{marker} {text}\" section has no content"),
+                ));
+            }
+        }
+    }
+
+    findings
+}
+
+const REQUIREMENT_REQUIRED_H2: [&str; 3] = ["Statement", "Rationale", "Acceptance criteria"];
+
+const OPTIONAL_H2: [&str; 1] = ["More information"];
 
 fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
     let mut findings = check_required_sections_in_order(lines, path, 2, &REQUIREMENT_REQUIRED_H2);
+    findings.extend(check_optional_sections_nonempty(
+        lines,
+        path,
+        2,
+        &OPTIONAL_H2,
+    ));
 
     let statement_headings: Vec<(usize, usize)> = lines
         .iter()
@@ -512,7 +554,7 @@ fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
     findings
 }
 
-const DESIGN_REQUIRED_H2: [&str; 8] = [
+const DESIGN_REQUIRED_H2: [&str; 7] = [
     "Purpose and boundaries",
     "Structure",
     "Interfaces and dependencies",
@@ -520,11 +562,17 @@ const DESIGN_REQUIRED_H2: [&str; 8] = [
     "Runtime behaviour",
     "Failure and recovery",
     "Security and operations",
-    "More information",
 ];
 
 fn check_design(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
-    check_required_sections_in_order(lines, path, 2, &DESIGN_REQUIRED_H2)
+    let mut findings = check_required_sections_in_order(lines, path, 2, &DESIGN_REQUIRED_H2);
+    findings.extend(check_optional_sections_nonempty(
+        lines,
+        path,
+        2,
+        &OPTIONAL_H2,
+    ));
+    findings
 }
 
 const ADR_REQUIRED_H2: [&str; 4] = [
@@ -536,7 +584,7 @@ const ADR_REQUIRED_H2: [&str; 4] = [
 
 const ADR_OPTIONAL_H2: [&str; 2] = ["Pros and cons of the options", "More information"];
 
-const ADR_REQUIRED_H3: [&str; 2] = ["Consequences", "Confirmation"];
+const ADR_REQUIRED_H3: [&str; 1] = ["Consequences"];
 
 fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
     let mut findings = check_required_sections_in_order(lines, path, 2, &ADR_REQUIRED_H2);
@@ -554,22 +602,16 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         })
         .collect();
 
-    for (idx, text, fl) in &h2s {
-        if ADR_OPTIONAL_H2.contains(text) {
-            let end = section_end(lines, *idx, 2);
-            if !section_nonempty(lines, *idx, end) {
-                findings.push(Finding::new(
-                    path,
-                    Some(*fl),
-                    format!("\"## {text}\" section has no content"),
-                ));
-            }
-        }
-    }
+    findings.extend(check_optional_sections_nonempty(
+        lines,
+        path,
+        2,
+        &ADR_OPTIONAL_H2,
+    ));
 
-    // Consequences and Confirmation are level-three subsections of
-    // Decision Outcome. Scope the search to that section's span so a
-    // stray top-level heading of the same name is not mistaken for it.
+    // Consequences is a level-three subsection of Decision outcome. Scope
+    // the search to that section's span so a stray top-level heading of the
+    // same name is not mistaken for it.
     let decision_outcome = h2s.iter().find(|(_, t, _)| *t == "Decision outcome");
     let (scope_start, scope_end) = match decision_outcome {
         Some((idx, _, _)) => (*idx, section_end(lines, *idx, 2)),
@@ -1082,10 +1124,6 @@ mod tests {
             "",
             "Security explanation.",
             "",
-            "## More information",
-            "",
-            "Not applicable: nothing further to add.",
-            "",
         ]
         .join("\n")
     }
@@ -1095,6 +1133,17 @@ mod tests {
         let fm = json!({"title": "Real title"});
         let findings = findings_for(ArtifactKind::Design, fm, &complete_design_body());
         assert!(findings.is_empty(), "{findings:?}");
+    }
+
+    #[test]
+    fn design_without_more_information_validates() {
+        let fm = json!({"title": "Real title"});
+        let findings = findings_for(ArtifactKind::Design, fm, &complete_design_body());
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("More information"))
+        );
     }
 
     #[test]
@@ -1134,6 +1183,18 @@ mod tests {
         }));
     }
 
+    #[test]
+    fn design_optional_section_present_but_empty_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let mut body = complete_design_body();
+        body.push_str("## More information\n\n");
+        let findings = findings_for(ArtifactKind::Design, fm, &body);
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("\"## More information\" section has no content")
+        }));
+    }
+
     // ---- Requirement ----
 
     fn complete_requirement_body() -> String {
@@ -1152,10 +1213,6 @@ mod tests {
             "",
             "- The thing happens.",
             "",
-            "## More information",
-            "",
-            "None.",
-            "",
         ]
         .join("\n")
     }
@@ -1165,6 +1222,17 @@ mod tests {
         let fm = json!({"title": "Real title"});
         let findings = findings_for(ArtifactKind::Requirement, fm, &complete_requirement_body());
         assert!(findings.is_empty(), "{findings:?}");
+    }
+
+    #[test]
+    fn requirement_without_more_information_validates() {
+        let fm = json!({"title": "Real title"});
+        let findings = findings_for(ArtifactKind::Requirement, fm, &complete_requirement_body());
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("More information"))
+        );
     }
 
     #[test]
@@ -1192,6 +1260,18 @@ mod tests {
                 .iter()
                 .any(|f| f.message.contains("no uppercase BCP 14 keyword"))
         );
+    }
+
+    #[test]
+    fn requirement_optional_section_present_but_empty_is_a_finding() {
+        let fm = json!({"title": "Real title"});
+        let mut body = complete_requirement_body();
+        body.push_str("## More information\n\n");
+        let findings = findings_for(ArtifactKind::Requirement, fm, &body);
+        assert!(findings.iter().any(|f| {
+            f.message
+                .contains("\"## More information\" section has no content")
+        }));
     }
 
     #[test]
@@ -1235,10 +1315,6 @@ mod tests {
             "",
             "- Positive: mature tooling",
             "",
-            "### Confirmation",
-            "",
-            "Reviewed at launch.",
-            "",
         ]
         .join("\n")
     }
@@ -1263,14 +1339,19 @@ mod tests {
     }
 
     #[test]
-    fn adr_missing_nested_section_is_a_finding() {
+    fn adr_without_confirmation_validates() {
         let fm = adr_frontmatter();
-        let body = complete_adr_body().replace("### Confirmation\n\nReviewed at launch.\n", "");
+        let findings = findings_for(ArtifactKind::Adr, fm, &complete_adr_body());
+        assert!(findings.is_empty(), "{findings:?}");
+    }
+
+    #[test]
+    fn adr_with_nonempty_confirmation_validates_with_no_finding_about_it() {
+        let fm = adr_frontmatter();
+        let mut body = complete_adr_body();
+        body.push_str("### Confirmation\n\nReviewed at launch.\n");
         let findings = findings_for(ArtifactKind::Adr, fm, &body);
-        assert!(findings.iter().any(|f| {
-            f.message
-                .contains("missing required section \"### Confirmation\"")
-        }));
+        assert!(findings.is_empty(), "{findings:?}");
     }
 
     #[test]

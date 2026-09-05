@@ -55,12 +55,6 @@ single Specful conformance result.
 - Negative: a future shared-context concept file requires its own type decision rather than falling back on generic
   tolerance.
 
-### Confirmation
-
-No repository document claims OKF conformance, inheritance, or a bundle boundary; `NOTICE.md` retains the attribution;
-the validator reserves only `index.md` and rejects unrecognised types; no `okf_version` or `log.md` handling exists in
-code or documentation.
-
 ## Pros and cons of the options
 
 ### Influence only: attribute OKF, own every rule

@@ -9,8 +9,8 @@ Inspect the durable decision record and the smallest linked artifacts needed to 
 - the context and decision drivers make the durable choice and its forces clear;
 - considered options are materially viable, distinct, and evaluated against the drivers;
 - the outcome names a choice and credible reason, while consequences include material trade-offs;
-- Confirmation names observable evidence that the decision is followed rather than mutable Design detail or a
-Requirement acceptance criterion;
+- More information, where present, does not restate a `satisfies`, `governed-by`, `supersedes`, or `superseded-by`
+relationship the frontmatter already carries;
 - lifecycle state, supersession, and relationships are appropriate, and the ADR does not bind the system or become a
 mutable description of how it currently works.
 

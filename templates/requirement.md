@@ -12,9 +12,10 @@ governed-by:
 {INSTRUCTIONS. This file was scaffolded from the Specful Requirement template; the frontmatter identifier was allocated
 by `specful new requirement` and is never edited by hand. Replace every braced block with real content. Every section
 heading stays, exactly as written, so Requirements stay searchable and parseable across the repository; where a section
-has nothing to say, keep the heading and state "Not applicable: {reason}". The document is complete only when no braced
-text remains, `specful validate` passes, and every section carries real content or a reasoned not-applicable. Delete
-this block last.}
+has nothing to say, keep the heading and state "Not applicable: {reason}". More information is the exception: it is
+optional and is removed completely when it adds nothing. The document is complete only when no braced text remains,
+`specful validate` passes, and every remaining section carries real content or a reasoned not-applicable. Delete this
+block last.}
 
 {A Requirement is one coherent normative obligation plus the information needed to understand and evaluate it. One
 obligation per file does not mean one sentence per file: complex acceptance boundaries, tables, examples, and
@@ -59,6 +60,7 @@ one obligation.}
 
 ## More information
 
-{Supporting context: related Requirements and Designs, external references, and examples that help implementers and
-verifiers. Peripheral open questions may live here; an unresolved matter that affects the obligation or its acceptance
-boundary means the Requirement is not complete yet.}
+{Optional: supporting context such as external references, examples, and runbooks that help implementers and verifiers.
+Never restate a `satisfies` or `governed-by` relationship the frontmatter already carries. Peripheral open questions may
+live here; an unresolved matter that affects the obligation or its acceptance boundary means the Requirement is not
+complete yet. Remove the section when it adds nothing.}

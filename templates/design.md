@@ -15,9 +15,10 @@ governed-by:
 `specful new design` and is never edited by hand. Replace every braced block with real content. Every section heading
 below stays, exactly as written, so Designs stay searchable and parseable across the repository; where a section does
 not apply to this subject, keep the heading and state "Not applicable: {reason}", since a bare not-applicable with no
-reason is a review flag, not an answer. Add subject-specific sections freely; the set below is the completeness
-baseline, not a ceiling. The document is complete only when no braced text remains, `specful validate` passes, and every
-section carries real content or a reasoned not-applicable. Delete this block last.}
+reason is a review flag, not an answer. More information is the exception: it is optional and is removed completely when
+it adds nothing. Add subject-specific sections freely; the set below is the completeness baseline, not a ceiling. The
+document is complete only when no braced text remains, `specful validate` passes, and every remaining section carries
+real content or a reasoned not-applicable. Delete this block last.}
 
 {A Design explains how one coherent subject currently works: a system, component, surface, mechanism, or collaboration a
 reader normally needs to understand as one thing. It serves developers, maintainers, adopters, and self-hosters through
@@ -66,6 +67,7 @@ points, and what a self-hoster must understand to run this subject safely.}
 
 ## More information
 
-{Links to canonical user documentation, runbooks, related Designs and Requirements, and other material a reader may need
-next. A Design explains how the system works; step-by-step usage and procedures belong in the linked canonical
-documents.}
+{Optional: links to canonical user documentation, runbooks, external references, and other material a reader may need
+next. Never restate a `satisfies` or `governed-by` relationship the frontmatter already carries. A Design explains how
+the system works; step-by-step usage and procedures belong in the linked canonical documents. Remove the section when it
+adds nothing.}

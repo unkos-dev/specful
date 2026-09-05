@@ -66,12 +66,6 @@ created; the existing version-shaped tag automation stays undisturbed.
 - Negative: capabilities a harness exposes only through its own packaging, such as hooks, are not deliverable through
   this channel and need their own harness-neutral delivery decision when they arrive.
 
-### Confirmation
-
-Confirm the decision by verifying that every skill passes the pinned Agent Skills validator, a release installs through
-the single channel at an immutable reference, `specful init` writes no agent instruction or harness-specific files, and
-no plugin-specific tag exists.
-
 ## Pros and cons of the options
 
 ### Opt-in harness-side skills installed at immutable revisions through one channel

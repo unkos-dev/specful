@@ -44,11 +44,7 @@ fn complete_adr(root: &std::path::Path, path: &str) {
          \n\
          ### Consequences\n\
          \n\
-         Positive: discovery tests stay independent of scaffold content.\n\
-         \n\
-         ### Confirmation\n\
-         \n\
-         This file collects and indexes without findings.\n",
+         Positive: discovery tests stay independent of scaffold content.\n",
     )
     .expect("write conformant seed ADR");
 }

@@ -125,7 +125,5 @@ adopting maintainer's policy.
 
 ## More information
 
-[SPECFUL-ADR-0005](../../../adr/0005-deliver-agent-support-as-an-opt-in-harness-side-plugin.md) records the distribution
-decision and its alternatives. The [project charter](../../../project-charter.md) defines the portability and
-source-of-truth boundaries. The public [Adoption](https://unkos-dev.github.io/specful/adoption/) page carries current
-installation instructions.
+The [project charter](../../../project-charter.md) defines the portability and source-of-truth boundaries. The public
+[Adoption](https://unkos-dev.github.io/specful/adoption/) page carries current installation instructions.

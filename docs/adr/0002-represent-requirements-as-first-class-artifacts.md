@@ -60,12 +60,6 @@ choice was made is the role of an ADR, linked through `governed-by`.
 - Negative: content shared by several requirements in a scope needs a home outside any single requirement file, which is
   decided separately.
 
-### Confirmation
-
-`specful new` scaffolds requirements individually with allocated identifiers; `specful validate` enforces the
-four-section record with its canonical headings and no standalone verification section; generated indexes list
-requirements directly; `show` and `trace` resolve requirement identifiers without an intermediate container.
-
 ## Pros and cons of the options
 
 ### First-class requirement artifacts with generated assembly

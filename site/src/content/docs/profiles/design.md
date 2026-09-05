@@ -31,8 +31,9 @@ docs/specs/<architectural-scope...>/design/<sequence>-<subject...>.md
 ## Sections
 
 A Design carries a canonical section set as a completeness baseline, not a ceiling: subject-specific sections may be
-added freely. Headings are never renamed; where a section does not apply, keep the heading and state why, since a bare
-not-applicable with no reason is a review flag, not an answer.
+added freely. Headings are never renamed; where a required section does not apply, keep the heading and state why, since
+a bare not-applicable with no reason is a review flag, not an answer. More information is the exception: it is optional
+and is removed completely when it adds nothing.
 
 - **Purpose and boundaries**: what this subject is for, what it owns, where it begins and ends, and what it deliberately
   leaves to neighbouring subjects. Names the systems, components, or actors it depends on and the ones that depend on
@@ -49,8 +50,9 @@ not-applicable with no reason is a review flag, not an answer.
   handling, rollback, retries, and the user-visible outcomes of each failure class.
 - **Security and operations**: trust boundaries, credentials and secrets handling, and the operational surface:
   observability, troubleshooting entry points, and what a self-hoster must understand to run this subject safely.
-- **More information**: links to canonical user documentation, runbooks, related Designs and Requirements, and other
-  material a reader may need next.
+- **More information** (optional): links to canonical user documentation, runbooks, external references, and other
+  material a reader may need next. It never restates a `satisfies` or `governed-by` relationship the frontmatter already
+  carries; `specful trace` renders those edges.
 
 ## Cohesion, not length
 

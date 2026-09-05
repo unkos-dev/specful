@@ -10,8 +10,9 @@ current design description, or serve as an implementation diary.
 
 The profile is derived from the MADR 4.0.0 complete template and is tighter than MADR on every axis it touches, so a
 canonical MADR record does not validate unchanged. Section headings are sentence case and compared exactly, so
-`Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers, Consequences, and
-Confirmation are required where MADR marks them optional. `recorded-on`, with `decided-on` when the decision predates
+`Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
+are required where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
+still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
 the record, replaces MADR's single `date` field. `decision-makers`, `consulted`, and `informed` are lists rather than
 free text. `status` has no `rejected` value. No frontmatter key outside the profile is accepted other than an `x-`
 extension key. A MADR record enters the profile by being re-recorded rather than converted in place; see
@@ -30,11 +31,11 @@ Every completed ADR contains:
 - Decision drivers;
 - Considered options;
 - Decision outcome;
-- Consequences;
-- Confirmation.
+- Consequences.
 
 Pros and cons of the options and More information are conditional sections. They are included only when they add
-material decision evidence.
+material decision evidence. More information is the one section that may be edited in place after acceptance; it never
+restates a `satisfies`, `governed-by`, `supersedes`, or `superseded-by` relationship the frontmatter already carries.
 
 ## Identifiers
 
@@ -354,7 +355,7 @@ Before an ADR is accepted, its human or agent reviewer considers whether:
 
 - option names refer consistently to the same choices throughout;
 - consequences identify material adverse trade-offs as well as benefits;
-- confirmation describes observable evidence;
+- more information holds no relationship the frontmatter already carries;
 - each retained optional section adds useful decision evidence.
 
 These checks are shared authoring guidance, not conformance conditions. An adopting project may promote any of them into
@@ -362,10 +363,11 @@ local review policy without changing the Specful profile.
 
 ## Lifecycle
 
-The substantive content of an accepted ADR is expected to remain stable. Whether a content edit is substantive requires
-engineering judgement, so this expectation is a review rule rather than a conformance condition. A later decision that
-replaces an accepted ADR is recorded in a new ADR, and the relationship between the records is expressed through their
-metadata.
+The substantive content of an accepted ADR is expected to remain stable, with one exception: More information may be
+edited in place, since it is evidence depth rather than part of the decision event. Whether a content edit is
+substantive requires engineering judgement, so this expectation is a review rule rather than a conformance condition. A
+later decision that replaces an accepted ADR is recorded in a new ADR, and the relationship between the records is
+expressed through their metadata, which `specful trace` reports rather than a prose restatement.
 
 Git records editorial history. Requirements and design descriptions continue to describe current state and do not absorb
 ADR chronology.

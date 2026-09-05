@@ -22,7 +22,8 @@ a plan, and what used to be true is Git history.
    `governed-by`, naming only the ADR whose rationale this subject embodies, never a related or organising decision such
    as the decision to adopt a convention, and omit the field when that record does not exist in the profile. Describe
    the subject as it is, at the level a maintainer needs to change it safely; decision rationale belongs in an ADR, not
-   here.
+   here. More information is optional and is removed completely when it adds nothing; it never restates a `satisfies` or
+   `governed-by` edge as a link, since `specful trace` already renders those.
 4. Run `specful index`, then `specful validate`; commit the regenerated views with the change.
 5. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
    substantive review or the user asks for it.
