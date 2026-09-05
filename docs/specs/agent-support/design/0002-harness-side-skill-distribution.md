@@ -47,9 +47,9 @@ packages in shared flat namespaces. The authoring set is `specful-requirement`, 
 ## Interfaces and dependencies
 
 Each skill uses Agent Skills frontmatter for its name and trigger description, followed by Markdown instructions that a
-harness loads when the skill applies. Skills that invoke the CLI also declare their `specful` compatibility requirement
-and require `specful` 0.3.0 or later on `PATH`. Authoring, planning, implementation, and review skills also use
-repository artifacts and public documentation as source material.
+harness loads when the skill applies. Skills that invoke the CLI declare a `compatibility` line requiring `specful` on
+`PATH`, carrying no version number: nothing reads it, and the installer pins skills to a release tag. Authoring,
+planning, implementation, and review skills also use repository artifacts and public documentation as source material.
 
 Users install the package through the GitHub CLI:
 

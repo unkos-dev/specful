@@ -1,7 +1,7 @@
 ---
 name: specful-review
 description: Review a Specful Requirement, Design, ADR, or change for consequential substantive defects.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 ---
 
 # Review a Specful artifact or change
