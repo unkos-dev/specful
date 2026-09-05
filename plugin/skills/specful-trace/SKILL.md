@@ -3,7 +3,7 @@ name: specful-trace
 description: >-
   Use when following requirement-to-design links for a specific Requirement identifier, checking whether a
   Requirement has a satisfying Design, or listing the artifacts that cite an ADR.
-compatibility: Requires specful 0.5.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 metadata:
   argument-hint: <ID>
 ---
