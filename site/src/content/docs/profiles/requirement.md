@@ -21,15 +21,22 @@ an authored container artifact: moving a requirement between scopes preserves it
 
 ## Frontmatter
 
-| Field | Meaning |
-|---|---|
-| `type` | Always `REQ`. |
-| `profile-version` | The Requirement profile version this document conforms to. |
-| `id` | The allocated `PROJECT-REQ-NNNN` identifier. |
-| `title` | Concise navigation title for the obligation. |
-| `governed-by` | ADR identifiers whose durable rationale this obligation embodies. Omit when no ADR governs it. |
+| Field | Meaning | Read by |
+|---|---|---|
+| `type` | Always `REQ`. | validate (selects the schema) |
+| `profile-version` | The Requirement profile version this document conforms to. | validate (schema requires `1`) |
+| `id` | The allocated `PROJECT-REQ-NNNN` identifier. | validate; index; show; trace |
+| `title` | Concise navigation title for the obligation. | validate (H1 parity); index; show |
+| `governed-by` | ADRs whose rationale this obligation embodies. Omit when none governs it. | validate; index; show |
 
 ## Sections
+
+`specful validate` checks structure, not judgement. It requires Statement, Rationale, and Acceptance criteria, in that
+exact order and wording, and requires the Statement to carry an uppercase BCP 14 keyword. When present, More information
+must be non-empty. The document H1 must match the frontmatter `title`, and no template placeholder residue may remain
+outside a code span. The tool cannot tell whether an acceptance criterion is genuinely checkable, whether the
+Statement's condition is objectively determinable, or whether a "not applicable" is honest: that judgement is the
+author's and reviewer's, and the authoring skills teach it.
 
 A Requirement carries three canonical headings, never renamed, plus an optional fourth. A required section with nothing
 to say keeps its heading and states why it does not apply.

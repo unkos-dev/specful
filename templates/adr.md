@@ -8,10 +8,6 @@ recorded-on: "{YYYY-MM-DD}"
 decided-on: "{YYYY-MM-DD}"
 decision-makers:
   - "{person or collective role}"
-consulted:
-  - "{person or collective role}"
-informed:
-  - "{person or collective role}"
 supersedes:
   - "{PROJECT}-ADR-{NNNN}"
 superseded-by:
@@ -26,8 +22,9 @@ Consequences are required; Pros and cons of the options and More information are
 when they add no useful decision evidence. An ADR records a decision, not an obligation: the outcome says "chosen
 option: X, because ...", never "the system MUST". An obligation created by this decision belongs in a Requirement that
 cites this ADR through `governed-by`; once accepted, this record is never rewritten and only superseded, except More
-information, which may be edited in place. Remove the frontmatter roles and supersession fields that do not apply. The
-document is complete only when no braced text remains and `specful validate` passes. Delete this block last.}
+information, which may be edited in place. `decision-makers` is required; remove `decided-on` and the supersession
+fields that do not apply. The document is complete only when no braced text remains and `specful validate` passes.
+Delete this block last.}
 
 ## Context and problem statement
 

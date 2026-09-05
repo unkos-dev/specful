@@ -13,9 +13,10 @@ canonical MADR record does not validate unchanged. Section headings are sentence
 `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
 are required where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
 still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
-the record, replaces MADR's single `date` field. `decision-makers`, `consulted`, and `informed` are lists rather than
-free text. `status` has no `rejected` value. No frontmatter key outside the profile is accepted other than an `x-`
-extension key. A MADR record enters the profile by being re-recorded rather than converted in place; see
+the record, replaces MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
+and `informed` participant roles are not part of this profile; a record carrying either fails validation. `status` has
+no `rejected` value. No frontmatter key outside the profile is accepted other than an `x-` extension key. A MADR record
+enters the profile by being re-recorded rather than converted in place; see
 [adopting into an existing repository](https://unkos-dev.github.io/specful/adoption/#adopting-into-an-existing-repository).
 
 ## Authoring template
@@ -147,18 +148,17 @@ while a historical decision may be recorded later. Equal dates are also valid.
 
 ## Participants
 
-`decision-makers` is required and identifies the people or roles with authority over the decision.
+`decision-makers` is required and identifies the people or roles with authority over the decision: the authority to
+reconsider or supersede the record.
 
-`consulted` and `informed` provide the optional MADR/RACI participant roles. `consulted` identifies those whose opinions
-were sought through two-way communication. `informed` identifies those kept up to date through one-way communication. An
-adopting project may omit either field when that governance record adds no value.
+The profile carries no other participant role. MADR's `consulted` and `informed` fields are not accepted; a record
+carrying either fails validation.
 
 Every participant entry is a human-readable string naming a person or collective role. Participant objects and
 repository-wide participant identifiers are not part of the ADR profile.
 
-Entries must be unique within each participant field using exact string equality. The same participant may appear in
-more than one field when the participant serves multiple roles. Specful does not case-fold or apply fuzzy identity
-matching.
+Entries must be unique within `decision-makers` using exact string equality. Specful does not case-fold or apply fuzzy
+identity matching.
 
 Optional participant fields are omitted rather than stored as empty arrays.
 
@@ -208,7 +208,7 @@ order:
 5. `status`;
 6. `recorded-on`;
 7. `decided-on`, when present;
-8. `decision-makers`, `consulted`, and `informed`, when present;
+8. `decision-makers`;
 9. `supersedes` and `superseded-by`, when present;
 10. extension fields, sorted by key.
 

@@ -18,26 +18,32 @@ docs/adr/<sequence>-<short-title>.md
 
 ## Frontmatter
 
-| Field | Meaning |
-|---|---|
-| `type` | Always `ADR`. |
-| `profile-version` | The ADR profile version this document conforms to. |
-| `id` | The allocated `PROJECT-ADR-NNNN` identifier. |
-| `title` | Short title naming the problem and chosen solution. |
-| `status` | One of `proposed`, `accepted`, `deprecated`, `superseded`. |
-| `recorded-on` | The date this record was written. |
-| `decided-on` | The date the decision was made, when it differs from `recorded-on`. |
-| `decision-makers` | Who made the decision. |
-| `consulted` | Optional: roles consulted before the decision. |
-| `informed` | Optional: roles informed of the decision after the fact. |
-| `supersedes` | Optional: the ADR identifier(s) this record replaces. |
-| `superseded-by` | Optional: the ADR identifier that replaced this record. |
+| Field | Meaning | Read by |
+|---|---|---|
+| `type` | Always `ADR`. | validate (selects the schema) |
+| `profile-version` | The ADR profile version this document conforms to. | validate (schema requires `1`) |
+| `id` | The allocated `PROJECT-ADR-NNNN` identifier. | validate; index; show |
+| `title` | Short title naming the problem and chosen solution. | validate (H1 parity); index; show |
+| `status` | One of `proposed`, `accepted`, `deprecated`, `superseded`. | validate (supersession pairing); index; show |
+| `recorded-on` | The date this record was written. | validate (schema); readers |
+| `decided-on` | The date the decision was made, when it differs from `recorded-on`. | validate (schema); readers |
+| `decision-makers` | Who made the decision. | validate (schema); names the authority to reconsider |
+| `supersedes` | Optional: the ADR identifier(s) this record replaces. | validate (reciprocity); index; show |
+| `superseded-by` | Optional: the ADR identifier that replaced this record. | validate (reciprocity); index; show |
 
 Supersession is the one relationship stored in both directions: both the replaced and replacement records carry
 reciprocal links, so either document remains independently navigable, and validation treats disagreement between those
 links as an error.
 
 ## Sections
+
+`specful validate` checks structure, not judgement. It requires the four level-two headings through Decision outcome, in
+that exact order and wording, and requires the level-three **Consequences** heading, but only within the Decision
+outcome span: a stray top-level heading of the same name elsewhere does not satisfy it. When present,
+**Pros and cons of the options** and **More information** must be non-empty. The document H1 must match the frontmatter
+`title`, and no template placeholder residue may remain outside a code span. The tool cannot tell whether the considered
+options were the materially viable ones, whether the chosen option's reasoning is honest, or whether a stated
+consequence is real: that judgement is the author's and reviewer's, and the authoring skills teach it.
 
 Through **Consequences**, every section is required. **Pros and cons of the options** and **More information** are
 optional, and are removed completely when they add no useful decision evidence, unlike a Requirement or Design section,
@@ -65,9 +71,10 @@ canonical MADR record does not validate against it unchanged. Section headings a
 so `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
 are required here where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
 still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
-the record, replaces MADR's single `date` field. `decision-makers`, `consulted`, and `informed` are lists rather than
-free text. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other than an `x-`
-extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
+the record, replaces MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
+and `informed` participant roles are not part of this profile; a record carrying either fails validation until the lines
+are deleted. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other than an
+`x-` extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
 [adopting into an existing repository](/specful/adoption/#adopting-into-an-existing-repository).
 
 ## Requirement versus ADR
