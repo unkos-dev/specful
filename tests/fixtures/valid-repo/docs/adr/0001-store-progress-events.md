@@ -32,7 +32,3 @@ conflicts deterministically.
 ### Consequences
 
 Replay is idempotent, so reconnection cannot duplicate progress.
-
-### Confirmation
-
-The replay integration tests exercise reconnection after queued edits.

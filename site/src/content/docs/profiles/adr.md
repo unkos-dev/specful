@@ -4,7 +4,8 @@ description: What an Architecture Decision Record is, its sections, and the boun
 ---
 
 An Architecture Decision Record (ADR) records why a durable decision was made: the context, the options considered, and
-the outcome. Once accepted, an ADR is never rewritten, only superseded by a new record.
+the outcome. Once accepted, an ADR is never rewritten, only superseded by a new record, with one exception:
+**More information** may be edited in place, since it is evidence depth rather than part of the decision event.
 
 ## Identity and file layout
 
@@ -38,7 +39,7 @@ links as an error.
 
 ## Sections
 
-Through **Confirmation**, every section is required. **Pros and cons of the options** and **More information** are
+Through **Consequences**, every section is required. **Pros and cons of the options** and **More information** are
 optional, and are removed completely when they add no useful decision evidence, unlike a Requirement or Design section,
 which keeps its heading with a stated reason when not applicable: these two sections are evidence depth, not a
 completeness checklist.
@@ -49,12 +50,10 @@ completeness checklist.
 - **Considered options**: the materially viable options, named consistently with the rest of the document.
 - **Decision outcome**: "Chosen option: **{option}**, because {reason it best satisfies the decision drivers}."
   - **Consequences**: material outcomes of the choice, including adverse trade-offs, as positive and negative bullets.
-  - **Confirmation**: observable evidence that the decision is implemented and continues to be followed, such as a test,
-    review, rule, or operational check. Confirmation shows the decision is being honoured; whether an obligation is
-    satisfied is a Requirement's acceptance criteria, not this section.
 - **Pros and cons of the options** (optional): each considered option's own positive, neutral, and negative points.
 - **More information** (optional): supporting evidence, related decisions, or conditions that should trigger
-  reconsideration.
+  reconsideration. It never restates a `satisfies`, `governed-by`, `supersedes`, or `superseded-by` relationship the
+  frontmatter already carries; `specful trace` renders those edges.
 
 An ADR outcome says "chosen option: X, because ...", never "the system MUST". A decision whose outcome needs to bind
 mints a Requirement and links it back through `governed-by`.
@@ -63,11 +62,12 @@ mints a Requirement and links it back through `governed-by`.
 
 This profile derives from the MADR 4.0.0 complete template and is tighter than MADR on every axis it touches: a
 canonical MADR record does not validate against it unchanged. Section headings are sentence case and compared exactly,
-so `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers, Consequences,
-and Confirmation are required here where MADR marks them optional. `recorded-on`, with `decided-on` when the decision
-predates the record, replaces MADR's single `date` field. `decision-makers`, `consulted`, and `informed` are lists
-rather than free text. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other
-than an `x-` extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
+so `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
+are required here where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
+still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
+the record, replaces MADR's single `date` field. `decision-makers`, `consulted`, and `informed` are lists rather than
+free text. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other than an `x-`
+extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
 [adopting into an existing repository](/specful/adoption/#adopting-into-an-existing-repository).
 
 ## Requirement versus ADR
@@ -88,7 +88,7 @@ Two litmus questions settle nearly every case:
 1. Could tooling or a test ever check it against the system? Yes: Requirement. No, the value is the reasoning: ADR.
 2. If it stopped being true tomorrow, would it be rewritten or superseded? Rewritten: Requirement. Superseded: ADR.
 
-The discipline that keeps the line crisp: an ADR outcome never says "the system MUST", and its Confirmation section
-confirms the decision is being followed, not that an obligation is satisfied. See the
-[Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/) for the other
-two sides of the same triangle.
+The discipline that keeps the line crisp: an ADR outcome never says "the system MUST", and whether a decision is being
+followed is read from the Requirements and Designs that cite it through `governed-by`, not from the record itself. See
+the [Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/) for the
+other two sides of the same triangle.

@@ -26,7 +26,8 @@ or progress notes.
    than as strawmen for a preferred answer; record negative consequences with the same care as positive ones. An ADR
    with no credible alternative or no downside is advertising, not a decision record.
 4. Lifecycle belongs to the maintainer: a new record starts proposed, and only the maintainer accepts, rejects, or
-   supersedes.
+   supersedes. Once accepted, a record is never rewritten, only superseded, except More information, which may be edited
+   in place since it is evidence depth rather than part of the decision event.
 5. Run `specful index`, then `specful validate`; commit the regenerated views with the change. Use `specful-review` when
    the adopting repository requires substantive review or the user asks for it.
 

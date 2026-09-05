@@ -60,13 +60,6 @@ durable rationale the design embodies).
 - Negative: subject boundaries are judgement calls; the cohesion rule guides but cannot mechanise them.
 - Negative: a large subject produces a long document before the cohesion rule justifies a split.
 
-### Confirmation
-
-`specful new design` scaffolds the canonical section set with an allocated identifier; `specful validate` enforces the
-Design profile; `trace` follows design-owned `satisfies` links from requirement identifiers; generated indexes list
-Designs directly; Design metadata, schemas, identifiers, relationships, and queries contain no viewpoint or view
-concepts.
-
 ## Pros and cons of the options
 
 ### Subject-oriented Design artifacts with canonical sections

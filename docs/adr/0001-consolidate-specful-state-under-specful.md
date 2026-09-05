@@ -43,8 +43,3 @@ inside dot-directories such as `.changeset/config.json` and `.cargo/config.toml`
   is bounded: counters can be reconstructed by scanning existing artifacts for the highest allocated identifier, with
   the narrow caveat that identifiers of deleted artifacts could be reused. This is accepted without tooling guards and
   recorded here instead.
-
-### Confirmation
-
-Root discovery, `init`, and identifier allocation all resolve `.specful/config.yaml`, and `specful validate` passes
-against a repository initialised under this layout.

@@ -31,8 +31,8 @@ an authored container artifact: moving a requirement between scopes preserves it
 
 ## Sections
 
-A Requirement carries four canonical headings, never renamed. A section with nothing to say keeps its heading and states
-why it does not apply.
+A Requirement carries three canonical headings, never renamed, plus an optional fourth. A required section with nothing
+to say keeps its heading and states why it does not apply.
 
 - **Statement**: one normative paragraph, using at least one uppercase BCP 14 keyword (MUST, MUST NOT, SHOULD, SHOULD
   NOT, MAY). Name the acting system or component where one exists, the triggering condition, and the observable
@@ -48,8 +48,10 @@ why it does not apply.
   the negative and edge cases that define the obligation's boundary, not only the happy path. There is no standalone
   verification section: acceptance criteria carry falsifiability directly, and where the means of checking a criterion
   is not obvious, the criterion states how satisfaction is determined.
-- **More information**: supporting context, related Requirements and Designs, external references, and examples. An
-  unresolved matter that affects the obligation or its acceptance boundary means the Requirement is not complete yet.
+- **More information** (optional): supporting context such as external references and examples, removed completely when
+  it adds nothing. It never restates a `governed-by` relationship the frontmatter already carries; `specful trace`
+  renders that edge. An unresolved matter that affects the obligation or its acceptance boundary means the Requirement
+  is not complete yet.
 
 ## One obligation per file
 

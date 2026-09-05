@@ -80,5 +80,4 @@ confirming no allocation is running.
 ## More information
 
 The [project charter](../../../project-charter.md) defines the identifier grammar and the source-of-truth boundary this
-subsystem serves. The obligation it satisfies is
-[SPECFUL-REQ-0001](../requirements/0001-stable-identifier-allocation.md).
+subsystem serves.

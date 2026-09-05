@@ -39,8 +39,3 @@ A replay failure retries the same event once, then continues in arrival order.
 ## Security and operations
 
 No secrets are handled; observability comes from the replay worker's own event log.
-
-## More information
-
-Related: [OK-REQ-0001](../../system/requirements/0001-offline-replay.md),
-[OK-REQ-0002](../../system/requirements/0002-replay-pacing.md).
