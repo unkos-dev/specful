@@ -135,7 +135,7 @@ fn show_discovers_the_root_from_a_nested_working_directory() {
 fn trace_discovers_the_root_from_a_nested_working_directory() {
     // trace's root resolution goes through the same resolve_root helper as
     // show, so this only needs to prove the query pipeline ran against the
-    // discovered root (an ADR is a real, meaningful rejection, not a
+    // discovered root (an uncited ADR is a real, meaningful answer, not a
     // ".specful/config.yaml not found" discovery failure) rather than duplicating
     // full coverage of every trace shape.
     let root = scratch();
@@ -160,12 +160,13 @@ fn trace_discovers_the_root_from_a_nested_working_directory() {
         .expect("run specful trace");
 
     assert!(
-        !output.status.success(),
-        "trace of an ADR must fail, but root discovery must have succeeded"
+        output.status.success(),
+        "trace of an uncited ADR must succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains("trace is not defined for ADRs"),
+        stdout.contains("(uncited)"),
         "expected the discovered root's catalog to be queried, got: {stdout}"
     );
 }

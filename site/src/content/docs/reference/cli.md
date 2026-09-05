@@ -87,7 +87,7 @@ specful show <ID> [ROOT]
 
 ## `specful trace`
 
-Trace requirement-to-design links for an identifier.
+Trace requirement-to-design links, or the artifacts that cite an ADR.
 
 ```sh
 specful trace <ID> [ROOT]
@@ -95,5 +95,15 @@ specful trace <ID> [ROOT]
 
 | Argument | Meaning |
 |---|---|
-| `<ID>` | Identifier to trace, for example `PROJECT-REQ-0001`. |
+| `<ID>` | Identifier to trace, for example `PROJECT-REQ-0001`, `PROJECT-DESIGN-0001`, or `PROJECT-ADR-0001`. |
 | `ROOT` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
+
+Tracing an ADR lists every Requirement and Design whose `governed-by` names it, then its supersession links:
+
+```text
+$ specful trace PROJECT-ADR-0001
+cited-by: PROJECT-REQ-0001 (docs/specs/system/requirements/0001-offline-replay.md)
+
+$ specful trace PROJECT-ADR-0002
+(uncited)
+```

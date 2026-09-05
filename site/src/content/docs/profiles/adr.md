@@ -22,14 +22,14 @@ docs/adr/<sequence>-<short-title>.md
 |---|---|---|
 | `type` | Always `ADR`. | validate (selects the schema) |
 | `profile-version` | The ADR profile version this document conforms to. | validate (schema requires `1`) |
-| `id` | The allocated `PROJECT-ADR-NNNN` identifier. | validate; index; show |
+| `id` | The allocated `PROJECT-ADR-NNNN` identifier. | validate; index; show; trace |
 | `title` | Short title naming the problem and chosen solution. | validate (H1 parity); index; show |
 | `status` | One of `proposed`, `accepted`, `deprecated`, `superseded`. | validate (supersession pairing); index; show |
 | `recorded-on` | The date this record was written. | validate (schema); readers |
 | `decided-on` | The date the decision was made, when it differs from `recorded-on`. | validate (schema); readers |
 | `decision-makers` | Who made the decision. | validate (schema); names the authority to reconsider |
-| `supersedes` | Optional: the ADR identifier(s) this record replaces. | validate (reciprocity); index; show |
-| `superseded-by` | Optional: the ADR identifier that replaced this record. | validate (reciprocity); index; show |
+| `supersedes` | Optional: the ADR identifier(s) this record replaces. | validate (reciprocity); index; show; trace |
+| `superseded-by` | Optional: the ADR that replaced this record. | validate (reciprocity); index; show; trace |
 
 Supersession is the one relationship stored in both directions: both the replaced and replacement records carry
 reciprocal links, so either document remains independently navigable, and validation treats disagreement between those

@@ -64,9 +64,9 @@ enum Command {
         #[arg(long)]
         root: Option<PathBuf>,
     },
-    /// Trace requirement-to-design links for an identifier.
+    /// Trace requirement-to-design links, or an ADR's citing artifacts.
     Trace {
-        /// Identifier to trace, e.g. OK-REQ-0001.
+        /// Identifier to trace, e.g. OK-REQ-0001, OK-DESIGN-0001, or OK-ADR-0001.
         id: String,
         /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]

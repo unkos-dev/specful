@@ -15,8 +15,9 @@ stays the canonical copy either way.
 Start at `docs/specs/index.md` and follow the child indexes down to the module you need. Frontmatter carries each
 artifact's identity and its relationships to others, so a module is navigable on its own once you reach it. Use
 `specful show <ID>` to print the catalog record for an identifier, `specful trace <ID>` to follow requirement-to-design
-links, or plain text search across `docs/specs/` and `docs/adr/`, which always works, with or without the CLI installed.
-This step avoids duplicating an obligation, subject, or decision that is already recorded.
+links or list the artifacts that cite an ADR, or plain text search across `docs/specs/` and `docs/adr/`, which always
+works, with or without the CLI installed. This step avoids duplicating an obligation, subject, or decision that is
+already recorded.
 
 ## 2. Decide which artifact changes
 

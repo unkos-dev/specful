@@ -103,8 +103,8 @@ pub fn show(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
     Ok(out)
 }
 
-/// Answers `specful trace <id>`: the requirement-to-design traversal for the
-/// identified artifact.
+/// Answers `specful trace <id>`: the requirement-to-design traversal for a
+/// Requirement or Design, or the reverse `governed-by` lookup for an ADR.
 pub fn trace(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
     let entries = load_catalog(root)?;
     let Some(kind) = infer_kind(id) else {
@@ -113,14 +113,41 @@ pub fn trace(root: &Path, id: &str) -> Result<String, Vec<Finding>> {
 
     match kind {
         "adr" => {
-            if find(&entries, id).is_none() {
+            let Some(entry) = find(&entries, id) else {
                 return Err(unknown(id));
+            };
+            let mut citers: Vec<(String, String)> = entries
+                .iter()
+                .filter(|e| {
+                    (e["kind"] == "req" || e["kind"] == "design")
+                        && array_field(e, "governed-by").iter().any(|g| g == id)
+                })
+                .map(|e| {
+                    (
+                        str_field(e, "id").unwrap_or_default().to_owned(),
+                        str_field(e, "path").unwrap_or_default().to_owned(),
+                    )
+                })
+                .collect();
+            citers.sort_unstable();
+            let mut out = if citers.is_empty() {
+                "(uncited)\n".to_owned()
+            } else {
+                let rendered = citers
+                    .iter()
+                    .map(|(citer_id, path)| format!("{citer_id} ({path})"))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("cited-by: {rendered}\n")
+            };
+            for field in ["supersedes", "superseded-by"] {
+                let mut values = array_field(entry, field);
+                if !values.is_empty() {
+                    values.sort_unstable();
+                    out.push_str(&format!("{field}: {}\n", values.join(", ")));
+                }
             }
-            Err(vec![Finding::new(
-                CATALOG_PATH,
-                None,
-                "trace is not defined for ADRs; use specful show",
-            )])
+            Ok(out)
         }
         "req" => {
             if find(&entries, id).is_none() {

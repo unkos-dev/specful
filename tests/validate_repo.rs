@@ -523,7 +523,7 @@ fn traces_a_second_requirement_to_its_satisfying_design() {
 }
 
 #[test]
-fn trace_of_an_adr_is_rejected() {
+fn traces_an_adr_to_the_artifacts_that_cite_it() {
     let root = fixture("valid-repo");
     let (ok, out) = run_specful(&[
         "trace",
@@ -531,10 +531,59 @@ fn trace_of_an_adr_is_rejected() {
         "--root",
         root.to_str().expect("utf8 path"),
     ]);
-    assert!(!ok, "trace of an ADR must fail");
-    assert!(
-        out.contains("trace is not defined for ADRs; use specful show"),
-        "unexpected output:\n{out}"
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(
+        out,
+        "cited-by: OK-DESIGN-0001 (docs/specs/backend/design/0001-progress-pipeline.md), OK-REQ-0001 (docs/specs/system/requirements/0001-offline-replay.md)\n"
+    );
+}
+
+#[test]
+fn traces_an_uncited_adr() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-ADR-0001",
+                "kind": "adr",
+                "path": "docs/adr/0001-x.md",
+                "title": "X"
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "trace",
+        "T-ADR-0001",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(out, "(uncited)\n");
+}
+
+#[test]
+fn traces_a_superseded_adr_supersession_links() {
+    let root = scratch_catalog(
+        r#"[
+            {
+                "id": "T-ADR-0002",
+                "kind": "adr",
+                "path": "docs/adr/0002-y.md",
+                "title": "Y",
+                "supersedes": ["T-ADR-0001"],
+                "superseded-by": ["T-ADR-0003"]
+            }
+        ]"#,
+    );
+    let (ok, out) = run_specful(&[
+        "trace",
+        "T-ADR-0002",
+        "--root",
+        root.path().to_str().expect("utf8 path"),
+    ]);
+    assert!(ok, "trace should succeed:\n{out}");
+    assert_eq!(
+        out,
+        "(uncited)\nsupersedes: T-ADR-0001\nsuperseded-by: T-ADR-0003\n"
     );
 }
 
