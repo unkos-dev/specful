@@ -3,7 +3,7 @@ name: specful-index
 description: >-
   Use when the navigation indexes or catalog under `docs/specs/` are missing or out of date after adding or editing a
   Requirement, Design, or ADR, or when checking whether they are.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 ---
 
 # Regenerating Specful's navigation views

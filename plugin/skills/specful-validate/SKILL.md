@@ -3,7 +3,7 @@ name: specful-validate
 description: >-
   Use when checking whether Specful Requirements, Designs, and ADRs pass schema and cross-reference validation,
   before committing a change to any of them, or when wiring the checks into an agent harness's hooks.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 ---
 
 # Validating Specful artifacts

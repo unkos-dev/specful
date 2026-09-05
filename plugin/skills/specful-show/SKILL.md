@@ -2,7 +2,7 @@
 name: specful-show
 description: >-
   Use when looking up the catalog record for a specific Requirement, Design, or ADR identifier.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 metadata:
   argument-hint: <ID>
 ---

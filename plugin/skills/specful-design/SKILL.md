@@ -3,7 +3,7 @@ name: specful-design
 description: >-
   Use when writing or updating a Specful Design: documenting how a subject of the system works, or connecting a
   Design to the Requirements it satisfies.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 ---
 
 # Writing a Specful Design
