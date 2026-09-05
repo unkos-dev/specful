@@ -29,7 +29,7 @@ docs/adr/<sequence>-<short-title>.md
 | `decided-on` | The date the decision was made, when it differs from `recorded-on`. | validate (schema); readers |
 | `decision-makers` | Who made the decision. | validate (schema); names the authority to reconsider |
 | `supersedes` | Optional: the ADR identifier(s) this record replaces. | validate (reciprocity); index; show; trace |
-| `superseded-by` | Optional: the ADR identifier that replaced this record. | validate; index; show; trace |
+| `superseded-by` | Optional: the ADR that replaced this record. | validate (reciprocity); index; show; trace |
 
 Supersession is the one relationship stored in both directions: both the replaced and replacement records carry
 reciprocal links, so either document remains independently navigable, and validation treats disagreement between those
