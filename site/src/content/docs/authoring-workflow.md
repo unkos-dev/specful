@@ -67,8 +67,8 @@ and either is removed completely when it adds nothing.
 A Design declares the Requirements it `satisfies`. A Requirement or Design cites its governing ADRs through
 `governed-by`. ADR supersession is reciprocal: both the replaced and replacement records store the link, so either
 document remains independently navigable. Remove a relationship field entirely when it is empty; do not leave a
-placeholder. Relationships live in frontmatter only: `specful show` and `specful trace` render them, and More
-information never restates a `satisfies`, `governed-by`, or supersession edge as a prose link.
+placeholder. Relationships live in frontmatter only: `specful show` renders them, and More information never restates a
+`satisfies`, `governed-by`, or supersession edge as a prose link.
 
 ## 6. Coordinate a multi-step transition, if this change is one
 

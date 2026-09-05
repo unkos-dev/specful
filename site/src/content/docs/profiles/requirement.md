@@ -32,11 +32,12 @@ an authored container artifact: moving a requirement between scopes preserves it
 ## Sections
 
 `specful validate` checks structure, not judgement. It requires Statement, Rationale, and Acceptance criteria, in that
-exact order and wording, and requires the Statement to carry an uppercase BCP 14 keyword. When present, More information
-must be non-empty. The document H1 must match the frontmatter `title`, and no template placeholder residue may remain
-outside a code span. The tool cannot tell whether an acceptance criterion is genuinely checkable, whether the
-Statement's condition is objectively determinable, or whether a "not applicable" is honest: that judgement is the
-author's and reviewer's, and the authoring skills teach it.
+exact order and wording, and requires the Statement to carry an uppercase BCP 14 keyword. Each required heading must
+appear exactly once, in order, and carry content; a missing, duplicated, out-of-order, or empty required section is a
+finding. When present, More information must be non-empty. The document H1 must match the frontmatter `title`, and no
+template placeholder residue may remain outside a code span. The tool cannot tell whether an acceptance criterion is
+genuinely checkable, whether the Statement's condition is objectively determinable, or whether a "not applicable" is
+honest: that judgement is the author's and reviewer's, and the authoring skills teach it.
 
 A Requirement carries three canonical headings, never renamed, plus an optional fourth. A required section with nothing
 to say keeps its heading and states why it does not apply.
@@ -56,7 +57,7 @@ to say keeps its heading and states why it does not apply.
   verification section: acceptance criteria carry falsifiability directly, and where the means of checking a criterion
   is not obvious, the criterion states how satisfaction is determined.
 - **More information** (optional): supporting context such as external references and examples, removed completely when
-  it adds nothing. It never restates a `governed-by` relationship the frontmatter already carries; `specful trace`
+  it adds nothing. It never restates a `governed-by` relationship the frontmatter already carries; `specful show`
   renders that edge. An unresolved matter that affects the obligation or its acceptance boundary means the Requirement
   is not complete yet.
 

@@ -39,11 +39,12 @@ links as an error.
 
 `specful validate` checks structure, not judgement. It requires the four level-two headings through Decision outcome, in
 that exact order and wording, and requires the level-three **Consequences** heading, but only within the Decision
-outcome span: a stray top-level heading of the same name elsewhere does not satisfy it. When present,
-**Pros and cons of the options** and **More information** must be non-empty. The document H1 must match the frontmatter
-`title`, and no template placeholder residue may remain outside a code span. The tool cannot tell whether the considered
-options were the materially viable ones, whether the chosen option's reasoning is honest, or whether a stated
-consequence is real: that judgement is the author's and reviewer's, and the authoring skills teach it.
+outcome span: a stray top-level heading of the same name elsewhere does not satisfy it. Each required heading must
+appear exactly once, in order, and carry content; a missing, duplicated, out-of-order, or empty required section is a
+finding. When present, **Pros and cons of the options** and **More information** must be non-empty. The document H1 must
+match the frontmatter `title`, and no template placeholder residue may remain outside a code span. The tool cannot tell
+whether the considered options were the materially viable ones, whether the chosen option's reasoning is honest, or
+whether a stated consequence is real: that judgement is the author's and reviewer's, and the authoring skills teach it.
 
 Through **Consequences**, every section is required. **Pros and cons of the options** and **More information** are
 optional, and are removed completely when they add no useful decision evidence, unlike a Requirement or Design section,
@@ -59,7 +60,7 @@ completeness checklist.
 - **Pros and cons of the options** (optional): each considered option's own positive, neutral, and negative points.
 - **More information** (optional): supporting evidence, related decisions, or conditions that should trigger
   reconsideration. It never restates a `satisfies`, `governed-by`, `supersedes`, or `superseded-by` relationship the
-  frontmatter already carries; `specful trace` renders those edges.
+  frontmatter already carries; `specful show` renders those edges.
 
 An ADR outcome says "chosen option: X, because ...", never "the system MUST". A decision whose outcome needs to bind
 mints a Requirement and links it back through `governed-by`.

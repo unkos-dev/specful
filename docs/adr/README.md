@@ -160,8 +160,6 @@ repository-wide participant identifiers are not part of the ADR profile.
 Entries must be unique within `decision-makers` using exact string equality. Specful does not case-fold or apply fuzzy
 identity matching.
 
-Optional participant fields are omitted rather than stored as empty arrays.
-
 ## Classification
 
 ADR metadata does not include architectural scopes or free-form tags. Scope is derived from explicit relationships with
@@ -367,7 +365,7 @@ The substantive content of an accepted ADR is expected to remain stable, with on
 edited in place, since it is evidence depth rather than part of the decision event. Whether a content edit is
 substantive requires engineering judgement, so this expectation is a review rule rather than a conformance condition. A
 later decision that replaces an accepted ADR is recorded in a new ADR, and the relationship between the records is
-expressed through their metadata, which `specful trace` reports rather than a prose restatement.
+expressed through their metadata, which `specful show` reports rather than a prose restatement.
 
 Git records editorial history. Requirements and design descriptions continue to describe current state and do not absorb
 ADR chronology.
