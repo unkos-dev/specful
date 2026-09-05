@@ -3,7 +3,7 @@ name: specful-requirement
 description: >-
   Use when writing or updating a Specful Requirement: a new normative obligation, or a change to what the software
   must do.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 ---
 
 # Writing a Specful Requirement

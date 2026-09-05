@@ -3,7 +3,7 @@ name: specful-adr
 description: >-
   Use when recording a durable decision as a Specful ADR (architecture decision record), or superseding an accepted
   one.
-compatibility: Requires specful 0.3.0 or later on PATH.
+compatibility: Requires the specful CLI on PATH.
 ---
 
 # Recording a Specful ADR
