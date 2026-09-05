@@ -27,7 +27,7 @@ an authored container artifact: moving a requirement between scopes preserves it
 | `profile-version` | The Requirement profile version this document conforms to. | validate (schema requires `1`) |
 | `id` | The allocated `PROJECT-REQ-NNNN` identifier. | validate; index; show; trace |
 | `title` | Concise navigation title for the obligation. | validate (H1 parity); index; show |
-| `governed-by` | ADRs whose rationale this obligation embodies. Omit when none governs it. | validate; index; show |
+| `governed-by` | ADRs whose rationale this obligation embodies. Omit when empty. | validate; index; show; trace |
 
 ## Sections
 

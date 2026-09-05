@@ -26,7 +26,7 @@ docs/specs/<architectural-scope...>/design/<sequence>-<subject...>.md
 | `id` | The allocated `PROJECT-DESIGN-NNNN` identifier. | validate; index; show; trace |
 | `title` | Concise name of the design subject. | validate (H1 parity); index; show |
 | `satisfies` | Requirements this design contributes to satisfying. Omit when empty. | validate; index; show; trace |
-| `governed-by` | ADRs whose rationale this design embodies. Omit when empty. | validate; index; show |
+| `governed-by` | ADRs whose rationale this design embodies. Omit when empty. | validate; index; show; trace |
 
 ## Sections
 
