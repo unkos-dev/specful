@@ -7,6 +7,94 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/unkos-dev/specful/compare/v0.4.1...v0.5.0) - 2026-09-05
+
+### Breaking changes
+
+- *(profile)* drop the consulted and informed ADR fields ([#95](https://github.com/unkos-dev/specful/pull/95))
+
+  - Remove the `consulted` and `informed` fields from the ADR schema, its
+  cases, the template, and the profile pages; `decision-makers` stays
+  required
+  - Add a Read by column to each profile page's frontmatter table naming
+  the command that consumes each field
+  - State on each profile page exactly what `specful validate` checks
+  about sections and where authoring craft begins
+
+  The two roles were read by no code and acted on by nobody after the
+  decision, so they held only filler. Existing records delete the
+  `consulted` and `informed` lines, because the schema rejects unknown
+  keys.
+
+### Added
+
+- *(trace)* list the artifacts that cite an ADR ([#96](https://github.com/unkos-dev/specful/pull/96))
+
+  - `specful trace <ADR-id>` now lists every Requirement and Design whose
+  `governed-by` names the record, sorted by identifier, plus its
+  supersession links; an uncited record prints `(uncited)` and exits
+  cleanly
+  - Update the CLI reference, the profile pages, and the trace skill so an
+  ADR identifier is a documented argument
+
+  The ADR profile reads whether a decision is followed from the artifacts
+  that cite it, and until now no command answered that question; the
+  Requirement branch already performed the same reverse lookup over
+  `satisfies`. An uncited record is the normal state for a decision that
+  creates no obligation, so it is reported plainly rather than as a
+  finding.
+
+### Fixed
+
+- *(profile)* drop the ADR Confirmation section and make More information optional ([#94](https://github.com/unkos-dev/specful/pull/94))
+
+  - Drop the required `### Confirmation` subsection from the ADR profile:
+  a record that still carries one validates, but the section is no longer
+  defined, taught, or reviewed; it is now the one ADR section that may be
+  edited in place after acceptance.
+  - Make `## More information` optional on Requirements and Designs as it
+  already is on ADRs, non-empty when present, and state that it never
+  restates a relationship the frontmatter carries.
+  - Remove Confirmation from this repository's own ADR records and strip
+  More information links that only restated a relationship already in
+  frontmatter.
+
+  Whether a decision is followed is read from the Requirements and Designs
+  that cite it through `governed-by`, which `specful trace` reports. A
+  prose Confirmation section duplicated that edge by hand, could not be
+  checked by the validator, and drifted from the tree in every adopter
+  record reviewed. More information sections were restating `satisfies`
+  and ADR links the same way.
+
+- *(validate)* exempt inline code spans from placeholder residue checks ([#91](https://github.com/unkos-dev/specful/pull/91))
+
+  - Strip backtick code spans from a body line before the placeholder
+  residue matchers and the multi-line brace balance see it, so literal
+  `{id}` paths and `${{ }}` expressions quoted inline no longer fail
+  validation.
+  - Fenced blocks were already exempt; inline code now gets the same
+  treatment, including the `NNNN` and HTML comment markers.
+
+  An adopter's Requirements quote workflow expressions and identifier
+  paths in inline code, and authors had to reword valid prose to satisfy
+  the check. Only the plan templates place a placeholder inside a code
+  span, and plans are never validated, so no real residue escapes.
+
+### Other
+
+- *(adoption)* state how pre-profile decision records enter the ADR profile ([#87](https://github.com/unkos-dev/specful/pull/87))
+
+  - Replace the existing-repository adoption step that told adopters to
+  re-record every pre-existing decision, with the re-recording trigger,
+  dating, and retirement rule that keeps an accepted ADR from being
+  rewritten.
+  - Add a Relationship to MADR section to the ADR README and the site ADR
+  profile, naming exactly where the profile diverges from the MADR 4.0.0
+  complete template.
+  - Tighten `governed-by` guidance in the Requirement and Design authoring
+  skills and the Requirement review lens so it names only the ADR whose
+  rationale the artifact embodies, not a related or organising decision.
+
 ## [0.4.1](https://github.com/unkos-dev/specful/compare/v0.4.0...v0.4.1) - 2026-09-04
 
 ### Fixed
