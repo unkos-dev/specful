@@ -70,6 +70,9 @@ impl ConfigLock {
     /// from an interrupted run and must be removed manually; either way this
     /// never removes it itself.
     fn acquire(root: &Path) -> Result<Self, Vec<Finding>> {
+        if root.join(CONFIG_DIR).symlink_metadata().is_ok() {
+            create_dir_verified(root, Path::new(CONFIG_DIR)).map_err(|finding| vec![finding])?;
+        }
         let path = root.join(LOCK_FILE);
         match OpenOptions::new().write(true).create_new(true).open(&path) {
             Ok(_) => Ok(Self {
