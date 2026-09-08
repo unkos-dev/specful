@@ -23,6 +23,10 @@
 Specful is a portable convention for keeping software requirements, design documentation, and decisions current,
 connected, and usable by people and coding agents, served by a single-binary CLI.
 
+Specful is alpha software in the 0.x series. Releases can change the CLI, profiles and validation rules incompatibly;
+`profile-version: 1` does not promise the same acceptance rules across releases. Pin the binary and skills to an
+explicit release and follow its manual conversion notes. Catalog and diagnostic JSON are unstable interfaces.
+
 The convention is the product. A repository that follows the layout, templates, and writing model is a Specful
 repository, readable and navigable with ordinary files, Git, and text search. The `specful` CLI mechanises what the
 convention cannot deliver by hand at acceptable cost: allocating stable identifiers, regenerating navigation views, and
@@ -47,9 +51,11 @@ documented in [`docs/configuration.md`](docs/configuration.md).
 
 ## Install
 
-Install from crates.io with `cargo install --locked specful` (requires Rust 1.97.1 or newer), or download a prebuilt
-binary archive for Linux (static musl), macOS, or Windows from the
-[GitHub releases](https://github.com/unkos-dev/specful/releases); each archive ships with a SHA-256 checksum.
+Choose a version from the [GitHub releases](https://github.com/unkos-dev/specful/releases) and read its release notes.
+Replace `<VERSION>` with that release's version number, without the tag's `v` prefix, in
+`cargo install --locked --version <VERSION> specful` (requires Rust 1.97.1 or newer). Alternatively, download that
+release's prebuilt binary archive for Linux (static musl), macOS, or Windows; each archive ships with a SHA-256
+checksum.
 
 ## Quick start
 
@@ -82,14 +88,18 @@ Opt-in agent skills build on that floor, loaded by the harness at the moment the
 Install all ten skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
-gh skill install unkos-dev/specful --all --scope user
+gh skill install unkos-dev/specful --all --scope user --pin <TAG>
 ```
 
-Specful validates the package against the Agent Skills specification. The GitHub CLI owns the supported-agent list and
-scope behaviour. For non-interactive installation, add `--agent` with a value from its
+Replace `<TAG>` with the exact tag of the release chosen for the binary, including its `v` prefix. Specful validates the
+package against the Agent Skills specification. The GitHub CLI owns the supported-agent list and scope behaviour. For
+non-interactive installation, add `--agent` with a value from its
 [`gh skill install` manual](https://cli.github.com/manual/gh_skill_install). The skills use the CLI and the adopting
 repository's artifacts as ground truth. See [Adoption](https://unkos-dev.github.io/specful/adoption/) for the full
 installation and update path.
+
+Before upgrading, preserve the repository's pre-conversion Git state and previous binary. Specful does not migrate
+artifacts automatically; rollback means restoring that Git state and using the previous binary and matching skills.
 
 ## Documentation
 
