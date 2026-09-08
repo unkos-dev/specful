@@ -38,10 +38,16 @@ verification rows.
    record the choice made in Notes. Where the plan is silent, follow the repository's instructions and do what is
    correct.
 4. Run each task's Verify command and compare the output to the expected result. A mismatch is a deviation.
-5. Run the step's Verification and the plan's every-step rows. Check the Exit criteria.
-6. Record the evidence in Notes, report the pull request and every Merge condition unrun, then stop. The step stays
-   `active` until its pull request merges, and a review change is an amendment on the active step. The user starts the
-   next step.
+5. Run the step's Verification and the plan's every-step rows. Check the Exit criteria. Complete required local
+   verification before publication, including after remediation.
+6. After opening or updating a pull request, inspect remote checks once for its exact head. Remediate completed CI
+   failures within approved scope; failures requiring a deviation follow Deviation below. If checks are pending, record
+   them as unrun Merge conditions and stop after any in-scope remediation. Each published update gets one inspection. Do
+   not poll, watch, sleep, or keep the session active solely for CI unless the user explicitly asks to monitor or wait.
+   Checks that have not appeared or cannot be inspected remain unrun, never presumed successful.
+7. Record the evidence in Notes and report the PR URL, exact head SHA, completed checks and their results, pending
+   checks, and every other Merge condition unrun, then stop. The step stays `active` until its pull request merges, and
+   a review change is an amendment on the active step. The user starts the next step.
 
 ## Deviation
 
