@@ -148,6 +148,23 @@ convention incrementally:
 A partially documented repository is a valid, ongoing state: validation checks the documents that exist, and does not
 require full coverage of the codebase.
 
+## Use specifications during development
+
+The [authoring workflow](/specful/authoring-workflow/) covers ordinary code changes and human onboarding as well as
+artifact writing. It does not require a saved plan or a new artifact for every task.
+
+An adopter can add a reference to their existing contributor or harness instructions after reviewing it against local
+policy. For example:
+
+```markdown
+For code changes, follow the [Specful development workflow](https://unkos-dev.github.io/specful/authoring-workflow/).
+Start at docs/specs/index.md, inspect the relevant artifacts and implementation, and propose worthwhile missing
+documentation for a decision. Include evidence for affected acceptance criteria in the change review.
+```
+
+The adopter owns whether and where this guidance belongs; `specful init` does not install it or change instruction
+files. Contributors can use the same workflow directly without an agent harness.
+
 ## Reconciling branch allocations
 
 The allocation lock protects one checkout; independent branches can allocate the same identifier. Preserve identifiers

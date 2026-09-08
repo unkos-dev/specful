@@ -45,9 +45,16 @@ verdict and does not invent findings absent from the evidence gathered.
 
 ## Gather minimum evidence
 
-Run `specful validate` first and report mechanical findings as mechanical validation, not as substantive findings.
-Continue when the target remains interpretable. Stop or narrow the review when invalid identity, structure, or
-relationships make substantive conclusions unreliable.
+Within the resolved review boundary, apply the
+[development workflow](https://unkos-dev.github.io/specful/authoring-workflow/): start at `docs/specs/index.md` and
+follow scope indexes, relevant Requirements, Designs and governing ADRs into targeted implementation and existing tests.
+Use broader search when coverage or directions are missing or inaccurate. A routine code review needs no saved plan. If
+useful coverage is missing, propose the artifact's subject, type and durable benefit for the user's decision and input;
+do not author it or require an artifact for every change.
+
+Run `specful validate` and report mechanical findings as mechanical validation, not as substantive findings. Continue
+when the target remains interpretable. Stop or narrow the review when invalid identity, structure, or relationships make
+substantive conclusions unreliable.
 
 Load only the references matching the artifact types in scope:
 
@@ -59,6 +66,11 @@ For change review, also test cross-artifact consistency: contradiction, missing 
 relationship completeness, and disagreement between the aggregate change and the smallest relevant code, tests,
 configuration, or public documentation. Follow a reviewed claim only into evidence that can confirm or contradict it; do
 not conduct an unrelated audit.
+
+In the report, connect each consequential affected acceptance criterion to exact-target test or inspection evidence and
+its result, or state the unresolved gap. Reuse existing checks before proposing additional tests. Mechanical corpus
+validation and `satisfies` relationships do not prove implemented behaviour; keep this evidence in the review rather
+than adding permanent pass claims to Requirements.
 
 ## Decide what is reportable
 

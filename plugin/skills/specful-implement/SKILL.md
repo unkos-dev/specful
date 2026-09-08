@@ -20,6 +20,13 @@ verification rows.
 
 ## Read
 
+In a Specful repository, apply the [development workflow](https://unkos-dev.github.io/specful/authoring-workflow/):
+start at `docs/specs/index.md`, follow scope indexes and relevant Requirements, Designs and ADRs, then check their
+claims against targeted code and existing tests. Use broader search when coverage or directions are missing or
+inaccurate. Identify the step's affected obligations. Propose a worthwhile missing artifact's subject, type and durable
+benefit for the user's decision and input before writing it; a change beyond the plan follows Deviation below. Routine
+code work can follow the workflow directly without a saved plan; this skill remains for executing a named plan.
+
 1. Read the plan in full, then the artifacts its Binding inputs cite at the cited lines, before any task creates a
    branch or worktree. A cited line that no longer carries what the table says it locks is a deviation.
 2. Read the Progress log. The first `pending` or `active` step is the current step; never repeat a `complete` or
@@ -39,7 +46,10 @@ verification rows.
    correct.
 4. Run each task's Verify command and compare the output to the expected result. A mismatch is a deviation.
 5. Run the step's Verification and the plan's every-step rows. Check the Exit criteria. Complete required local
-   verification before publication, including after remediation.
+   verification before publication, including after remediation. For each consequential affected acceptance criterion,
+   record exact-revision test or inspection evidence and its result, or the unresolved gap, in the step's evidence.
+   Reuse existing checks before proposing additional tests; corpus validation and a Design's `satisfies` link are not
+   proof of implemented behaviour.
 6. After opening or updating a pull request, inspect remote checks once for its exact head. Remediate completed CI
    failures within approved scope; failures requiring a deviation follow Deviation below. If checks are pending, record
    them as unrun Merge conditions and stop after any in-scope remediation. Each published update gets one inspection. Do
