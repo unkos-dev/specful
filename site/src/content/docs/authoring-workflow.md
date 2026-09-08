@@ -104,8 +104,14 @@ packet.
 `specful-plan` selects and fills the same templates. Every statement in the resulting plan is exact unless its task
 states an open choice and the reason. `specful-implement` executes one step, stops when the repository contradicts the
 plan or correctness requires a deviation, records the evidence, and waits for approval. It never merges. The adopting
-repository owns the plan location, branch and publication rules, and retention policy; `plans/` is the default when it
-has no established planning convention.
+repository owns the plan location, branch and publication rules, and retention policy. Preserve an established location;
+otherwise propose `docs/plans/`. When tracking policy is absent, ask whether plans should be tracked or ignored before
+writing.
+
+By default, plans need exclusion from Git and documentation publishing inputs before they are written. A location under
+`docs/` does not imply publication intent. Obtain approval for any needed ignore or publishing configuration changes; do
+not apply them automatically. Keep plans outside the permanent corpus; they are not inputs to Specful indexing or
+validation.
 
 A plan is temporary. If it contains durable rationale worth retaining, propose an ADR for a decision before archiving or
 deleting the plan; do not create it without approval. Every fixed plan section remains present; a section that does not

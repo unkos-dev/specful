@@ -51,10 +51,16 @@ when its result can materially change the plan. The workflow must remain executa
 - For implementation planning, write the arc and the first executable step's change plan when that step needs one. Write
   later steps' change plans from delivered evidence, never from assumptions.
 
-Follow the repository's existing plan location, plan template, tracking, and retention policy. When none exists, propose
-`plans/` and ask once whether plans should be tracked or ignored before writing. When the repository defines no filename
-convention, use `YYYY-MM-DD-<descriptive-slug>.md`. A template is a file the repository designates as one; prior plans
-are evidence of convention, not templates. An explicit user choice wins.
+Follow the repository's existing plan location, plan template, tracking, and retention policy. Propose `docs/plans/`
+only when no location is established. If tracking policy is absent, ask once whether plans should be tracked or ignored
+before writing. When the repository defines no filename convention, use `YYYY-MM-DD-<descriptive-slug>.md`. A template
+is a file the repository designates as one; prior plans are evidence of convention, not templates. An explicit user
+choice wins.
+
+By default, confirm a plan's exclusion from Git and documentation publishing inputs before writing; a location under
+`docs/` does not imply publication intent. Obtain approval for any needed ignore or publishing configuration changes; do
+not make them automatically. Keep plans outside the permanent corpus; they are not inputs to Specful indexing or
+validation.
 
 ## Write the plan
 
