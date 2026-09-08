@@ -95,11 +95,17 @@ the change-plan or arc-plan template selected for the work. A change plan is one
 several independently deliverable changes into ordered steps, where each step is one pull request and carries its own
 context, tasks, rollback, verification, and exit criteria.
 
-The planning skill follows the adopting repository's plan location and retention policy, and proposes `plans/` when none
-exists. It stops after the authorised plan files are written. `specful-implement` executes the named plan one step at a
-time under its exact-by-default contract. It stops on a contradiction or required deviation, records the evidence in the
-plan, and waits for approval. The implementation skill follows repository-owned branch, commit, and publication rules
-and never merges. Neither skill changes an external tracker.
+The planning skill follows the adopting repository's plan location and retention policy, and proposes `docs/plans/` only
+when no location is established. It asks whether plans are tracked or ignored before writing when tracking policy is
+absent. Private plans are excluded from Git and documentation publishing inputs before writing; placement under `docs/`
+does not imply publication intent. The skill seeks approval for any needed ignore or publishing configuration changes
+rather than applying them automatically. Plans stay outside the permanent corpus and are not inputs to Specful indexing
+or validation.
+
+The planning skill stops after the authorised plan files are written. `specful-implement` executes the named plan one
+step at a time under its exact-by-default contract. It stops on a contradiction or required deviation, records the
+evidence in the plan, and waits for approval. The implementation skill follows repository-owned branch, commit, and
+publication rules and never merges. Neither skill changes an external tracker.
 
 ## Failure and recovery
 
