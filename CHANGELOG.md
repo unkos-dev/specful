@@ -7,6 +7,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.1](https://github.com/unkos-dev/specful/compare/v0.5.0...v0.5.1) - 2026-09-08
+
+### Fixed
+
+- correct package boundaries and adoption guidance ([#114](https://github.com/unkos-dev/specful/pull/114))
+
+  - Anchor Cargo's source, schema and template includes so the crate
+  excludes website files, including installed site dependencies.
+  - Correct root and scope arguments in the CLI reference and authoring
+  skills.
+  - Clarify alpha compatibility, matching release pins, manual upgrades
+  and rollback, legacy ADR provenance, and branch-allocation
+  reconciliation.
+
+  Unanchored package patterns selected website content, while several
+  documented commands failed because their arguments did not match the
+  CLI. Existing-repository adoption also needed an explicit path for
+  legacy documents and conflicting branch allocations that preserves
+  established identities and provenance.
+
+- *(authoring)* reject symlinked configuration directories before allocation ([#112](https://github.com/unkos-dev/specful/pull/112))
+
+  - Reject a symlinked `.specful` directory before creating the allocation
+  lock. Previously, `specful new` could advance configuration counters
+  outside the selected repository root.
+  - Reuse directory verification while preserving missing-configuration
+  diagnostics, exclusive allocation and skipped-number recovery.
+
+### Dependencies
+
+- *(deps)* update rust crate jsonschema to v0.55.1 ([#125](https://github.com/unkos-dev/specful/pull/125))
+- *(deps)* update rust crate jsonschema to 0.55.0 ([#119](https://github.com/unkos-dev/specful/pull/119))
+- *(deps)* lock file maintenance ([#106](https://github.com/unkos-dev/specful/pull/106))
+- *(deps)* update rust crate jsonschema to 0.53.0 ([#101](https://github.com/unkos-dev/specful/pull/101))
+
 ## [0.5.0](https://github.com/unkos-dev/specful/compare/v0.4.1...v0.5.0) - 2026-09-05
 
 ### Breaking changes
