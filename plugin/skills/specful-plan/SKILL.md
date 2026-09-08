@@ -17,6 +17,13 @@ Read the applicable repository instructions and planning convention first. Treat
 prior plans as evidence rather than authority. In a Specful repository, Requirements and Designs constrain the delivered
 state, accepted ADRs constrain durable choices, and a plan remains temporary transition coordination.
 
+Apply the [development workflow](https://unkos-dev.github.io/specful/authoring-workflow/): start at
+`docs/specs/index.md`, follow scope indexes and relevant Requirements, Designs and ADRs, then inspect the targeted code
+and existing tests. Use broader search when coverage or directions are missing or inaccurate. Identify the affected
+acceptance criteria and the evidence needed to check them. If a worthwhile artifact is missing, propose its subject,
+type and durable benefit and obtain the user's decision and input before authoring; planning remains read-only apart
+from authorised plan files. This navigation also applies to bounded work that needs no saved plan.
+
 Establish the problem, intended outcome, fixed constraints, and the observable result. Preserve authoritative and
 explicitly approved decisions. Surface contrary evidence instead of silently reopening or overriding them.
 
