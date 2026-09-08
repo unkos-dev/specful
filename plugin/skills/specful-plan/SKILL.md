@@ -57,7 +57,7 @@ before writing. When the repository defines no filename convention, use `YYYY-MM
 is a file the repository designates as one; prior plans are evidence of convention, not templates. An explicit user
 choice wins.
 
-Before writing a private plan, confirm its exclusion from Git and documentation publishing inputs; a location under
+By default, confirm a plan's exclusion from Git and documentation publishing inputs before writing; a location under
 `docs/` does not imply publication intent. Obtain approval for any needed ignore or publishing configuration changes; do
 not make them automatically. Keep plans outside the permanent corpus; they are not inputs to Specful indexing or
 validation.

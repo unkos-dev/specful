@@ -108,7 +108,7 @@ repository owns the plan location, branch and publication rules, and retention p
 otherwise propose `docs/plans/`. When tracking policy is absent, ask whether plans should be tracked or ignored before
 writing.
 
-Private plans need exclusion from Git and documentation publishing inputs before they are written. A location under
+By default, plans need exclusion from Git and documentation publishing inputs before they are written. A location under
 `docs/` does not imply publication intent. Obtain approval for any needed ignore or publishing configuration changes; do
 not apply them automatically. Keep plans outside the permanent corpus; they are not inputs to Specful indexing or
 validation.
