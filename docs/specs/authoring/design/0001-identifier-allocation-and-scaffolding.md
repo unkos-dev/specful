@@ -41,7 +41,8 @@ Inbound: `specful new adr | requirement | design --title <title> [--scope <path>
 directory is flat); requirements and designs require one, validated as lowercase kebab-case path segments. Outbound: the
 created file at `docs/adr/0001-slug.md` or `docs/specs/<scope>/requirements|design/0001-slug.md`, and the rewritten
 `.specful/config.yaml`. The slug derives from the title; a title yielding an empty slug is refused. The module depends
-only on the standard library, the configuration module, and the repository path constants.
+only on the standard library, the configuration module, and the repository directory-verification helper and path
+constants.
 
 ## Data and state
 
@@ -52,12 +53,14 @@ parsed back out of the tree, so deleting artifacts cannot influence future alloc
 
 ## Runtime behaviour
 
-An invocation validates the scope and slug, acquires the lock, loads the configuration, allocates the next sequence for
-the kind, and renders the identifier. The template for the kind is instantiated by line-prefix substitution: exactly the
-identifier, the title, and (for ADRs) the recorded-on date are filled; every other placeholder, including optional
-relationship fields, is left for the author, and validation reports them until the document is completed. The advanced
-counters are committed by atomic rename before the artifact file is created, and the file is created with exclusive
-semantics so an existing path is refused rather than overwritten.
+An invocation validates the scope and slug, inspects `.specful` with non-following metadata, and verifies an existing
+parent with `create_dir_verified` before acquiring the allocation lock. Symlinks and non-directories are rejected before
+lock creation. It then loads the configuration, allocates the next sequence for the kind, and renders the identifier.
+The template for the kind is instantiated by line-prefix substitution: exactly the identifier, the title, and (for ADRs)
+the recorded-on date are filled; every other placeholder, including optional relationship fields, is left for the
+author, and validation reports them until the document is completed. The advanced counters are committed by atomic
+rename before the artifact file is created, and the file is created with exclusive semantics so an existing path is
+refused rather than overwritten.
 
 ## Failure and recovery
 
@@ -72,10 +75,13 @@ reported by validation.
 
 ## Security and operations
 
-Not applicable beyond ordinary repository hygiene: the subsystem reads and writes only files inside the repository root,
-holds no credentials, and touches no network. The lock file is the one operational artefact worth knowing: a crash can
-strand `.specful/config.yaml.lock`, and the collision finding names it so an operator can remove a stale lock after
-confirming no allocation is running.
+The parent check prevents allocation writes through a symlinked `.specful` directory. Configuration loading can follow a
+symlink at `.specful/config.yaml`; parent verification does not establish comprehensive read containment. These checks
+do not protect against hostile concurrent filesystem replacement, and atomic rename does not provide power-loss
+durability.
+
+The subsystem holds no credentials and touches no network. A crash can strand `.specful/config.yaml.lock`, and the
+collision finding names it so an operator can remove a stale lock after confirming no allocation is running.
 
 ## More information
 

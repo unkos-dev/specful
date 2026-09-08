@@ -160,6 +160,43 @@ fn lock_file_is_removed_via_drop_when_configuration_cannot_be_loaded() {
 
 #[cfg(unix)]
 #[test]
+fn symlinked_config_directory_is_rejected_before_allocation() {
+    let outside = scratch();
+    init(outside.path(), "EXAMPLE").expect("init outside repository");
+    let config_path = outside.path().join(".specful/config.yaml");
+    let config_before = std::fs::read(&config_path).expect("read external config");
+    let root = scratch();
+    std::os::unix::fs::symlink(
+        outside.path().join(".specful"),
+        root.path().join(".specful"),
+    )
+    .expect("plant config directory symlink");
+
+    let result = new_artifact(root.path(), NewKind::Adr, None, "Escaping allocation");
+
+    assert_eq!(
+        std::fs::read(&config_path).expect("read external config after allocation"),
+        config_before,
+        "allocation must not change the external configuration bytes"
+    );
+    let findings = result.expect_err("a symlinked config directory must be rejected");
+    assert!(
+        findings.iter().any(|f| f.message == "symlink not allowed"),
+        "expected a symlink finding, got {findings:?}"
+    );
+    assert!(!outside.path().join(LOCK_FILE).exists());
+    for repository in [root.path(), outside.path()] {
+        assert!(
+            !repository
+                .join("docs/adr/0001-escaping-allocation.md")
+                .exists(),
+            "a rejected allocation must not create an artifact"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
 fn symlinked_scope_directory_is_rejected() {
     let root = scratch();
     init(root.path(), "EXAMPLE").expect("init");
