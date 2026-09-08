@@ -37,6 +37,16 @@ a counter lags an allocated identifier.
 A transition is invalid when the project key changes, a counter decreases, an identifier is reused, or the after
 snapshot is not independently valid. Reading, validation, and indexing do not rewrite configuration.
 
+`specful validate` checks the current snapshot, not Git history. It detects duplicate identifiers and counters that do
+not exceed current allocations, but cannot prove that a project key never changed, a counter never decreased or a
+deleted identifier was never reused. Preserve established identifiers and review configuration changes against
+repository history; a passing snapshot does not establish a valid transition.
+
+The allocation lock coordinates processes in one checkout. Independent branches can allocate the same identifier from
+their copies of the configuration; the lock does not coordinate allocations across branches. Follow
+[Reconciling branch allocations](../site/src/content/docs/adoption.md#reconciling-branch-allocations) before combining
+conflicting allocations.
+
 ## Initialisation
 
 `init` writes the configuration, artifact directories, and empty generated navigation views. It does not create or

@@ -17,8 +17,8 @@ is a plan, and what used to be true is Git history.
 
 1. Start at `docs/specs/index.md` and follow the scope indexes to the module the obligation belongs to. Read the
    neighbouring Requirements and the Designs that satisfy them before writing.
-2. Scaffold with `specful new requirement --title <TITLE>`. Never hand-allocate an identifier; the command owns the
-   counter.
+2. Scaffold with `specful new requirement --title <TITLE> --scope <SCOPE>`. Never hand-allocate an identifier; the
+   command owns the counter.
 3. Complete the placeholders. The Statement section carries at least one uppercase BCP 14 keyword (MUST, MUST NOT,
    SHOULD, SHOULD NOT, MAY); cite governing ADRs through `governed-by`, naming only the ADR whose rationale this
    obligation embodies, never a related or organising decision such as the decision to adopt a convention, and omit the

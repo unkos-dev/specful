@@ -17,7 +17,8 @@ a plan, and what used to be true is Git history.
 
 1. Start at `docs/specs/index.md` and follow the scope indexes to the subject's module. Read the neighbouring Designs
    and the Requirements they satisfy before writing.
-2. Scaffold with `specful new design --title <TITLE>`. Never hand-allocate an identifier; the command owns the counter.
+2. Scaffold with `specful new design --title <TITLE> --scope <SCOPE>`. Never hand-allocate an identifier; the command
+   owns the counter.
 3. Complete the placeholders. Declare the Requirements the Design `satisfies` and cite governing ADRs through
    `governed-by`, naming only the ADR whose rationale this subject embodies, never a related or organising decision such
    as the decision to adopt a convention, and omit the field when that record does not exist in the profile. Describe

@@ -7,8 +7,9 @@ The `specful` CLI is a single static binary with no runtime dependencies. It mec
 cannot deliver by hand at acceptable cost: allocating stable identifiers, regenerating navigation views, and validating
 the repository. It also scaffolds adoption and answers retrieval queries.
 
-Every command except `init` accepts an optional repository root argument; when omitted, it resolves to the nearest
-ancestor directory containing `.specful/config.yaml`.
+`validate` and `index` accept an optional positional root; `new`, `show` and `trace` use `--root <ROOT>`. When omitted,
+these commands search from the current directory upward for the nearest `.specful/config.yaml`. `init` also accepts an
+optional positional root, but defaults to the current directory without searching ancestors.
 
 ## `specful init`
 
@@ -31,15 +32,15 @@ modify agent instruction files.
 Create an artifact from its scaffold with the next allocated identifier.
 
 ```sh
-specful new <adr|requirement|design> --title <TITLE> [--scope <SCOPE>] [ROOT]
+specful new <adr|requirement|design> --title <TITLE> [--scope <SCOPE>] [--root <ROOT>]
 ```
 
 | Flag | Meaning |
 |---|---|
 | `<KIND>` | Positional. One of `adr`, `requirement`, `design`. |
 | `--title <TITLE>` | Required. Artifact title; also derives the filename slug. |
-| `--scope <SCOPE>` | Architectural scope for a requirement or design, for example `backend/sync`. Not for an ADR. |
-| `ROOT` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
+| `--scope <SCOPE>` | Required for a requirement or design, for example `backend/sync`. Not for an ADR. |
+| `--root <ROOT>` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
 
 Prints the created file's path, then a reminder to complete the remaining placeholders and run `specful index`.
 
@@ -77,26 +78,26 @@ specful index [--check] [ROOT]
 Show the catalog record for an identifier.
 
 ```sh
-specful show <ID> [ROOT]
+specful show <ID> [--root <ROOT>]
 ```
 
 | Argument | Meaning |
 |---|---|
 | `<ID>` | Identifier to look up, for example `PROJECT-DESIGN-0001`. |
-| `ROOT` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
+| `--root <ROOT>` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
 
 ## `specful trace`
 
 Trace requirement-to-design links, or the artifacts that cite an ADR.
 
 ```sh
-specful trace <ID> [ROOT]
+specful trace <ID> [--root <ROOT>]
 ```
 
 | Argument | Meaning |
 |---|---|
 | `<ID>` | Identifier to trace, for example `PROJECT-REQ-0001`, `PROJECT-DESIGN-0001`, or `PROJECT-ADR-0001`. |
-| `ROOT` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
+| `--root <ROOT>` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
 
 Tracing an ADR lists every Requirement and Design whose `governed-by` names it, then its supersession links:
 

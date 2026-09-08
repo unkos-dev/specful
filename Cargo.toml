@@ -13,9 +13,9 @@ categories = ["command-line-utilities", "development-tools"]
 # rust-toolchain.toml and .mise.toml overrode installers' toolchains and
 # broke mise-wrapped builds in 0.1.0.
 include = [
-  "src/",
-  "schemas/",
-  "templates/",
+  "/src/",
+  "/schemas/",
+  "/templates/",
   "/README.md",
   "/LICENSE",
   "/NOTICE.md",
