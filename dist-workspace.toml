@@ -20,6 +20,9 @@ create-release = false
 # Checksum algorithm for artifacts
 checksum = "sha256"
 
+[dist.github-custom-runners]
+global = "ubuntu-24.04"
+
 # Repository policy pins every workflow action to a commit SHA; these pins
 # replace the floating tags in the generated release.yml.
 [dist.github-action-commits]
