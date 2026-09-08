@@ -70,6 +70,7 @@ impl ConfigLock {
     /// from an interrupted run and must be removed manually; either way this
     /// never removes it itself.
     fn acquire(root: &Path) -> Result<Self, Vec<Finding>> {
+        // Creating a missing .specful here would replace the original lock-open diagnostic.
         if root.join(CONFIG_DIR).symlink_metadata().is_ok() {
             create_dir_verified(root, Path::new(CONFIG_DIR)).map_err(|finding| vec![finding])?;
         }
