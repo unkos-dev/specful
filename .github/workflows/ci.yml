@@ -21,8 +21,6 @@ jobs:
   # each called workflow.
   rust:
     uses: ./.github/workflows/rust.yml
-    secrets:
-      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   lint:
     uses: ./.github/workflows/lint.yml

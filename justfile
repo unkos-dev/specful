@@ -45,11 +45,6 @@ test *args:
 doctests:
     cargo test --locked --doc
 
-# Test suite under coverage instrumentation; writes lcov.info at the root.
-[group('rust')]
-cov:
-    cargo llvm-cov nextest --locked --lcov --output-path lcov.info
-
 # Advisories, licenses, bans, sources (config: deny.toml). Reads the RustSec
 # database over the network, so it stays out of `check`.
 [group('rust')]

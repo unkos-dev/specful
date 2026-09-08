@@ -35,7 +35,7 @@ narrate the next line, the change history, or why the implementation is correct.
 
 Add tests with every behaviour change. Prefer integration tests named after the observable capability, such as
 `cli_root_discovery.rs`, and cover the happy path, invalid input, and non-obvious edge cases. Add fixture repositories
-only when filesystem layout is part of the behaviour. Use `just cov` when coverage evidence helps.
+only when filesystem layout is part of the behaviour.
 
 ## Contribution policy
 

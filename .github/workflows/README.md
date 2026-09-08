@@ -34,16 +34,16 @@ entire enforcement surface.
 Every locally runnable gate is a recipe in the repository-root `justfile`, and a job invokes it by name from CI, so a
 gate changes in one place. `just preflight` does not fully match CI: CI also runs the MSRV compile inline (inline
 because it asserts the `RUSTUP_TOOLCHAIN` override took effect), a gitleaks scan narrowed to the PR commit range
-(`preflight` scans full history), coverage instrumentation via `just cov` (`preflight` runs plain `test`), and a Snyk
-Code scan (needs `SNYK_TOKEN`, so it cannot run locally). Non-cargo tools are pinned in `.mise.toml` and installed
-through the `.github/actions/setup` composite action; the Rust toolchain comes from `rust-toolchain.toml` through
-`.github/actions/rust-toolchain`. A tool appears in both a recipe and a job, or in neither.
+(`preflight` scans full history), and a Snyk Code scan (needs `SNYK_TOKEN`, so it cannot run locally). Non-cargo tools
+are pinned in `.mise.toml` and installed through the `.github/actions/setup` composite action; the Rust toolchain comes
+from `rust-toolchain.toml` through `.github/actions/rust-toolchain`. A tool appears in both a recipe and a job, or in
+neither.
 
 ## Layout
 
 | Workflow | Jobs | Purpose |
 | --- | --- | --- |
-| `rust.yml` | `checks`, `tests`, `msrv` | Format, clippy, doctests, coverage. |
+| `rust.yml` | `checks`, `tests`, `msrv` | Format, clippy, doctests, unit and integration tests. |
 | `lint.yml` | `workflows`, `prose`, `secrets` | Static analysis per job. |
 | `deps.yml` | `cargo-deny`, `review` | `deny.toml` checks; dependency review. |
 | `snyk.yml` | `code` | Snyk Code SAST, advisory only. |
@@ -119,7 +119,6 @@ job-level grant already in `snyk.yml`.
 
 | Secret | Used by | When absent |
 | --- | --- | --- |
-| `CODACY_PROJECT_TOKEN` | `rust` / `tests` | Upload is skipped; job passes. |
 | `SNYK_TOKEN` | `snyk` / `code` | Scan is skipped; job passes. |
 | `RELEASE_PLZ_APP_ID` | `release-plz` | Token mint fails; run fails. |
 | `RELEASE_PLZ_APP_PRIVATE_KEY` | `release-plz` | Token mint fails; run fails. |
