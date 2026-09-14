@@ -78,7 +78,7 @@ The convention and CLI work without agent skills. The optional skills add workfl
 step-by-step implementation, reviewing, indexing, validation, and retrieval. They are installed once per user into the
 selected agent harness and never written into an adopting repository.
 
-Install all ten skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
+Install the skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
 gh skill install unkos-dev/specful --all --scope user --pin <TAG>
@@ -147,6 +147,29 @@ convention incrementally:
 
 A partially documented repository is a valid, ongoing state: validation checks the documents that exist, and does not
 require full coverage of the codebase.
+
+### Agent-led brownfield onboarding
+
+Ask `specful-onboard` to investigate one coherent subject, or a deliberately broad baseline, before drafting artifacts.
+The agent inspects repository authority, existing documentation, current behaviour, tests and Specful state, then
+proposes a bounded increment. It separates verified behaviour, false draft claims, stale documentation, implementation
+defects and unresolved product decisions. It also assesses candidate obligations against the Requirement profile;
+observed behaviour alone does not make a Requirement, so a useful increment may contain none.
+
+The maintainer directs content and scope and supplies intent that the repository cannot establish. Once the proposed
+increment is authorised, the agent uses the type-specific skills for artifact craft and reports any later evidence that
+changes the approved meaning. Existing approval remains valid unless the scope or intent changes. A partially covered
+repository remains a valid outcome.
+
+When starting adoption, the agent first applies the legacy-material and ADR provenance rules above. When resuming, it
+uses the adopter's existing record and distinguishes human rulings from agent proposals, superseded decisions, delivered
+artifacts and evidence revisions. The primary method lives in the `specful-onboard` skill rather than a second public
+procedure.
+
+A compatible Specful CLI is required before CLI-backed authoring. Installed skills, harness hooks and repository gates
+are separate opt-in integrations. Inspect and preserve existing configuration before adding any of them. Configuration
+does not prove that feedback was demonstrated in the target harness, and mechanical checks do not prove substantive
+accuracy.
 
 ## Use specifications during development
 

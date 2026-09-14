@@ -11,6 +11,9 @@ The opt-in [agent skills](/specful/adoption/#install-agent-skills-optional) appl
 implementation and review; the type-specific skills cover artifact craft. This page is the canonical procedure for
 people and agents, including contributors who use neither skills nor saved plans.
 
+For an existing repository that needs subjects, documentation dispositions and candidate obligations selected before
+authoring, use the [agent-led brownfield onboarding workflow](/specful/adoption/#agent-led-brownfield-onboarding).
+
 ## 1. Retrieve what already exists
 
 Read the repository's instructions, then start at `docs/specs/index.md` and follow the scope indexes to the subject you

@@ -151,7 +151,7 @@ fn is_valid_skill_name(name: &str) -> bool {
 }
 
 #[test]
-fn every_skill_directory_has_the_ten_expected_skills() {
+fn every_skill_directory_has_the_expected_skills() {
     let names: Vec<_> = skill_directories()
         .iter()
         .map(|path| {
@@ -168,6 +168,7 @@ fn every_skill_directory_has_the_ten_expected_skills() {
             "specful-design",
             "specful-implement",
             "specful-index",
+            "specful-onboard",
             "specful-plan",
             "specful-requirement",
             "specful-review",

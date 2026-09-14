@@ -9,10 +9,10 @@ governed-by:
 
 # Harness-side skill distribution
 
-Specful packages ten harness-side skills in one repository tree and distributes them through `gh skill install`.
-Repository release tags identify released skill payloads. The skills add artifact craft, implementation planning and
-execution, CLI operations, and substantive review while leaving canonical project knowledge in the adopting repository's
-ordinary files.
+Specful packages harness-side skills in one repository tree and distributes them through `gh skill install`. Repository
+release tags identify released skill payloads. The skills add brownfield onboarding, artifact craft, implementation
+planning and execution, CLI operations, and substantive review while leaving canonical project knowledge in the adopting
+repository's ordinary files.
 
 ## Purpose and boundaries
 
@@ -38,11 +38,11 @@ The package lives under `plugin/`:
   frontmatter shape, and the named, regular, non-empty review and planning references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
 
-All ten directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated
-packages in shared flat namespaces. The authoring set is `specful-requirement`, `specful-design`, and `specful-adr`.
-`specful-plan` plans implementation work, `specful-implement` executes a named plan one step at a time, and
-`specful-review` provides substantive artifact review. `specful-validate`, `specful-index`, `specful-show`, and
-`specful-trace` expose the matching CLI operations.
+All directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated packages in
+shared flat namespaces. `specful-onboard` coordinates brownfield discovery and incremental adoption. The authoring set
+is `specful-requirement`, `specful-design`, and `specful-adr`. `specful-plan` plans implementation work,
+`specful-implement` executes a named plan one step at a time, and `specful-review` provides substantive artifact review.
+`specful-validate`, `specful-index`, `specful-show`, and `specful-trace` expose the matching CLI operations.
 
 ## Interfaces and dependencies
 
@@ -79,6 +79,17 @@ directories, installs the selected skills for the chosen harness, and records an
 adopting repository.
 
 At invocation time, the harness matches a request against each skill's description and loads the corresponding body.
+`specful-onboard` inspects repository authority and existing Specful state before selecting a bounded increment. It
+identifies coherent Design subjects, verifies relevant behaviour, distinguishes documentation drift from implementation
+defects and unresolved product decisions, and assesses candidate obligations against the Requirement profile before
+drafting. The user directs content and scope and supplies intent that repository evidence cannot establish. Existing
+behaviour alone does not make an obligation, and an onboarding increment can contain no Requirements.
+
+The coordinator resumes from an adopter's existing record by separating human rulings from agent proposals, superseded
+decisions, delivered artifacts and evidence revisions. It records documentation dispositions and reverifies claims
+affected by later source changes. It delegates artifact craft to the authoring skills and uses indexing and validation
+for their stated mechanical checks. Substantive review follows adopter policy or an explicit user request.
+
 Authoring skills scaffold through `specful new`, guide completion of one artifact type, and finish with indexing and
 mechanical validation. They point to substantive review when the adopting repository requires it or the user asks for
 it. Operation skills run the matching CLI command or commands and report the result. `specful-review` resolves an
@@ -88,6 +99,12 @@ validation remains distinct from substantive judgement. The skill returns its co
 it does not edit a repository or publish a pull-request comment or formal review. An interactive harness may offer
 independent or in-session execution, while the adopting maintainer decides whether review is advisory or blocking.
 Non-interactive invocation policy remains outside this package.
+
+The compatible CLI is a prerequisite for CLI-backed authoring. Installed skills, harness hooks and repository gates are
+separate, opt-in integration layers. The coordinator inspects existing configuration before offering them as separate
+scope. The package neither installs those controls nor decides whether they are advisory or blocking; the adopter owns
+that policy. A configured hook or gate is distinct from observed feedback in the target harness, and neither proves
+substantive accuracy.
 
 `specful-plan` first decides whether the work needs a saved plan. Before judging the design, it loads planning craft
 that separates the invariant from a proposed mechanism and searches for the smallest supported solution. It then loads
