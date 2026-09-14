@@ -76,6 +76,8 @@ directories, and generated navigation views; it does not create or modify agent 
 
 Opt-in agent skills build on that floor, loaded by the harness at the moment they apply:
 
+- `specful-onboard` coordinates evidence-led adoption in an existing repository, from selecting a coherent subject to
+  handing approved artifacts to the type-specific skills;
 - `specful-requirement`, `specful-design`, and `specful-adr` each teach authoring one artifact type, from scaffolding
   with `specful new` through validation and substantive review;
 - `specful-review` checks an artifact for what mechanical validation cannot: acceptance-criteria quality, artifact
@@ -85,7 +87,7 @@ Opt-in agent skills build on that floor, loaded by the harness at the moment the
 - `specful-validate`, `specful-index`, `specful-show`, and `specful-trace` wrap the matching CLI commands for direct
   invocation mid-session.
 
-Install all ten skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
+Install the skills at user scope. When run interactively, the GitHub CLI prompts for the target agent:
 
 ```sh
 gh skill install unkos-dev/specful --all --scope user --pin <TAG>
