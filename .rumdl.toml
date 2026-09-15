@@ -8,7 +8,7 @@ style = "dash"
 front-matter-title = ""
 
 [MD033]
-allowed-elements = ["h1", "picture", "source", "img"]
+allowed-elements = ["h1", "picture", "source", "img", "details", "summary"]
 
 [MD013]
 line-length = 120

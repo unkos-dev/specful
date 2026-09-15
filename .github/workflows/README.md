@@ -47,6 +47,7 @@ neither.
 | `lint.yml` | `workflows`, `prose`, `secrets` | Static analysis per job. |
 | `deps.yml` | `cargo-deny`, `review` | `deny.toml` checks; dependency review. |
 | `snyk.yml` | `code` | Snyk Code SAST, advisory only. |
+| `scorecard.yml` | `analysis` | Publishes OpenSSF Scorecard results for the README badge. Standalone. |
 | `docs.yml` | `build` | Documentation site build-check (`site/`), path-filtered. |
 | `label.yml` | `label` | Labels from `.github/labeler.yml`. |
 | `pr-hygiene.yml` | `title`, `body` | Title lint; PR body structure. Standalone. |
@@ -79,6 +80,16 @@ read the same in this list.
 `snyk` is advisory (its findings never fail the job) and `label` runs outside the composition, so neither carries a
 required context. `release-plz` carries none either: it runs on push to `main` and standalone, outside the composition.
 `release.yml`'s pull_request plan job is likewise advisory.
+
+## Scorecard
+
+`scorecard.yml` runs on pushes to `main` and weekly. It publishes the repository's assessment to the
+[OpenSSF Scorecard API](https://api.scorecard.dev), which supplies the README badge. It has no score threshold and
+carries no required pull-request context.
+
+The publishing job uses the default `GITHUB_TOKEN` with `contents: read` and job-scoped `id-token: write` to
+authenticate the result. Scorecard's publisher permits only approved actions in that job, so it runs independently of
+the shared setup action. Publication runs in GitHub Actions; the local workflow linters check its configuration.
 
 ## Binary releases
 
