@@ -132,6 +132,8 @@ fn contains_bcp14_term(text: &str) -> bool {
 
 /// Returns `text` with every backtick code span removed, since inline code is
 /// exempt from placeholder residue checks the same way a fenced block is.
+/// Line endings inside a removed span are kept so callers can split the
+/// result back into the same number of lines.
 fn strip_code_spans(text: &str) -> String {
     let bytes = text.as_bytes();
     let mut out = String::with_capacity(text.len());
@@ -162,7 +164,10 @@ fn strip_code_spans(text: &str) -> String {
                 }
             }
             match close {
-                Some(end) => i = end,
+                Some(end) => {
+                    out.extend(text[i..end].chars().filter(|&c| c == '\n'));
+                    i = end;
+                }
                 None => out.push_str(&text[open_start..i]),
             }
             continue;
@@ -185,19 +190,51 @@ fn has_brace_placeholder(text: &str) -> bool {
     false
 }
 
-/// Whether `text` still carries single-line template placeholder or
-/// instructional residue. Markers are taken verbatim from the templates:
-/// bracket placeholders (`{...}`), the bare `NNNN` sequence number token,
-/// and instructional HTML comments.
+/// Strips code spans from every non-fenced line, letting a span run across
+/// line endings within one paragraph as CommonMark allows. A blank line or a
+/// fence ends the paragraph, so an unclosed backtick never reaches past it.
+/// Fenced lines are returned unchanged; callers skip them anyway.
+fn strip_code_spans_per_line(lines: &[Line<'_>]) -> Vec<String> {
+    let mut stripped: Vec<String> = Vec::with_capacity(lines.len());
+    let mut paragraph: Vec<usize> = Vec::new();
+    let flush = |paragraph: &mut Vec<usize>, stripped: &mut Vec<String>| {
+        if paragraph.is_empty() {
+            return;
+        }
+        let joined = paragraph
+            .iter()
+            .map(|&idx| lines[idx].text)
+            .collect::<Vec<_>>()
+            .join("\n");
+        for (idx, text) in paragraph.iter().zip(strip_code_spans(&joined).split('\n')) {
+            stripped[*idx] = text.to_string();
+        }
+        paragraph.clear();
+    };
+    for (idx, line) in lines.iter().enumerate() {
+        stripped.push(line.text.to_string());
+        if line.in_fence || line.text.trim().is_empty() {
+            flush(&mut paragraph, &mut stripped);
+        } else {
+            paragraph.push(idx);
+        }
+    }
+    flush(&mut paragraph, &mut stripped);
+    stripped
+}
+
+/// Whether `text`, with code spans already stripped, still carries
+/// single-line template placeholder or instructional residue. Markers are
+/// taken verbatim from the templates: bracket placeholders (`{...}`), the
+/// bare `NNNN` sequence number token, and instructional HTML comments.
 fn has_placeholder_residue(text: &str) -> bool {
-    let text = strip_code_spans(text);
     if text.contains("<!--") {
         return true;
     }
     if text.contains("NNNN") {
         return true;
     }
-    has_brace_placeholder(&text)
+    has_brace_placeholder(text)
 }
 
 /// Finds every line that belongs to a `{...}` block whose opening brace is
@@ -207,7 +244,7 @@ fn has_placeholder_residue(text: &str) -> bool {
 /// brace pairing, not the wording inside it, marks the span. Fenced lines
 /// are excluded from balance tracking entirely, so code content never
 /// contributes to or breaks a real placeholder block's balance.
-fn multiline_brace_residue(lines: &[Line<'_>]) -> HashSet<usize> {
+fn multiline_brace_residue(lines: &[Line<'_>], stripped: &[String]) -> HashSet<usize> {
     let mut residue = HashSet::new();
     let mut open_start: Option<usize> = None;
     let mut balance: i32 = 0;
@@ -215,7 +252,7 @@ fn multiline_brace_residue(lines: &[Line<'_>]) -> HashSet<usize> {
         if line.in_fence {
             continue;
         }
-        let stripped = strip_code_spans(line.text);
+        let stripped = &stripped[idx];
         let opens = stripped.matches('{').count() as i32;
         let closes = stripped.matches('}').count() as i32;
         if balance == 0 && opens > closes {
@@ -245,12 +282,15 @@ fn multiline_brace_residue(lines: &[Line<'_>]) -> HashSet<usize> {
 }
 
 fn placeholder_findings(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
-    let multiline = multiline_brace_residue(lines);
+    let stripped = strip_code_spans_per_line(lines);
+    let multiline = multiline_brace_residue(lines, &stripped);
     lines
         .iter()
-        .filter(|l| {
-            !l.in_fence && (has_placeholder_residue(l.text) || multiline.contains(&l.file_line))
+        .zip(&stripped)
+        .filter(|(l, text)| {
+            !l.in_fence && (has_placeholder_residue(text) || multiline.contains(&l.file_line))
         })
+        .map(|(l, _)| l)
         .map(|l| {
             Finding::new(
                 path,
@@ -931,6 +971,32 @@ mod tests {
     fn unmatched_backtick_does_not_hide_placeholder() {
         let fm = json!({"title": "T"});
         let body = "# T\n\ntext ` then {placeholder}\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue") && f.line == Some(3)),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn code_span_wrapped_across_lines_is_ignored() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\nimports `routes::users::{list_users,\ndelete_user}` on two lines\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn code_span_does_not_cross_a_blank_line() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\nopen ` then {placeholder}\n\nclosed ` later\n";
         let findings = findings_for(ArtifactKind::Design, fm, body);
         assert!(
             findings
