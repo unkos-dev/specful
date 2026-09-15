@@ -7,6 +7,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.2](https://github.com/unkos-dev/specful/compare/v0.5.1...v0.5.2) - 2026-09-15
+
+### Added
+
+- *(skills)* apply corpus questions in planning and review ([#146](https://github.com/unkos-dev/specful/pull/146))
+- *(skills)* guide brownfield Specful onboarding ([#142](https://github.com/unkos-dev/specful/pull/142))
+
+### Fixed
+
+- *(validate)* locate code exemptions with a CommonMark parser ([#148](https://github.com/unkos-dev/specful/pull/148))
+
+### Other
+
+- guide readers to their first Specful artifact ([#156](https://github.com/unkos-dev/specful/pull/156))
+- preserve release polish through changelog regeneration ([#155](https://github.com/unkos-dev/specful/pull/155))
+
+### Dependencies
+
+- *(deps)* lock file maintenance ([#153](https://github.com/unkos-dev/specful/pull/153))
+- *(deps)* lock file maintenance ([#136](https://github.com/unkos-dev/specful/pull/136))
+- *(deps)* update rust crate jsonschema to 0.56.0 ([#134](https://github.com/unkos-dev/specful/pull/134))
+
 ### Skill and documentation updates
 
 - Planning checks must detect absent behaviour and avoid matching unrelated text. Design reviews require evidence for
