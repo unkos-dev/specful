@@ -34,6 +34,11 @@
   },
   "packageRules": [
     {
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["unkos-dev/specful"],
+      "minimumReleaseAge": null
+    },
+    {
       "description": "Update the lockfile within compatible cargo ranges; replace ranges for incompatible releases.",
       "matchManagers": ["cargo"],
       "rangeStrategy": "update-lockfile"
