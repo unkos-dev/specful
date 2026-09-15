@@ -101,8 +101,9 @@ Check the plan against each item, then fix what fails:
 - every deliverable in the objective maps to a task and a verification row;
 - every artifact the Documentation section marks created or updated maps to a task and a verification row, and every
   unaffected disposition states its reason;
-- every Verify command has been run once against the current tree and fails as absence predicts; a command the
-  repository's hooks refuse is rewritten, and a command that would mutate the tree is run in its dry or frozen form;
+- every Verify command has been run once against the current tree and fails as absence predicts, and its pattern cannot
+  match unrelated text once the behaviour is present; a command the repository's hooks refuse is rewritten, and a
+  command that would mutate the tree is run in its dry or frozen form;
 - every check that asserts absence names what its pattern matches on the current tree, and each match is something a
   task removes;
 - every file a task moves has every path-keyed ignore or allowlist entry for it updated in the same task, because what

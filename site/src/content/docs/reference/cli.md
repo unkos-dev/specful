@@ -55,6 +55,9 @@ specful new <adr|requirement|design> --title <TITLE> [--scope <SCOPE>] [--root <
 | `--scope <SCOPE>` | Required for a requirement or design, for example `backend/sync`. Not for an ADR. |
 | `--root <ROOT>` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
 
+A scope is a slash-separated path whose segments start with a lowercase letter and use lowercase letters, digits, and
+hyphens. The first artifact in a scope creates its directory under `docs/specs/`.
+
 Prints the created file's path, then a reminder to complete the remaining placeholders and run `specful index`.
 Allocation advances the corresponding counter in `.specful/config.yaml`. The result is a draft: its placeholders must be
 replaced with project content before it can pass validation. Creating an artifact does not regenerate the views.

@@ -10,7 +10,8 @@ configuration, interfaces, or public documentation. Check whether:
 - its material structure, interfaces, state, runtime behaviour, failure handling, and operational or security boundary
   are accurate enough for the subject, with a reason where a canonical section does not apply;
 - `satisfies` and `governed-by` relationships are exact and the document does not duplicate durable decision rationale;
-- a material claim agrees with the claim-directed evidence inspected;
+- a material claim agrees with the claim-directed evidence inspected, and a universal claim such as "every handler" or
+  "no other resource" rests on an enumeration rather than an impression;
 - the Design has a reason to exist under the profile: one coherent subject that is independently understood and
   independently maintained, per the profile's one subject, one document rule, and it describes present behaviour;
 - a maintainer with no prior context can change the subject safely from the record, so a Design that states the obvious
