@@ -58,5 +58,6 @@ hand, in `Cargo.toml` or anywhere else. release-plz maintains a rolling release 
    just preflight
    ```
 
+   Once per checkout, `lefthook install pre-push` installs the Git hook that runs `specful validate` before each push.
 4. Open the pull request using [`.github/pull_request_template.md`](.github/pull_request_template.md) as the body
    structure. Complete the relevant sections and remove optional sections that do not apply.

@@ -1,0 +1,5 @@
+# Install once per checkout with `lefthook install pre-push`.
+pre-push:
+  jobs:
+    - name: specful
+      run: specful validate
