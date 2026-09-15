@@ -144,7 +144,9 @@ convention incrementally:
    provenance link. Retire the older record under its own convention while retaining the archived original unchanged at
    the linked path; record retirement separately if that convention would otherwise modify or remove it.
 5. Run `specful index` to regenerate the navigation views, then `specful validate`, and commit both the source documents
-   and the regenerated views together.
+   and the regenerated views together. A repository formatter that rewrites JSON or Markdown needs ignore entries for
+   `.specful/generated/` and for every `index.md` that `specful index` writes under `docs/specs/` in the same commit,
+   because a reformatted view no longer matches its sources and fails validation as stale.
 
 A partially documented repository is a valid, ongoing state: validation checks the documents that exist, and does not
 require full coverage of the codebase.
