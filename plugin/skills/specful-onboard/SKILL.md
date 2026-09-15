@@ -83,8 +83,9 @@ properties; they do not prove that the prose is accurate or that an obligation i
 Adjudicate review findings against the cited evidence and authority. Correct false claims, stale references and other
 supported defects. Return unresolved intent to the human. After a meaning-changing correction, verify the corrected
 meaning and its dependent claims together rather than checking only the edited sentence. When verification exposes an
-exploitable gap, keep it out of the public artifact: report it to the adopter's tracker and let the fix land before the
-Design records the corrected behaviour.
+exploitable gap, keep it out of the public artifact and out of any public tracker: report it through the adopter's
+private security channel, or privately to the user when none is established, and let the fix land before the Design
+records the corrected behaviour.
 
 When code, tests, interfaces or governing artifacts change during onboarding, identify which recorded claims depend on
 the changed source. Reverify those claims and their dependants at the new revision while retaining evidence that remains
