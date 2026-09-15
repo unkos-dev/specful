@@ -20,9 +20,11 @@ state, accepted ADRs constrain durable choices, and a plan remains temporary tra
 Apply the [development workflow](https://unkos-dev.github.io/specful/authoring-workflow/): start at
 `docs/specs/index.md`, follow scope indexes and relevant Requirements, Designs and ADRs, then inspect the targeted code
 and existing tests. Use broader search when coverage or directions are missing or inaccurate. Identify the affected
-acceptance criteria and the evidence needed to check them. If a worthwhile artifact is missing, propose its subject,
-type and durable benefit and obtain the user's decision and input before authoring; planning remains read-only apart
-from authorised plan files. This navigation also applies to bounded work that needs no saved plan.
+acceptance criteria and the evidence needed to check them. Follow each touched module through its scope index to the
+Designs and Requirements that describe it, and record a disposition for every affected artifact in the plan's
+Documentation section; "unaffected, because the Design remains accurate" is a complete answer. A pre-existing gap is a
+proposal with its subject, type and durable benefit for the user's decision, not a task, and planning remains read-only
+apart from authorised plan files. This navigation also applies to bounded work that needs no saved plan.
 
 Establish the problem, intended outcome, fixed constraints, and the observable result. Preserve authoritative and
 explicitly approved decisions. Surface contrary evidence instead of silently reopening or overriding them.
@@ -66,8 +68,11 @@ validation.
 
 For a change plan, read [the change-plan template](references/change-plan.md). For an arc, read
 [the arc-plan template](references/arc-plan.md). Use the repository's own plan template when it exists. Keep every
-section; a section that does not apply says so with the reason. Remove an optional frontmatter field that does not
-apply. `type`, `status`, and `created` are required. `issue`, `relates-to`, and `part-of` are optional where present.
+section; a section that does not apply says so with the reason. The Documentation section is never marked not
+applicable: a change with no affected artifact lists the touched subject's Design as unaffected with the reason, and
+when that subject has no Design the row names the subject by path, gives the disposition `none`, and states the reason
+with the proposal made or declined. Remove an optional frontmatter field that does not apply. `type`, `status`, and
+`created` are required. `issue`, `relates-to`, and `part-of` are optional where present.
 
 Every statement in a plan is exact; the executor treats deviation as a stop. State an open choice in its task with the
 reason. Write tasks verb-first. Every task verifies with a command and its expected output, and the command fails when
@@ -94,6 +99,8 @@ Check the plan against each item, then fix what fails:
 - every declared dependency edge matches an artifact one step produces and another consumes;
 - every open choice names what is open and why;
 - every deliverable in the objective maps to a task and a verification row;
+- every artifact the Documentation section marks created or updated maps to a task and a verification row, and every
+  unaffected disposition states its reason;
 - every Verify command has been run once against the current tree and fails as absence predicts; a command the
   repository's hooks refuse is rewritten, and a command that would mutate the tree is run in its dry or frozen form;
 - every check that asserts absence names what its pattern matches on the current tree, and each match is something a

@@ -23,6 +23,14 @@ Every statement in this plan is exact. A deviation stops for approval.
 
 - {Exclusion and the reason it is out of scope.}
 
+## Documentation
+
+| Artifact | Disposition | Reason or task |
+| --- | --- | --- |
+| `{Specful identifier or path}` | {created, updated, unaffected, or none} | {Reason, or the task that changes it.} |
+
+Corpus effect: {more complete, unchanged, or less accurate, with the reason.}
+
 ## Binding inputs
 
 | Artifact | Lines | What it locks |
