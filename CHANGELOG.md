@@ -7,6 +7,59 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.2](https://github.com/unkos-dev/specful/compare/v0.5.1...v0.5.2) - 2026-09-15
+
+### Added
+
+- *(skills)* apply corpus questions in planning and review ([#146](https://github.com/unkos-dev/specful/pull/146))
+
+  - State the corpus questions once in authoring workflow step 2: the
+  two-direction traversal, a disposition for every
+  affected artifact including "unaffected" with its reason, the split
+  between gaps a change creates and gaps that
+    already existed, and the change's corpus effect.
+  - Give `specful-review` a change lens, a corpus-effect line and a
+  proposals slot, and extend each artifact lens with
+  existence, purpose-fit, duplication, history and placement tests drawn
+  from the profiles.
+  - Add a Documentation section to both plan templates and require
+  `specful-plan` to record every affected artifact's
+    disposition and map each created or updated one to a task.
+
+  Both skills checked artifacts that were present and said little about
+  artifacts that should have been, were made stale
+  by a change, or failed the purpose their profile gives them. Neither had
+  an output slot for those answers, so they were
+  dropped, and nothing made "no artifact needed" a first-class answer.
+
+- *(skills)* guide brownfield Specful onboarding ([#142](https://github.com/unkos-dev/specful/pull/142))
+
+  - Add `specful-onboard` to investigate existing systems, propose bounded
+  documentation increments, and resume from
+    recorded scope, human decisions and evidence revisions.
+  - Load the Requirement profile before selecting obligations, and connect
+  the workflow to the existing skills,
+    package contract and adoption guidance.
+
+### Fixed
+
+- *(validate)* locate code exemptions with a CommonMark parser ([#148](https://github.com/unkos-dev/specful/pull/148))
+
+  - Locate code exemptions for placeholder residue scanning with
+  pulldown-cmark's source ranges instead of hand-rolled
+  fence and backtick tracking, so a code span that wraps across lines
+  inside one block is exempt while backticks in
+    separate blocks such as adjacent list items or a heading never pair.
+  - Fenced and indented code blocks, including their delimiters, and
+  inline code spans, including those in table cells,
+  are masked before residue scanning; every profile rule stays line-based
+  and unchanged.
+
+### Dependencies
+
+- *(deps)* lock file maintenance ([#136](https://github.com/unkos-dev/specful/pull/136))
+- *(deps)* update rust crate jsonschema to 0.56.0 ([#134](https://github.com/unkos-dev/specful/pull/134))
+
 ## [0.5.1](https://github.com/unkos-dev/specful/compare/v0.5.0...v0.5.1) - 2026-09-08
 
 ### Fixed
