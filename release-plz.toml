@@ -18,13 +18,8 @@ release_always = false
 git_release_draft = true
 
 [changelog]
-# Every commit on main is a squash-merged PR body: a `## Summary` (1-3
-# bullets), an optional `## Why`, and a `## Test plan`. The body template
-# below surfaces Summary and Why under each entry and drops Test plan and any
-# stray HTML comments, so the changelog carries the release story instead of
-# bare commit subjects. `protect_breaking_commits` keeps a breaking commit out
-# of the ordinary skip rules; the parser list below is what actually gives it
-# its own group.
+# Keep authored release guidance under CHANGELOG.md's Unreleased heading on the base branch.
+# Breaking changes retain Summary and Why so conversion instructions reach the release notes.
 protect_breaking_commits = true
 
 # Order matters: the first matching parser wins. Breaking commits are pulled
@@ -44,11 +39,6 @@ commit_parsers = [
   { message = ".*", group = "other" },
 ]
 
-# Every entry keeps release-plz's usual subject-line-plus-PR-link rendering,
-# then indents the commit's `## Summary` bullets and `## Why` prose beneath
-# it. A commit with no `## Summary` heading (an unstructured body, or one of
-# Renovate's own PR bodies) falls back to the subject line alone rather than
-# guessing at structure.
 body = """
 
 {% set breaking_commits = commits | filter(attribute="group", value="breaking") %}
@@ -86,17 +76,6 @@ body = """
 {% else -%}
 - {{ commit.message }}
 {% endif -%}
-{%- set body_kept = commit.body | split_regex(pat="(?m)^## Test plan") | first | replace_regex(from="(?m)^## Summary[ \\t]*\\n+", to="") | replace_regex(from="(?m)^## Why[ \\t]*\\n+", to="") | replace_regex(from="(?s)<!--.*?-->", to="") | trim -%}
-{%- set summary_hits = commit.body | find_regex(pat="(?m)^## Summary") -%}
-{%- if summary_hits | length > 0 and body_kept | length > 0 %}
-{% for line in body_kept | split(pat="\\n") %}
-{%- if line | trim | length > 0 %}  {{ line }}
-{% else %}
-{% endif -%}
-{% endfor -%}
-{% if not loop.last %}
-{% endif -%}
-{%- endif -%}
 {% endfor -%}
 {% endif -%}
 {% endfor -%}
@@ -109,17 +88,6 @@ body = """
 {% else -%}
 - {{ commit.message }}
 {% endif -%}
-{%- set body_kept = commit.body | split_regex(pat="(?m)^## Test plan") | first | replace_regex(from="(?m)^## Summary[ \\t]*\\n+", to="") | replace_regex(from="(?m)^## Why[ \\t]*\\n+", to="") | replace_regex(from="(?s)<!--.*?-->", to="") | trim -%}
-{%- set summary_hits = commit.body | find_regex(pat="(?m)^## Summary") -%}
-{%- if summary_hits | length > 0 and body_kept | length > 0 %}
-{% for line in body_kept | split(pat="\\n") %}
-{%- if line | trim | length > 0 %}  {{ line }}
-{% else %}
-{% endif -%}
-{% endfor -%}
-{% if not loop.last %}
-{% endif -%}
-{%- endif -%}
 {% endfor -%}
 {% endif -%}
 """
