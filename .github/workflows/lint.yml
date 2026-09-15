@@ -39,7 +39,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          mise-install-args: just jq typos rumdl pipx:git+https://github.com/agentskills/agentskills.git
+          mise-install-args: just jq typos rumdl pipx:git+https://github.com/agentskills/agentskills.git github:unkos-dev/specful
 
       - name: Spell check (typos)
         run: just typos
@@ -49,6 +49,9 @@ jobs:
 
       - name: Validate plugin skills (skills-ref)
         run: just skills-ref
+
+      - name: Validate Specful corpus
+        run: just specful-validate
 
   secrets:
     runs-on: ubuntu-latest

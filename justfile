@@ -67,6 +67,11 @@ markdownlint:
 skills-ref:
     for skill in plugin/skills/*/; do skills-ref validate "$skill"; done
 
+# Specful corpus check: structure, identifiers, relationships and generated views.
+[group('lint')]
+specful-validate:
+    specful validate
+
 # Workflow syntax and expression lint.
 [group('lint')]
 actionlint:
@@ -91,4 +96,4 @@ check: fmt-check clippy doc-lint test
 
 # Local gates CI also runs; see .github/workflows/README.md for the CI-only differences.
 [group('aggregate')]
-preflight: check doctests machete deny typos markdownlint skills-ref actionlint zizmor gitleaks
+preflight: check doctests machete deny typos markdownlint skills-ref specful-validate actionlint zizmor gitleaks
