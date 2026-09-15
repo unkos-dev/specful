@@ -47,6 +47,14 @@ Versions follow Semantic Versioning, derived from the commit types by release au
 hand, in `Cargo.toml` or anywhere else. release-plz maintains a rolling release pull request from commits merged to
 `main`; a maintainer merging that pull request is the release act.
 
+Add upgrade guidance and notable changes missing from generated entries under `## [Unreleased]` in `CHANGELOG.md`,
+through a normal pull request to `main`. Generated entries use linked commit subjects; breaking changes also include the
+commit's Summary and Why. Pull request rationale remains useful to reviewers regardless of changelog inclusion.
+
+Merge release guidance before the release pull request. After release-plz regenerates that pull request, inspect its
+`CHANGELOG.md` diff and confirm the authored notes appear under the intended version before merging it. The pull request
+body previews only generated entries; the published release notes come from the changelog file.
+
 ## Pull request process
 
 1. Branch from `main`.

@@ -7,6 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Skill and documentation updates
+
+- Planning checks must detect absent behaviour and avoid matching unrelated text. Design reviews require evidence for
+  universal claims, and onboarding withholds exploitable security gaps from public artifacts until a fix lands. The CLI
+  reference states scope naming rules, and adoption guidance lists formatter exclusions for generated views.
+  ([#147](https://github.com/unkos-dev/specful/pull/147))
+- Validation integration guidance uses Git pre-push and CI for mechanical checks. Harness hooks provide an optional
+  substantive review reminder before a push; the examples no longer run validation after each edit or at turn end.
+  ([#145](https://github.com/unkos-dev/specful/pull/145))
+
+### Upgrading from 0.5.1
+
+Install the matching binary and refresh the skills, including the new `specful-onboard` skill. Replace `<VERSION>` with
+the chosen version number and `<TAG>` with its matching tag, including the `v` prefix:
+
+```sh
+cargo install --locked --version <VERSION> specful
+gh skill install unkos-dev/specful --all --scope user --pin <TAG> --force
+```
+
+A prebuilt binary from the release can replace the Cargo installation. The skill command overwrites installed copies.
+
+If you copied the previous harness-hook examples, remove only Specful's validation hooks from `PostToolUse` and `Stop`,
+preserving unrelated hooks. Skill updates do not edit harness configuration. Use the
+[validation integration reference](https://unkos-dev.github.io/specful/reference/validation-integration/) to configure
+`specful validate` in Git pre-push and CI; retain the optional pre-push review reminder if wanted.
+
 ## [0.5.1](https://github.com/unkos-dev/specful/compare/v0.5.0...v0.5.1) - 2026-09-08
 
 ### Fixed
