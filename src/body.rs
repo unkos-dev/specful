@@ -1,11 +1,15 @@
 //! Markdown body structure checks for the artifact profiles.
 //!
-//! Checks are deliberately line-based rather than a full Markdown parse:
-//! every rule in this profile is anchored to whole lines (ATX headings,
-//! fence delimiters), so a line scan is sufficient and keeps the checker
-//! free of a Markdown-parsing dependency.
+//! Profile rules stay line-based: every rule is anchored to whole lines (ATX
+//! headings, section order, placeholder residue). The CommonMark parser is
+//! used for one thing only, locating code so it is exempt from residue
+//! scanning, because code spans may wrap across lines while never crossing a
+//! block boundary, and that structure cannot be recovered line by line.
 
 use std::collections::HashSet;
+use std::ops::Range;
+
+use pulldown_cmark::{Event, Options, Parser, Tag};
 
 use crate::diagnostics::Finding;
 
@@ -16,54 +20,58 @@ pub enum ArtifactKind {
     Design,
 }
 
-/// One body line plus its file-relative position and fence membership.
+/// One body line plus its file-relative position and code membership.
 struct Line<'a> {
     file_line: usize,
     text: &'a str,
-    /// Whether this line sits inside a fenced code block, including the
-    /// delimiter line itself: an info string on an opening fence (for
-    /// example ` ```{r} `) can otherwise match a placeholder pattern.
-    in_fence: bool,
+    /// `text` with every character inside a code span or code block replaced
+    /// by a space, so residue scanning never reads code as a placeholder.
+    masked: String,
+    /// Whether this line sits inside a code block, including the fence
+    /// delimiter lines: an info string on an opening fence (for example
+    /// ` ```{r} `) can otherwise match a placeholder pattern.
+    in_code_block: bool,
 }
 
-/// Returns the fence character (backtick or tilde) a line opens or closes
-/// with, or `None` when the line is not a fence delimiter.
-fn fence_char(line: &str) -> Option<char> {
-    let trimmed = line.trim_start();
-    if trimmed.starts_with("```") {
-        Some('`')
-    } else if trimmed.starts_with("~~~") {
-        Some('~')
-    } else {
-        None
+/// Byte ranges of `body` that are code: fenced and indented code blocks with
+/// their delimiters, and inline code spans. Tables are enabled so a span in a
+/// cell is recognised as the site renders it.
+fn code_ranges(body: &str) -> (Vec<Range<usize>>, Vec<Range<usize>>) {
+    let mut blocks = Vec::new();
+    let mut spans = Vec::new();
+    for (event, range) in Parser::new_ext(body, Options::ENABLE_TABLES).into_offset_iter() {
+        match event {
+            Event::Start(Tag::CodeBlock(_)) => blocks.push(range),
+            Event::Code(_) => spans.push(range),
+            _ => {}
+        }
     }
+    (blocks, spans)
 }
 
 fn scan_lines(body: &str, body_first_line: usize) -> Vec<Line<'_>> {
-    let mut lines = Vec::new();
-    let mut open_fence: Option<char> = None;
-    for (i, raw) in body.lines().enumerate() {
-        let file_line = body_first_line + i;
-        if let Some(marker) = fence_char(raw) {
-            // A fence only closes with the same character it opened with,
-            // so a mismatched marker inside an open fence is ordinary
-            // fenced content rather than a delimiter.
-            match open_fence {
-                Some(current) if current == marker => open_fence = None,
-                Some(_) => {}
-                None => open_fence = Some(marker),
+    let (blocks, spans) = code_ranges(body);
+    let mut masked: Vec<u8> = body.as_bytes().to_vec();
+    for range in blocks.iter().chain(&spans) {
+        for byte in &mut masked[range.clone()] {
+            if *byte != b'\n' {
+                *byte = b' ';
             }
-            lines.push(Line {
-                file_line,
-                text: raw,
-                in_fence: true,
-            });
-            continue;
         }
+    }
+    let masked = String::from_utf8(masked).expect("masking replaces whole characters only");
+    let mut lines = Vec::new();
+    let mut offset = 0;
+    for (i, (raw, masked_line)) in body.lines().zip(masked.lines()).enumerate() {
+        let line_range = offset..offset + raw.len();
+        offset += raw.len() + 1;
         lines.push(Line {
-            file_line,
+            file_line: body_first_line + i,
             text: raw,
-            in_fence: open_fence.is_some(),
+            masked: masked_line.to_string(),
+            in_code_block: blocks
+                .iter()
+                .any(|b| b.start <= line_range.end && line_range.start < b.end),
         });
     }
     lines
@@ -130,55 +138,6 @@ fn contains_bcp14_term(text: &str) -> bool {
         .any(|term| contains_word_token(text, term))
 }
 
-/// Returns `text` with every backtick code span removed, since inline code is
-/// exempt from placeholder residue checks the same way a fenced block is.
-/// Line endings inside a removed span are kept so callers can split the
-/// result back into the same number of lines.
-fn strip_code_spans(text: &str) -> String {
-    let bytes = text.as_bytes();
-    let mut out = String::with_capacity(text.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'`' {
-            let open_start = i;
-            while i < bytes.len() && bytes[i] == b'`' {
-                i += 1;
-            }
-            let open_len = i - open_start;
-            // A span closes only with a run of the same length; a shorter or
-            // longer run of backticks is ordinary span content to skip over.
-            let mut j = i;
-            let mut close: Option<usize> = None;
-            while j < bytes.len() {
-                if bytes[j] == b'`' {
-                    let run_start = j;
-                    while j < bytes.len() && bytes[j] == b'`' {
-                        j += 1;
-                    }
-                    if j - run_start == open_len {
-                        close = Some(j);
-                        break;
-                    }
-                } else {
-                    j += 1;
-                }
-            }
-            match close {
-                Some(end) => {
-                    out.extend(text[i..end].chars().filter(|&c| c == '\n'));
-                    i = end;
-                }
-                None => out.push_str(&text[open_start..i]),
-            }
-            continue;
-        }
-        let ch_len = text[i..].chars().next().map_or(1, char::len_utf8);
-        out.push_str(&text[i..i + ch_len]);
-        i += ch_len;
-    }
-    out
-}
-
 /// Whether `text` contains one non-empty `{...}` pair on a single line, the
 /// bracket placeholder convention used throughout the templates.
 fn has_brace_placeholder(text: &str) -> bool {
@@ -190,40 +149,7 @@ fn has_brace_placeholder(text: &str) -> bool {
     false
 }
 
-/// Strips code spans from every non-fenced line, letting a span run across
-/// line endings within one paragraph as CommonMark allows. A blank line or a
-/// fence ends the paragraph, so an unclosed backtick never reaches past it.
-/// Fenced lines are returned unchanged; callers skip them anyway.
-fn strip_code_spans_per_line(lines: &[Line<'_>]) -> Vec<String> {
-    let mut stripped: Vec<String> = Vec::with_capacity(lines.len());
-    let mut paragraph: Vec<usize> = Vec::new();
-    let flush = |paragraph: &mut Vec<usize>, stripped: &mut Vec<String>| {
-        if paragraph.is_empty() {
-            return;
-        }
-        let joined = paragraph
-            .iter()
-            .map(|&idx| lines[idx].text)
-            .collect::<Vec<_>>()
-            .join("\n");
-        for (idx, text) in paragraph.iter().zip(strip_code_spans(&joined).split('\n')) {
-            stripped[*idx] = text.to_string();
-        }
-        paragraph.clear();
-    };
-    for (idx, line) in lines.iter().enumerate() {
-        stripped.push(line.text.to_string());
-        if line.in_fence || line.text.trim().is_empty() {
-            flush(&mut paragraph, &mut stripped);
-        } else {
-            paragraph.push(idx);
-        }
-    }
-    flush(&mut paragraph, &mut stripped);
-    stripped
-}
-
-/// Whether `text`, with code spans already stripped, still carries
+/// Whether `text`, with code already masked out, still carries
 /// single-line template placeholder or instructional residue. Markers are
 /// taken verbatim from the templates: bracket placeholders (`{...}`), the
 /// bare `NNNN` sequence number token, and instructional HTML comments.
@@ -244,15 +170,15 @@ fn has_placeholder_residue(text: &str) -> bool {
 /// brace pairing, not the wording inside it, marks the span. Fenced lines
 /// are excluded from balance tracking entirely, so code content never
 /// contributes to or breaks a real placeholder block's balance.
-fn multiline_brace_residue(lines: &[Line<'_>], stripped: &[String]) -> HashSet<usize> {
+fn multiline_brace_residue(lines: &[Line<'_>]) -> HashSet<usize> {
     let mut residue = HashSet::new();
     let mut open_start: Option<usize> = None;
     let mut balance: i32 = 0;
     for (idx, line) in lines.iter().enumerate() {
-        if line.in_fence {
+        if line.in_code_block {
             continue;
         }
-        let stripped = &stripped[idx];
+        let stripped = &line.masked;
         let opens = stripped.matches('{').count() as i32;
         let closes = stripped.matches('}').count() as i32;
         if balance == 0 && opens > closes {
@@ -282,15 +208,13 @@ fn multiline_brace_residue(lines: &[Line<'_>], stripped: &[String]) -> HashSet<u
 }
 
 fn placeholder_findings(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
-    let stripped = strip_code_spans_per_line(lines);
-    let multiline = multiline_brace_residue(lines, &stripped);
+    let multiline = multiline_brace_residue(lines);
     lines
         .iter()
-        .zip(&stripped)
-        .filter(|(l, text)| {
-            !l.in_fence && (has_placeholder_residue(text) || multiline.contains(&l.file_line))
+        .filter(|l| {
+            !l.in_code_block
+                && (has_placeholder_residue(&l.masked) || multiline.contains(&l.file_line))
         })
-        .map(|(l, _)| l)
         .map(|l| {
             Finding::new(
                 path,
@@ -360,7 +284,9 @@ fn check_common(
 
     let h1s: Vec<&Line<'_>> = lines
         .iter()
-        .filter(|l| !l.in_fence && heading_level_and_text(l.text).is_some_and(|(lvl, _)| lvl == 1))
+        .filter(|l| {
+            !l.in_code_block && heading_level_and_text(l.text).is_some_and(|(lvl, _)| lvl == 1)
+        })
         .collect();
 
     match h1s.len() {
@@ -403,7 +329,7 @@ fn check_common(
 /// `lines.len()` when no such heading follows.
 fn section_end(lines: &[Line<'_>], after_idx: usize, level: usize) -> usize {
     for (idx, l) in lines.iter().enumerate().skip(after_idx + 1) {
-        if l.in_fence {
+        if l.in_code_block {
             continue;
         }
         if let Some((lvl, _)) = heading_level_and_text(l.text)
@@ -422,7 +348,7 @@ fn section_nonempty(lines: &[Line<'_>], start_idx: usize, end_idx: usize) -> boo
         if l.text.trim().is_empty() {
             return false;
         }
-        if !l.in_fence && heading_level_and_text(l.text).is_some() {
+        if !l.in_code_block && heading_level_and_text(l.text).is_some() {
             return false;
         }
         true
@@ -446,7 +372,7 @@ fn check_required_sections_in_order(
         .iter()
         .enumerate()
         .filter_map(|(idx, l)| {
-            if l.in_fence {
+            if l.in_code_block {
                 return None;
             }
             heading_level_and_text(l.text)
@@ -529,7 +455,7 @@ fn check_optional_sections_nonempty(
         .iter()
         .enumerate()
         .filter_map(|(idx, l)| {
-            if l.in_fence {
+            if l.in_code_block {
                 return None;
             }
             heading_level_and_text(l.text)
@@ -571,7 +497,7 @@ fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         .iter()
         .enumerate()
         .filter_map(|(idx, l)| {
-            if l.in_fence {
+            if l.in_code_block {
                 return None;
             }
             (heading_level_and_text(l.text) == Some((2, "Statement"))).then_some((idx, l.file_line))
@@ -581,7 +507,7 @@ fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         let end = section_end(lines, idx, 2);
         let has_bcp14 = lines[idx + 1..end]
             .iter()
-            .any(|l| !l.in_fence && contains_bcp14_term(l.text));
+            .any(|l| !l.in_code_block && contains_bcp14_term(l.text));
         if !has_bcp14 {
             findings.push(Finding::new(
                 path,
@@ -633,7 +559,7 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         .iter()
         .enumerate()
         .filter_map(|(idx, l)| {
-            if l.in_fence {
+            if l.in_code_block {
                 return None;
             }
             heading_level_and_text(l.text)
@@ -662,7 +588,7 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         .iter()
         .enumerate()
         .filter_map(|(rel_idx, l)| {
-            if l.in_fence {
+            if l.in_code_block {
                 return None;
             }
             heading_level_and_text(l.text)
@@ -994,6 +920,32 @@ mod tests {
     }
 
     #[test]
+    fn backticks_in_separate_list_items_do_not_hide_a_placeholder() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n- an unmatched ` marker\n- {fill this in}\n- another ` marker\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue") && f.line == Some(4)),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn backticks_across_a_heading_do_not_hide_a_placeholder() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\nopen ` here\n## Section {name}\nclose ` there\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue") && f.line == Some(4)),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
     fn code_span_does_not_cross_a_blank_line() {
         let fm = json!({"title": "T"});
         let body = "# T\n\nopen ` then {placeholder}\n\nclosed ` later\n";
@@ -1004,6 +956,32 @@ mod tests {
                 .any(|f| f.message.contains("placeholder residue") && f.line == Some(3)),
             "{findings:?}"
         );
+    }
+
+    #[test]
+    fn indented_code_block_is_ignored() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\nprose\n\n    let x = {placeholder};\n\nmore prose\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue")),
+            "{findings:?}"
+        );
+    }
+
+    #[test]
+    fn code_span_in_table_cell_is_ignored_but_bare_cell_placeholder_is_not() {
+        let fm = json!({"title": "T"});
+        let body = "# T\n\n| a | b |\n| --- | --- |\n| `{code}` | text |\n| {fill} | text |\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        let residue: Vec<_> = findings
+            .iter()
+            .filter(|f| f.message.contains("placeholder residue"))
+            .map(|f| f.line)
+            .collect();
+        assert_eq!(residue, vec![Some(6)], "{findings:?}");
     }
 
     #[test]
