@@ -1,22 +1,21 @@
 # Harness hooks
 
-An agent harness can run `specful index --check` and `specful validate` automatically and feed findings back to the
-agent, and can ask for a review pass before a push. The hooks below call the `specful` binary already on PATH; nothing
-is installed and the adopting repository owns the config.
+Use agent hooks for an optional substantive review reminder before a push. Run `specful validate` through Lefthook
+pre-push and CI, following the copyable examples in
+[Validation integration](https://unkos-dev.github.io/specful/reference/validation-integration/).
+Do not add automatic validation to `PostToolUse` or `Stop`.
 
-## What the hooks do
+The examples below ask for `specful-review` before a shell command containing `git push` when outgoing commits change
+`docs/specs`, `docs/adr`, or `.specful`. They add context to the agent; they do not run a review, enforce its verdict,
+or replace the Git pre-push check. The adopting repository decides whether substantive review is required.
 
-- After every edit or write, run the two checks and return findings to the agent.
-- When the agent tries to stop, run the same checks and continue the turn when they fail, at most once per turn.
-- Before a `git push` that carries changes under `docs/specs`, `docs/adr`, or `.specful`, tell the agent to run the
-  `specful-review` skill first.
-
-The push hook is advisory. The other two report findings. None of them blocks a commit or a push.
+Merge the relevant entry into existing harness configuration, preserving unrelated hooks. These command examples use
+`sh`, `git`, `grep`, and `head`; the reminder itself does not invoke the Specful binary.
 
 ## Claude Code
 
-The block goes in the project's `.claude/settings.json`, which is committed, or in `~/.claude/settings.json` for one
-user across every repository. Project hooks run only after the workspace trust prompt is accepted.
+Add the entry to the project's `.claude/settings.json`, or to the user configuration if that scope is intended. Project
+hooks require workspace trust.
 
 ```json
 {
@@ -28,29 +27,6 @@ user across every repository. Project hooks run only after the workspace trust p
           {
             "type": "command",
             "command": "grep -q 'git push' || exit 0; b=$(git rev-parse -q --verify '@{push}' 2>/dev/null || git rev-parse -q --verify \"$(git remote | head -n1)/HEAD\" 2>/dev/null); if [ -n \"$b\" ]; then git diff --name-only \"$b\" HEAD -- docs/specs docs/adr .specful | grep -q . || exit 0; m='Outgoing commits change Specful artifacts. Before pushing, run the specful-review skill as a change review of the commits not yet on the remote, and do not push on a NO-SHIP verdict.'; else m='The outgoing range could not be determined from the push target or the remote default branch. If these commits change Specful artifacts, run the specful-review skill as a change review before pushing, and do not push on a NO-SHIP verdict.'; fi; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"%s\"}}' \"$m\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "specful index --check >&2 && specful validate >&2 || exit 2",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "grep -q '\"stop_hook_active\": *true' && exit 0; specful index --check >&2 && specful validate >&2 || exit 2",
             "timeout": 10
           }
         ]
@@ -62,8 +38,8 @@ user across every repository. Project hooks run only after the workspace trust p
 
 ## Codex
 
-The file is `.codex/hooks.json` in the project or `~/.codex/hooks.json` for the user. Project hooks load only when the
-project `.codex` layer is trusted. The only difference from the Claude Code block is the edit matcher.
+Add the entry to the project's `.codex/hooks.json`, or to the user configuration if that scope is intended. The project
+configuration must be trusted.
 
 ```json
 {
@@ -79,39 +55,16 @@ project `.codex` layer is trusted. The only difference from the Claude Code bloc
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "apply_patch|Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "specful index --check >&2 && specful validate >&2 || exit 2",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "grep -q '\"stop_hook_active\": *true' && exit 0; specful index --check >&2 && specful validate >&2 || exit 2",
-            "timeout": 10
-          }
-        ]
-      }
     ]
   }
 }
 ```
 
-## Adjusting
+## Scope and limitations
 
-- Delete any hook entry not wanted.
-- The push hook compares against the branch's push target, or the first remote's default branch when the branch has no
-  upstream. When neither exists it says so and still asks for the review rather than staying silent.
-- The commands need only `sh`, `git`, `grep`, and `specful`.
-- The hooks run whichever `specful` is first on PATH, so keep that install at the version the repository targets.
-- Exit status 2 is the harness convention that returns stderr to the agent.
+The reminder compares against the branch's configured push target, falling back to the first remote's default branch. If
+neither resolves, it asks for review without claiming to know the outgoing range. An explicit push to another target can
+differ from this comparison; resolve the actual review target before reviewing.
+
+The command-text match is a convenience reminder for shell-driven pushes. Aliases and GUI pushes may not trigger it. Git
+pre-push runs validation when Git performs the push; CI checks the committed corpus.

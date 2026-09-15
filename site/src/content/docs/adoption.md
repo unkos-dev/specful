@@ -51,7 +51,7 @@ depend on scanning the tree.
 
 ## Validate
 
-Run `specful validate` after any change to the corpus:
+Run `specful validate` when a corpus change is ready to check:
 
 ```sh
 specful validate
@@ -68,9 +68,9 @@ This validates the current snapshot, not Git history. It cannot prove that the p
 never decreased or that a deleted identifier was never reused. Review those historical guarantees when integrating
 branches; a passing snapshot alone does not establish a valid transition.
 
-The [validation integration reference](/specful/reference/validation-integration/) shows the canonical read-only command
-sequence and examples for adopter-owned local hooks and continuous integration. Specful does not install or require
-either control.
+The [validation integration reference](/specful/reference/validation-integration/) explains the read-only checks and
+provides copyable Lefthook pre-push and continuous-integration examples. Specful does not install or require either
+control.
 
 ## Install agent skills (optional)
 
@@ -92,7 +92,8 @@ the default branch when no release exists, so it does not reproduce an earlier i
 
 The skills use the CLI, configuration, schemas, templates, and repository artifacts as ground truth. The
 `specful-validate` skill also carries the [harness hooks](/specful/reference/validation-integration/#harness-hooks)
-blocks that run the checks automatically from Claude Code or Codex and ask for a review before a push.
+examples that ask for substantive review before a push from Claude Code or Codex. Automatic mechanical checks belong in
+Git pre-push and CI, rather than after each edit or agent turn.
 
 ## Updating
 
