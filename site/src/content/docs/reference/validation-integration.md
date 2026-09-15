@@ -51,7 +51,7 @@ after an intentional artifact change, then commit the generated views with the s
 ## Lefthook pre-push
 
 Prerequisites: a repository [initialised with Specful](/specful/adoption/#initialise-a-repository), the Specful CLI, and
-[Lefthook](https://lefthook.dev/installation/). Use your repository's tool manager to provide both executables on Git's
+[Lefthook](https://lefthook.dev/install/). Use your repository's tool manager to provide both executables on Git's
 `PATH`, and use the same Specful release locally and in CI. Specful does not install Git hooks automatically.
 
 Add this job to the repository's `lefthook.yml`:
