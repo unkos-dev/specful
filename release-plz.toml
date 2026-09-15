@@ -18,8 +18,6 @@ release_always = false
 git_release_draft = true
 
 [changelog]
-# Keep authored release guidance under CHANGELOG.md's Unreleased heading on the base branch.
-# Breaking changes retain Summary and Why so conversion instructions reach the release notes.
 protect_breaking_commits = true
 
 # Order matters: the first matching parser wins. Breaking commits are pulled
@@ -39,6 +37,8 @@ commit_parsers = [
   { message = ".*", group = "other" },
 ]
 
+# Keep authored release guidance under CHANGELOG.md's Unreleased heading on the base branch.
+# Breaking changes retain Summary and Why so conversion instructions reach the release notes.
 body = """
 
 {% set breaking_commits = commits | filter(attribute="group", value="breaking") %}

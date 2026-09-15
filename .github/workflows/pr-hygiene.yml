@@ -1,9 +1,4 @@
-# Server-side gate: specful's DCO app and this workflow are the only checks
-# that enforce commit and PR-title hygiene; there is no local commit-msg hook
-# to fall back on, and none would run on a fork PR anyway. Lints the PR title,
-# the one subject a squash-merge produces, and the PR body sections
-# release-plz's changelog template actually reads; intermediate commit
-# messages never reach main and are not linted here.
+# The squash commit inherits the PR title and body, including breaking-change guidance.
 name: PR hygiene
 
 on:
@@ -107,10 +102,7 @@ jobs:
               errors.push('"## Why" heading is present but empty — fill it in or delete the heading.');
             }
 
-            // release-plz truncates the changelog body at this heading
-            // (split_regex on "^## Test plan"); without it, anything after
-            // "## Why" leaks into the generated changelog. Its content is
-            // not inspected — only the heading's presence is release-relevant.
+            // Breaking-change notes stop at Test plan so verification details stay out of the changelog.
             if (section('Test plan') === null) {
               errors.push('Missing "## Test plan" heading.');
             }

@@ -9,9 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Skill and documentation updates
 
-- `specful-plan` and `specful-review` assess missing or stale documentation affected by a change. Plans record which
-  artifacts need work; reviews explain the change's effect on the corpus. Existing gaps are proposals, and no artifact
-  change is a valid outcome. ([#146](https://github.com/unkos-dev/specful/pull/146))
 - Planning checks must detect absent behaviour and avoid matching unrelated text. Design reviews require evidence for
   universal claims, and onboarding withholds exploitable security gaps from public artifacts until a fix lands. The CLI
   reference states scope naming rules, and adoption guidance lists formatter exclusions for generated views.
