@@ -50,7 +50,9 @@ Within the resolved review boundary, apply the
 follow scope indexes, relevant Requirements, Designs and governing ADRs into targeted implementation and existing tests.
 Use broader search when coverage or directions are missing or inaccurate. A routine code review needs no saved plan. If
 useful coverage is missing, propose the artifact's subject, type and durable benefit for the user's decision and input;
-do not author it or require an artifact for every change.
+do not author it or require an artifact for every change. For a new or changed artifact, run `specful trace <ID>` and
+check the inbound side of its relationships: the Design that satisfies a Requirement, and the Requirements and Designs
+that cite an ADR. Report a missing counterpart as a finding when the change should have supplied it.
 
 Run `specful validate` and report mechanical findings as mechanical validation, not as substantive findings. Continue
 when the target remains interpretable. Stop or narrow the review when invalid identity, structure, or relationships make
@@ -61,11 +63,9 @@ Load only the references matching the artifact types in scope:
 - [Requirement lens](references/requirement-review.md)
 - [Design lens](references/design-review.md)
 - [ADR lens](references/adr-review.md)
+- [Change lens](references/change-review.md), for a change review
 
-For change review, also test cross-artifact consistency: contradiction, missing companion updates, authority direction,
-relationship completeness, and disagreement between the aggregate change and the smallest relevant code, tests,
-configuration, or public documentation. Follow a reviewed claim only into evidence that can confirm or contradict it; do
-not conduct an unrelated audit.
+Follow a reviewed claim only into evidence that can confirm or contradict it; do not conduct an unrelated audit.
 
 In the report, connect each consequential affected acceptance criterion to exact-target test or inspection evidence and
 its result, or state the unresolved gap. Reuse existing checks before proposing additional tests. Mechanical corpus
@@ -82,9 +82,10 @@ Report only a consequential finding with:
 - severity: `blocking`, `non-blocking`, or `suggestion`;
 - confidence: `high`, `medium`, or `low`.
 
-Low-confidence concerns cannot block and become questions or evidence requests. Suggestions do not affect the verdict.
-Drop stylistic preferences, duplicates, unsupported speculation, observations outside the requested boundary, and
-concerns without a realistic consequence.
+A record that fails its profile's stated purpose is a substantive finding with a consequence; a prose preference without
+that consequence is dropped. Low-confidence concerns cannot block and become questions or evidence requests. Suggestions
+do not affect the verdict. Drop stylistic preferences, duplicates, unsupported speculation, observations outside the
+requested boundary, and concerns without a realistic consequence.
 
 ## Determine the verdict
 
@@ -96,8 +97,9 @@ concerns without a realistic consequence.
   includes validation that cannot execute on the reviewed tree or invalid structure that prevents reliable substantive
   review.
 
-A gate-grade review cannot return `SHIP` while required mechanical validation fails. The verdict describes readiness; it
-does not grant merge authority or determine the adopter's enforcement policy.
+Corpus effect is reported beside the verdict and does not change it; a proposal for a pre-existing gap never affects the
+verdict. A gate-grade review cannot return `SHIP` while required mechanical validation fails. The verdict describes
+readiness; it does not grant merge authority or determine the adopter's enforcement policy.
 
 ## Re-review corrections
 

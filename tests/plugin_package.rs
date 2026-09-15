@@ -294,6 +294,7 @@ fn review_skill_ships_named_non_empty_regular_references() {
     let review_references = repo_root().join("plugin/skills/specful-review/references");
     let expected = [
         "adr-review.md",
+        "change-review.md",
         "design-review.md",
         "report-format.md",
         "requirement-review.md",

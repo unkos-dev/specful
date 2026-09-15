@@ -32,8 +32,8 @@ The package lives under `plugin/`:
 
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
 - `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` ships concise
-  Requirement, Design, ADR, and report-format references, while `specful-plan` ships change-plan and arc-plan templates
-  plus a planning-craft reference;
+  Requirement, Design, ADR, change, and report-format references, while `specful-plan` ships change-plan and arc-plan
+  templates plus a planning-craft reference;
 - `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
   frontmatter shape, and the named, regular, non-empty review and planning references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
@@ -95,10 +95,12 @@ mechanical validation. They point to substantive review when the adopting reposi
 it. Operation skills run the matching CLI command or commands and report the result. `specful-review` resolves an
 artifact, draft, immutable change, or bounded re-review target; validates first; loads only the references for artifact
 types in scope; and reports evidence-backed substantive findings with `SHIP`, `CONDITIONAL`, or `NO-SHIP`. Mechanical
-validation remains distinct from substantive judgement. The skill returns its compact report in the conversation only;
-it does not edit a repository or publish a pull-request comment or formal review. An interactive harness may offer
-independent or in-session execution, while the adopting maintainer decides whether review is advisory or blocking.
-Non-interactive invocation policy remains outside this package.
+validation remains distinct from substantive judgement. A change review applies the authoring workflow's corpus
+questions: it checks inbound relationships through `specful trace`, separates gaps the change created from pre-existing
+gaps it proposes, and reports the change's corpus effect as more complete, unchanged, or less accurate. The skill
+returns its compact report in the conversation only; it does not edit a repository or publish a pull-request comment or
+formal review. An interactive harness may offer independent or in-session execution, while the adopting maintainer
+decides whether review is advisory or blocking. Non-interactive invocation policy remains outside this package.
 
 The compatible CLI is a prerequisite for CLI-backed authoring. Installed skills, harness hooks and repository gates are
 separate, opt-in integration layers. The coordinator inspects existing configuration before offering them as separate
@@ -110,7 +112,8 @@ substantive accuracy.
 that separates the invariant from a proposed mechanism and searches for the smallest supported solution. It then loads
 the change-plan or arc-plan template selected for the work. A change plan is one coherent work order. An arc divides
 several independently deliverable changes into ordered steps, where each step is one pull request and carries its own
-context, tasks, rollback, verification, and exit criteria.
+context, tasks, rollback, verification, and exit criteria. Every plan carries a Documentation section recording a
+disposition for each affected artifact, where unaffected with its reason is a valid entry.
 
 The planning skill follows the adopting repository's plan location and retention policy, and proposes `docs/plans/` only
 when no location is established. It asks whether plans are tracked or ignored before writing when tracking policy is

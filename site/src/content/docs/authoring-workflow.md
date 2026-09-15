@@ -45,12 +45,23 @@ verification; skip steps 3-5 when no artifact change is warranted.
 See [Requirement versus ADR](/specful/profiles/adr/#requirement-versus-adr) if the line between an obligation and a
 decision is not obvious for this change.
 
-Missing coverage prompts a decision, not automatic authoring. Propose a Requirement when an unrecorded durable
-obligation needs to be explicit, a Design when understanding a coherent subject or its interacting components would
-otherwise be repeatedly lost, or an ADR when a consequential choice needs its alternatives and rationale retained. Name
-the proposed subject, artifact type and lasting benefit, then ask for a decision and any missing input before writing
-it. Small implementation details and already-explained subjects do not need another document. Gradual, partial coverage
-is valid; do not require an artifact for every task.
+After a change merges, the corpus still describes the merged tree completely and accurately. Test that in both
+directions. From the change, follow each touched module through its scope index to the Designs that describe it and the
+Requirements those Designs satisfy, and record a disposition for each: updated, created, or unaffected with the reason.
+From the corpus, check whether the change adds a durable decision that an ADR should record, or an obligation that needs
+a Requirement. An unaffected disposition is a complete answer when the touched subject's Design remains accurate; most
+internal changes produce no new Requirement.
+
+A gap the change creates or widens belongs to the change and is corrected with it. A gap that already existed is a
+proposal: name the proposed subject, artifact type and lasting benefit, then ask for a decision and any missing input
+before writing it. Propose a Requirement when an unrecorded durable obligation needs to be explicit, a Design when
+understanding a coherent subject or its interacting components would otherwise be repeatedly lost, or an ADR when a
+consequential choice needs its alternatives and rationale retained. Small implementation details and already-explained
+subjects do not need another document. Gradual, partial coverage is valid; do not require an artifact for every task.
+
+State the change's effect on the corpus with its reason as more complete, unchanged, or less accurate. A change that
+leaves a Design describing behaviour the tree no longer has makes the corpus less accurate even when every mechanical
+check passes.
 
 Implement the authorised code change under the repository's contribution rules, keeping affected artifacts accurate. Use
 step 6 first if the work needs a saved plan; otherwise proceed to the relevant implementation and corpus checks without
