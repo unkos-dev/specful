@@ -11,49 +11,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- *(skills)* apply corpus questions in planning and review ([#146](https://github.com/unkos-dev/specful/pull/146))
+- `specful-plan` and `specful-review` assess how a change affects the documentation corpus, including missing or stale
+  artifacts. Plans record which artifacts need work; reviews explain whether the corpus becomes more complete, stays
+  unchanged, or becomes less accurate. Existing gaps are proposals, and no artifact change is a valid outcome.
+  ([#146](https://github.com/unkos-dev/specful/pull/146))
+- `specful-onboard` guides incremental adoption in an existing repository. It investigates a subject, proposes a bounded
+  documentation increment, and resumes from recorded decisions and evidence. Candidate Requirements are assessed
+  against the profile rather than inferred from observed behaviour alone.
+  ([#142](https://github.com/unkos-dev/specful/pull/142))
 
-  - State the corpus questions once in authoring workflow step 2: the
-  two-direction traversal, a disposition for every
-  affected artifact including "unaffected" with its reason, the split
-  between gaps a change creates and gaps that
-    already existed, and the change's corpus effect.
-  - Give `specful-review` a change lens, a corpus-effect line and a
-  proposals slot, and extend each artifact lens with
-  existence, purpose-fit, duplication, history and placement tests drawn
-  from the profiles.
-  - Add a Documentation section to both plan templates and require
-  `specful-plan` to record every affected artifact's
-    disposition and map each created or updated one to a task.
+### Changed
 
-  Both skills checked artifacts that were present and said little about
-  artifacts that should have been, were made stale
-  by a change, or failed the purpose their profile gives them. Neither had
-  an output slot for those answers, so they were
-  dropped, and nothing made "no artifact needed" a first-class answer.
-
-- *(skills)* guide brownfield Specful onboarding ([#142](https://github.com/unkos-dev/specful/pull/142))
-
-  - Add `specful-onboard` to investigate existing systems, propose bounded
-  documentation increments, and resume from
-    recorded scope, human decisions and evidence revisions.
-  - Load the Requirement profile before selecting obligations, and connect
-  the workflow to the existing skills,
-    package contract and adoption guidance.
+- Validation integration guidance uses Git pre-push and CI for mechanical checks. Harness hooks provide an optional
+  substantive review reminder before a push; the examples no longer run validation after each edit or at turn end.
+  ([#145](https://github.com/unkos-dev/specful/pull/145))
 
 ### Fixed
 
-- *(validate)* locate code exemptions with a CommonMark parser ([#148](https://github.com/unkos-dev/specful/pull/148))
+- Planning checks must detect absent behaviour and avoid matching unrelated text. Design reviews require evidence for
+  universal claims, and onboarding withholds exploitable security gaps from public artifacts until a fix lands. Adoption
+  guidance also documents scope naming rules and formatter exclusions for generated views.
+  ([#147](https://github.com/unkos-dev/specful/pull/147))
+- Placeholder validation recognises CommonMark code spans and blocks, including multiline spans and table cells.
+  Backticks in separate Markdown blocks no longer hide placeholders; fenced and indented code remain exempt.
+  ([#148](https://github.com/unkos-dev/specful/pull/148))
 
-  - Locate code exemptions for placeholder residue scanning with
-  pulldown-cmark's source ranges instead of hand-rolled
-  fence and backtick tracking, so a code span that wraps across lines
-  inside one block is exempt while backticks in
-    separate blocks such as adjacent list items or a heading never pair.
-  - Fenced and indented code blocks, including their delimiters, and
-  inline code spans, including those in table cells,
-  are masked before residue scanning; every profile rule stays line-based
-  and unchanged.
+### Upgrading from 0.5.1
+
+Install the matching binary and refresh the skills, including the new `specful-onboard` skill:
+
+```sh
+cargo install --locked --version 0.5.2 specful
+gh skill install unkos-dev/specful --all --scope user --pin v0.5.2 --force
+```
+
+A prebuilt binary from this release can replace the Cargo installation. The skill command overwrites installed copies.
+
+If you copied the previous harness-hook examples, remove only Specful's validation hooks from `PostToolUse` and `Stop`,
+preserving unrelated hooks. Skill updates do not edit harness configuration. Use the
+[validation integration reference](https://unkos-dev.github.io/specful/reference/validation-integration/) to configure
+`specful validate` in Git pre-push and CI; retain the optional pre-push review reminder if wanted.
 
 ### Dependencies
 

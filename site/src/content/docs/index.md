@@ -14,7 +14,8 @@ Design, and ADR profiles as they exist today.
 
 ## Where to start
 
-- **New to a repository that uses Specful?** Start with [Adoption](/specful/adoption/).
+- **Introducing Specful to a repository?** Start with [Adoption](/specful/adoption/).
+- **Joining a repository that already uses Specful?** Follow the [development workflow](/specful/authoring-workflow/).
 - **Authoring a Requirement, Design, or ADR?** Follow the [authoring workflow](/specful/authoring-workflow/).
 - **Looking up a specific profile's rules?** See [Requirement](/specful/profiles/requirement/),
   [Design](/specful/profiles/design/), or [ADR](/specful/profiles/adr/).

@@ -80,8 +80,8 @@ Opt-in agent skills build on that floor, loaded by the harness at the moment the
   handing approved artifacts to the type-specific skills;
 - `specful-requirement`, `specful-design`, and `specful-adr` each teach authoring one artifact type, from scaffolding
   with `specful new` through validation and substantive review;
-- `specful-review` checks an artifact for what mechanical validation cannot: acceptance-criteria quality, artifact
-  boundaries, and current-state writing;
+- `specful-review` checks artifacts and changes for substantive defects, including acceptance-criteria quality, factual
+  accuracy, and missing or stale documentation affected by a change;
 - `specful-plan` creates a right-sized implementation plan or coordinating arc when work needs a persistent hand-off;
 - `specful-implement` executes a named plan one step at a time, stopping when the repository contradicts it;
 - `specful-validate`, `specful-index`, `specful-show`, and `specful-trace` wrap the matching CLI commands for direct
