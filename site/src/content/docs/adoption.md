@@ -6,9 +6,7 @@ description: Bring the Specful convention into a repository, greenfield or exist
 Adopting Specful means installing its convention (directory layout, templates, and writing model) into a repository,
 then keeping requirements, designs, and decisions current as the repository changes.
 
-Specful is alpha software in the 0.x series. Releases can change the CLI, profiles and validation rules incompatibly.
-`profile-version: 1` alone does not identify a stable acceptance contract across releases. The generated catalog and
-diagnostic JSON formats are unstable interfaces; pin the binary and skills to an explicit release.
+Pin the binary and skills to the same release. Follow [Updating](#updating) for conversion and rollback procedures.
 
 ## Install
 
