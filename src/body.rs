@@ -54,7 +54,7 @@ fn scan_lines(body: &str, body_first_line: usize) -> Vec<Line<'_>> {
     let mut masked: Vec<u8> = body.as_bytes().to_vec();
     for range in blocks.iter().chain(&spans) {
         for byte in &mut masked[range.clone()] {
-            if *byte != b'\n' {
+            if *byte != b'\n' && *byte != b'\r' {
                 *byte = b' ';
             }
         }
@@ -62,13 +62,23 @@ fn scan_lines(body: &str, body_first_line: usize) -> Vec<Line<'_>> {
     let masked = String::from_utf8(masked).expect("masking replaces whole characters only");
     let mut lines = Vec::new();
     let mut offset = 0;
-    for (i, (raw, masked_line)) in body.lines().zip(masked.lines()).enumerate() {
-        let line_range = offset..offset + raw.len();
-        offset += raw.len() + 1;
+    // Offsets come from the terminated slices so a CRLF ending advances by
+    // both bytes and stays aligned with the parser's source ranges.
+    for (i, (raw, masked_line)) in body
+        .split_inclusive('\n')
+        .zip(masked.split_inclusive('\n'))
+        .enumerate()
+    {
+        let text = raw.trim_end_matches('\n').trim_end_matches('\r');
+        let line_range = offset..offset + text.len();
+        offset += raw.len();
         lines.push(Line {
             file_line: body_first_line + i,
-            text: raw,
-            masked: masked_line.to_string(),
+            text,
+            masked: masked_line
+                .trim_end_matches('\n')
+                .trim_end_matches('\r')
+                .to_string(),
             in_code_block: blocks
                 .iter()
                 .any(|b| b.start <= line_range.end && line_range.start < b.end),
@@ -982,6 +992,32 @@ mod tests {
             .map(|f| f.line)
             .collect();
         assert_eq!(residue, vec![Some(6)], "{findings:?}");
+    }
+
+    #[test]
+    fn crlf_line_endings_keep_code_block_membership() {
+        let fm = json!({"title": "T"});
+        let body = "# T\r\n\r\n```\r\n# not a heading\r\n```\r\n{placeholder}\r\n";
+        let findings = findings_for(ArtifactKind::Design, fm, body);
+        assert!(
+            !findings.iter().any(|f| f.message.contains("heading")),
+            "{findings:?}"
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("placeholder residue") && f.line == Some(6)),
+            "{findings:?}"
+        );
+        let lf = body.replace("\r\n", "\n");
+        let fm = json!({"title": "T"});
+        let lf_findings = findings_for(ArtifactKind::Design, fm, &lf);
+        let lines = |fs: &[Finding]| {
+            fs.iter()
+                .map(|f| (f.line, f.message.clone()))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(lines(&findings), lines(&lf_findings));
     }
 
     #[test]
