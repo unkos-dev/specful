@@ -105,7 +105,10 @@ jobs:
           for archive in target/distrib/*.tar.xz target/distrib/*.zip; do
             [[ -f "$archive" ]] || continue
             mkdir -p extracted
-            tar -xf "$archive" -C extracted
+            case "$archive" in
+              *.zip) python -m zipfile -e "$archive" extracted ;;
+              *) tar -xf "$archive" -C extracted ;;
+            esac
           done
           find extracted -type f \( -name specful -o -name specful.exe \) > binaries
           test -s binaries
