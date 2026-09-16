@@ -29,7 +29,7 @@ repository. People and coding agents read the same Markdown files.
 
 The convention is the product. Its layout, templates and writing model work with ordinary files, Git and text search.
 The single-binary CLI allocates stable identifiers, generates navigation and validates document structure and
-relationships. To use the convention without the CLI, start with the [templates](templates/) and
+relationships. To explore the convention before installing the CLI, start with the [templates](templates/) and
 [convention guidance](#the-convention).
 
 **Start with one subject that matters to your next change.** A partially documented repository is a valid, ongoing
