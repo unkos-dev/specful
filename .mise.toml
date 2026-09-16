@@ -27,6 +27,11 @@ version = "69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
 [tools."github:unkos-dev/specful"]
 version = "0.5.1"
 
+[tools."github:axodotdev/cargo-dist"]
+version = "0.33.0"
+version_prefix = "v"
+filter_bins = "dist"
+
 [tools."github:nextest-rs/nextest"]
 version = "0.9.144"
 version_prefix = "cargo-nextest-"
