@@ -58,6 +58,11 @@ including that prefix: version `X.Y.Z` pairs with tag `vX.Y.Z`.
 Alternatively, download the release's prebuilt binary archive for Linux (static musl), macOS or Windows. Each archive
 ships with a SHA-256 checksum.
 
+From v0.5.2, release binaries embed their Rust dependency inventory. After installing
+[`cargo-audit`](https://github.com/rustsec/rustsec/tree/main/cargo-audit#installation), scan an extracted binary with
+`cargo audit bin <path-to-specful>`. Verify a downloaded archive's build provenance with
+`gh attestation verify <archive> --repo unkos-dev/specful` using the [GitHub CLI](https://cli.github.com/).
+
 <details>
 <summary>Version pinning and upgrades</summary>
 
