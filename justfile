@@ -72,6 +72,11 @@ skills-ref:
 specful-validate:
     specful validate
 
+# release.yml is generated from dist-workspace.toml and must not drift from it.
+[group('lint')]
+dist-check:
+    dist generate --check
+
 # Workflow syntax and expression lint.
 [group('lint')]
 actionlint:
@@ -96,4 +101,4 @@ check: fmt-check clippy doc-lint test
 
 # Local gates CI also runs; see .github/workflows/README.md for the CI-only differences.
 [group('aggregate')]
-preflight: check doctests machete deny typos markdownlint skills-ref specful-validate actionlint zizmor gitleaks
+preflight: check doctests machete deny typos markdownlint skills-ref specful-validate dist-check actionlint zizmor gitleaks
