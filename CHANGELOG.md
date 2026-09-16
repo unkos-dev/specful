@@ -7,6 +7,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.2](https://github.com/unkos-dev/specful/compare/v0.5.1...v0.5.2) - 2026-09-16
+
+### Added
+
+- *(skills)* apply corpus questions in planning and review ([#146](https://github.com/unkos-dev/specful/pull/146))
+- *(skills)* guide brownfield Specful onboarding ([#142](https://github.com/unkos-dev/specful/pull/142))
+
+### Fixed
+
+- allow artifact slugs up to 128 characters ([#166](https://github.com/unkos-dev/specful/pull/166))
+- clarify unsupported file encoding diagnostics ([#162](https://github.com/unkos-dev/specful/pull/162))
+- accept CRLF line endings in generated views ([#161](https://github.com/unkos-dev/specful/pull/161))
+- *(validate)* locate code exemptions with a CommonMark parser ([#148](https://github.com/unkos-dev/specful/pull/148))
+
+### Other
+
+- highlight index protection and release verification ([#167](https://github.com/unkos-dev/specful/pull/167))
+- explain the document model before onboarding ([#163](https://github.com/unkos-dev/specful/pull/163))
+- embed dependency inventories in release binaries ([#159](https://github.com/unkos-dev/specful/pull/159))
+- add security policy and refine guidance ([#158](https://github.com/unkos-dev/specful/pull/158))
+- guide readers to their first Specful artifact ([#156](https://github.com/unkos-dev/specful/pull/156))
+- preserve release polish through changelog regeneration ([#155](https://github.com/unkos-dev/specful/pull/155))
+
+### Dependencies
+
+- *(deps)* lock file maintenance ([#153](https://github.com/unkos-dev/specful/pull/153))
+- *(deps)* lock file maintenance ([#136](https://github.com/unkos-dev/specful/pull/136))
+- *(deps)* update rust crate jsonschema to 0.56.0 ([#134](https://github.com/unkos-dev/specful/pull/134))
+
 ### Release highlights
 
 - Index generation now refuses to overwrite existing Markdown indexes whose generated marker cannot be verified.
