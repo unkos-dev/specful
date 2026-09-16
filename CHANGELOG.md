@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Release highlights
+
+- Index generation now refuses to overwrite existing Markdown indexes whose generated marker cannot be verified.
+  Unreadable or BOM-prefixed indexes are reported and preserved, including those at orphan locations.
+  ([#162](https://github.com/unkos-dev/specful/pull/162))
+- Binary archives include embedded Rust dependency inventories and have downloadable `.sigstore.json` provenance
+  bundles alongside them. See the README's release verification instructions to scan an extracted binary or verify an
+  archive's build provenance.
+  ([#159](https://github.com/unkos-dev/specful/pull/159), [#160](https://github.com/unkos-dev/specful/pull/160))
+
 ### Skill and documentation updates
 
 - Planning checks must detect absent behaviour and avoid matching unrelated text. Design reviews require evidence for
