@@ -61,11 +61,9 @@ ships with a SHA-256 checksum.
 <details>
 <summary>Version pinning and upgrades</summary>
 
-Pin the binary and skills to the same release.
-
-Before upgrading, preserve the repository's pre-conversion Git state and previous binary. Specful does not migrate
-artifacts automatically. Follow the [update instructions](https://unkos-dev.github.io/specful/adoption/#updating) for
-conversion and rollback procedures.
+Pin the binary and skills to the same release. Before upgrading, preserve the repository's pre-conversion Git state and
+previous binary. Specful does not migrate artifacts automatically. Follow the
+[update instructions](https://unkos-dev.github.io/specful/adoption/#updating) for conversion and rollback procedures.
 
 </details>
 
