@@ -96,6 +96,14 @@ From v0.5.2, release binaries embed their Rust dependency inventory. After insta
 `cargo audit bin <path-to-specful>`. Verify a downloaded archive's build provenance with
 `gh attestation verify <archive> --repo unkos-dev/specful` using the [GitHub CLI](https://cli.github.com/).
 
+Each binary archive also has a matching `<archive>.sigstore.json` asset on the release page. Download both files to
+verify the archive using that bundle:
+
+```sh
+gh attestation verify <archive> --bundle <archive>.sigstore.json --repo unkos-dev/specful \
+  --signer-workflow unkos-dev/specful/.github/workflows/release.yml
+```
+
 </details>
 
 <details>
