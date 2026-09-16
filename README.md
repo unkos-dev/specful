@@ -29,99 +29,14 @@ repository. People and coding agents read the same Markdown files.
 
 The convention is the product. Its layout, templates and writing model work with ordinary files, Git and text search.
 The single-binary CLI allocates stable identifiers, generates navigation and validates document structure and
-relationships.
+relationships. To explore the convention before installing the CLI, start with the [templates](templates/) and
+[convention guidance](#the-convention).
 
 **Start with one subject that matters to your next change.** A partially documented repository is a valid, ongoing
 state; you do not need to document the whole codebase to adopt Specful.
 
-[Create your first artifact](#create-your-first-artifact) ·
-[See how the documents connect](#one-subject-connected-documents) ·
+[Document model](#one-subject-connected-documents) · [Create your first artifact](#create-your-first-artifact) ·
 [Adoption guide](https://unkos-dev.github.io/specful/adoption/)
-
-## Create your first artifact
-
-Choose one subject you need to understand. This walkthrough uses an API error-handling Design.
-
-### Install
-
-Choose a version from the [GitHub releases](https://github.com/unkos-dev/specful/releases) and read its release notes.
-With Rust 1.97.1 or newer installed, run:
-
-```sh
-cargo install --locked \
-  --version <VERSION> specful
-```
-
-Replace `<VERSION>` with the release number without its `v` prefix. Optional agent skills use the matching `<TAG>`,
-including that prefix: version `X.Y.Z` pairs with tag `vX.Y.Z`.
-
-Alternatively, download the release's prebuilt binary archive for Linux (static musl), macOS or Windows. Each archive
-ships with a SHA-256 checksum.
-
-From v0.5.2, release binaries embed their Rust dependency inventory. After installing
-[`cargo-audit`](https://github.com/rustsec/rustsec/tree/main/cargo-audit#installation), scan an extracted binary with
-`cargo audit bin <path-to-specful>`. Verify a downloaded archive's build provenance with
-`gh attestation verify <archive> --repo unkos-dev/specful` using the [GitHub CLI](https://cli.github.com/).
-
-<details>
-<summary>Version pinning and upgrades</summary>
-
-Pin the binary and skills to the same release. Before upgrading, preserve the repository's pre-conversion Git state and
-previous binary. Specful does not migrate artifacts automatically. Follow the
-[update instructions](https://unkos-dev.github.io/specful/adoption/#updating) for conversion and rollback procedures.
-
-</details>
-
-### Initialise your repository
-
-Run these commands from your repository root. If `docs/specs/` or `docs/adr/` already contains documents or hand-written
-indexes, follow
-[existing-repository adoption](https://unkos-dev.github.io/specful/adoption/#adopting-into-an-existing-repository)
-first. If `.specful/config.yaml` already exists, follow the
-[update instructions](https://unkos-dev.github.io/specful/adoption/#updating) instead of initialising again.
-
-Choose a project key of 2 to 10 uppercase letters or digits, starting with a letter. The key is immutable and prefixes
-every allocated artifact identifier, such as `MYAPP-REQ-0001`. Replace `MYAPP` below with your chosen key.
-
-```sh
-specful init --project-key MYAPP
-specful validate
-```
-
-`init` creates `.specful/config.yaml`, the artifact directories and empty generated navigation views. It does not create
-or modify agent instruction files. `validate` checks this initial structure; your first document supplies the content.
-
-### Describe one subject
-
-For API errors, scaffold a Design:
-
-```sh
-specful new design \
-  --title "API error handling" \
-  --scope api
-```
-
-Open the Markdown file named in the output. For a completed example, read Specful's own
-[identifier allocation Design](docs/specs/authoring/design/0001-identifier-allocation-and-scaffolding.md).
-
-Replace the placeholders with an accurate description of that subject in your repository, checking it against the
-implementation and tests. Add relationships to existing Requirements or ADRs where they apply, and remove unused
-optional fields. The [authoring workflow](https://unkos-dev.github.io/specful/authoring-workflow/) guides you through
-completing the document.
-
-### Validate and start reading
-
-```sh
-specful index
-specful validate
-```
-
-**Start reading at `docs/specs/index.md`** and follow the `api` scope to your new Design. Commit the source document
-with the regenerated views.
-
-Validation checks structure and recorded relationships. Review the content against the code and tests to establish its
-accuracy. Add `specful validate` to pre-push or CI to check future changes; see
-[validation integration](https://unkos-dev.github.io/specful/reference/validation-integration/) for examples.
 
 ## One subject, connected documents
 
@@ -153,6 +68,98 @@ undocumented codebase.
 
 The profile sources are available in the [ADR reference](docs/adr/README.md), [schemas](schemas/) and
 [templates](templates/). The [configuration reference](docs/configuration.md) covers repository settings.
+
+## Create your first artifact
+
+Choose one subject you need to understand in your repository. This walkthrough creates a Design describing how it works.
+
+### Install
+
+Choose a version from the [GitHub releases](https://github.com/unkos-dev/specful/releases) and read its release notes.
+With Rust 1.97.1 or newer installed, run:
+
+```sh
+cargo install --locked --version <VERSION> specful
+```
+
+Replace `<VERSION>` with the release number without its `v` prefix. Optional agent skills use the matching `<TAG>`,
+including that prefix: version `X.Y.Z` pairs with tag `vX.Y.Z`.
+
+Alternatively, download the release's prebuilt binary archive for Linux (static musl), macOS or Windows. Each archive
+ships with a SHA-256 checksum.
+
+<details>
+<summary>Verify release binaries</summary>
+
+From v0.5.2, release binaries embed their Rust dependency inventory. After installing
+[`cargo-audit`](https://github.com/rustsec/rustsec/tree/main/cargo-audit#installation), scan an extracted binary with
+`cargo audit bin <path-to-specful>`. Verify a downloaded archive's build provenance with
+`gh attestation verify <archive> --repo unkos-dev/specful` using the [GitHub CLI](https://cli.github.com/).
+
+</details>
+
+<details>
+<summary>Version pinning and upgrades</summary>
+
+Pin the binary and skills to the same release. Before upgrading, preserve the repository's pre-conversion Git state and
+previous binary. Specful does not migrate artifacts automatically. Follow the
+[update instructions](https://unkos-dev.github.io/specful/adoption/#updating) for conversion and rollback procedures.
+
+</details>
+
+### Initialise your repository
+
+Run these commands from your repository root. If `docs/specs/` or `docs/adr/` already contains documents or hand-written
+indexes, follow
+[existing-repository adoption](https://unkos-dev.github.io/specful/adoption/#adopting-into-an-existing-repository)
+first. If `.specful/config.yaml` already exists, follow the
+[update instructions](https://unkos-dev.github.io/specful/adoption/#updating) instead of initialising again.
+
+Choose a project key of 2 to 10 uppercase letters or digits, starting with a letter. The key is immutable and prefixes
+every allocated artifact identifier, such as `MYAPP-REQ-0001`. Replace `MYAPP` below with your chosen key.
+
+```sh
+specful init --project-key MYAPP
+specful validate
+```
+
+`init` creates `.specful/config.yaml`, the artifact directories and empty generated navigation views. It does not create
+or modify agent instruction files. `validate` checks this initial structure; your first document supplies the content.
+
+### Describe one subject
+
+Scaffold a Design for your chosen subject.
+
+```sh
+specful new design \
+  --title "<SUBJECT>" \
+  --scope <SCOPE>
+```
+
+Replace `<SUBJECT>` with what you want to document and `<SCOPE>` with its area of your system. For example, use
+`"API error handling"` and `api` if that fits your repository.
+
+Open the Markdown file named in the output. For a completed Design, see how Specful documents its own
+[identifier allocation and scaffolding](docs/specs/authoring/design/0001-identifier-allocation-and-scaffolding.md).
+
+Replace the placeholders with an accurate description of that subject in your repository, checking it against the
+implementation and tests. Add relationships to existing Requirements or ADRs where they apply, and remove unused
+optional fields. The [authoring workflow](https://unkos-dev.github.io/specful/authoring-workflow/) guides you through
+completing the document.
+
+### Validate and start reading
+
+```sh
+specful index
+specful validate
+```
+
+**Start reading at `docs/specs/index.md`** and follow your chosen scope to your new Design. Commit the source document
+with the regenerated views.
+
+Validation checks structure and recorded relationships. Review the content against the code and tests to establish its
+accuracy. Add `specful validate` to pre-push or CI to check future changes; see
+[validation integration](https://unkos-dev.github.io/specful/reference/validation-integration/) for examples.
 
 ## Agent skills (optional)
 
