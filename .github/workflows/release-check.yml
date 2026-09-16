@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   plan:
+    name: release-check-plan
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -56,6 +57,7 @@ jobs:
           echo "matrix=$(jq -c '.ci.github.artifacts_matrix' plan.json)" >> "$GITHUB_OUTPUT"
 
   build:
+    name: release-check (${{ join(matrix.targets, ', ') }})
     needs: plan
     if: needs.plan.outputs.matrix != ''
     strategy:
