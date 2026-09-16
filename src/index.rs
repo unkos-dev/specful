@@ -288,7 +288,7 @@ pub(crate) fn check_generated_views(
                     "author-owned index.md must be removed before specful generates navigation here",
                 ));
             }
-            Ok(actual) if actual != expected => findings.push(Finding::new(
+            Ok(actual) if actual.replace("\r\n", "\n") != expected => findings.push(Finding::new(
                 &path,
                 None,
                 "generated view is stale; run specful index",

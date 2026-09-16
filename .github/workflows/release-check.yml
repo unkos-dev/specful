@@ -1,0 +1,130 @@
+name: Release check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: release-check-plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Select release checks
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_NAME" == workflow_dispatch || "$HEAD_REF" == release-plz-* ]]; then
+            echo 'build=true' >> "$GITHUB_OUTPUT"
+          else
+            gh pr diff "$PR_NUMBER" --name-only > changed-files
+            if grep -Eq '^(dist-workspace\.toml|\.github/workflows/release[^/]*\.yml)$' changed-files; then
+              echo 'build=true' >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.select.outputs.build == 'true'
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        if: steps.select.outputs.build == 'true'
+        with:
+          mise-install-args: github:axodotdev/cargo-dist
+
+      - name: Plan release builds
+        id: plan
+        if: steps.select.outputs.build == 'true'
+        shell: bash
+        run: |
+          dist plan --output-format json > plan.json
+          echo "matrix=$(jq -c '.ci.github.artifacts_matrix' plan.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: release-check (${{ join(matrix.targets, ', ') }})
+    needs: plan
+    if: needs.plan.outputs.matrix != ''
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install dist
+        env:
+          INSTALL_DIST: ${{ matrix.install_dist.run }}
+        run: |
+          ${{ runner.os == 'Windows' && 'Invoke-Expression $env:INSTALL_DIST' || 'eval "$INSTALL_DIST"' }}
+
+      - name: Install cargo-auditable
+        env:
+          INSTALL_AUDITABLE: ${{ matrix.install_cargo_auditable.run }}
+        run: |
+          ${{ runner.os == 'Windows' && 'Invoke-Expression $env:INSTALL_AUDITABLE' || 'eval "$INSTALL_AUDITABLE"' }}
+
+      - name: Install build dependencies
+        if: matrix.packages_install != ''
+        env:
+          INSTALL_PACKAGES: ${{ matrix.packages_install }}
+        shell: bash
+        run: eval "$INSTALL_PACKAGES"
+
+      - name: Build release archives
+        env:
+          TARGETS: ${{ join(matrix.targets, ' ') }}
+        shell: bash
+        run: |
+          args=()
+          for target in $TARGETS; do args+=(--target "$target"); done
+          dist build --artifacts local "${args[@]}" --output-format json > built.json
+
+      - name: Check packaged dependency inventories
+        shell: bash
+        run: |
+          cargo install --locked rust-audit-info --version 0.5.4
+          for archive in target/distrib/*.tar.xz target/distrib/*.zip; do
+            [[ -f "$archive" ]] || continue
+            mkdir -p extracted
+            case "$archive" in
+              *.zip) python -m zipfile -e "$archive" extracted ;;
+              *) tar -xf "$archive" -C extracted ;;
+            esac
+          done
+          find extracted -type f \( -name specful -o -name specful.exe \) > binaries
+          test -s binaries
+          while IFS= read -r binary; do
+            rust-audit-info "$binary" > "$binary.dependencies.json"
+            jq -e '.packages | any(.root == true and .name == "specful")' "$binary.dependencies.json"
+            "$binary" --version
+            "$binary" validate
+          done < binaries
+
+      - name: Upload checked archives
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-check-${{ join(matrix.targets, '-') }}
+          path: |
+            target/distrib/*.tar.xz
+            target/distrib/*.zip
+            extracted/**/*.dependencies.json
+          if-no-files-found: error

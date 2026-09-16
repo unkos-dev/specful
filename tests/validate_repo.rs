@@ -51,6 +51,64 @@ fn copy_tree(from: &Path, to: &Path) {
 }
 
 #[test]
+fn generated_view_checks_accept_crlf_without_rewriting_files() {
+    let scratch = copy_fixture("valid-repo", "crlf-views");
+    let paths = [
+        ".specful/generated/catalog.json",
+        "docs/specs/system/index.md",
+    ];
+    for path in paths {
+        let file = scratch.path().join(path);
+        let lf = std::fs::read_to_string(&file)
+            .unwrap()
+            .replace("\r\n", "\n");
+        for content in [lf.replace('\n', "\r\n"), lf.replacen('\n', "\r\n", 1)] {
+            std::fs::write(&file, &content).unwrap();
+            for args in [vec!["validate"], vec!["index", "--check"]] {
+                let mut args = args;
+                args.push(scratch.path().to_str().unwrap());
+                let (ok, output) = run_specful(&args);
+                assert!(ok, "{args:?}: {output}");
+                assert_eq!(std::fs::read_to_string(&file).unwrap(), content);
+            }
+        }
+    }
+}
+
+#[test]
+fn generated_view_checks_reject_changes_beyond_crlf() {
+    let scratch = copy_fixture("valid-repo", "changed-crlf-views");
+    for path in [
+        ".specful/generated/catalog.json",
+        "docs/specs/system/index.md",
+    ] {
+        let file = scratch.path().join(path);
+        let lf = std::fs::read_to_string(&file)
+            .unwrap()
+            .replace("\r\n", "\n");
+        let crlf = lf.replace('\n', "\r\n");
+        for changed in [
+            format!("{crlf} "),
+            format!("{crlf}\t"),
+            format!("{crlf}\r\n"),
+            crlf.strip_suffix("\r\n").unwrap().to_owned(),
+            crlf.replacen("\r\n", "\r", 1),
+            crlf.replacen("\r\n", "\r\nchanged", 1),
+        ] {
+            std::fs::write(&file, &changed).unwrap();
+            for args in [vec!["validate"], vec!["index", "--check"]] {
+                let mut args = args;
+                args.push(scratch.path().to_str().unwrap());
+                let (ok, output) = run_specful(&args);
+                assert!(!ok, "{args:?} accepted {changed:?}");
+                assert!(output.contains("generated view is stale"), "{output}");
+            }
+        }
+        std::fs::write(file, lf).unwrap();
+    }
+}
+
+#[test]
 fn reports_unsupported_file_encodings() {
     let scratch = copy_fixture("valid-repo", "encodings");
     for path in [
