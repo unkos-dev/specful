@@ -168,12 +168,8 @@ maintaining a separate classification taxonomy.
 
 ## Text encoding
 
-ADR files use UTF-8. Core human-readable metadata, comprising `title` and all participant values, must use Unicode
-Normalization Form C. The level-one heading inherits the title requirement through exact parity.
-
-Validation rejects non-NFC core values rather than rewriting them. Markdown body content is not globally normalized, and
-extension values are preserved without normalization. Identifiers, schema keys, and filenames retain their separate
-ASCII constraints.
+ADR files use UTF-8 without a byte-order mark (BOM). Unicode normalization is not required or performed. The level-one
+heading must match the title exactly. Identifiers, schema keys, and filenames retain their separate ASCII constraints.
 
 Titles and participant values are single-line strings with no leading or trailing Unicode whitespace and no C0 or C1
 control characters. Internal spacing and punctuation are preserved exactly. Validation does not trim, fold, or otherwise
@@ -229,8 +225,8 @@ published, that identifier must never be reassigned to a different validation co
 
 Language-neutral positive and negative cases are stored in `schemas/adr/v1.cases.json`. Each case contains a loaded
 JSON-compatible frontmatter instance and its expected schema validity. These cases cover only the JSON Schema boundary.
-YAML loading, Unicode normalization, Markdown, filenames, repository relationships, configuration, and transitions
-remain separate validator responsibilities.
+YAML loading, Markdown, filenames, repository relationships, configuration, and transitions remain separate validator
+responsibilities.
 
 Every ADR contains the required discriminator `type: ADR` and integer `profile-version: 1`. These fields identify the
 artifact and its complete Specful conformance profile without relying on its repository path. The path, filename, and
