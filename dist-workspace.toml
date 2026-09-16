@@ -20,6 +20,8 @@ hosting = "github"
 create-release = false
 github-attestations = true
 cargo-auditable = true
+global-artifacts-jobs = ["./release-provenance"]
+github-custom-job-permissions = { release-provenance = { contents = "read", attestations = "read" } }
 # Checksum algorithm for artifacts
 checksum = "sha256"
 

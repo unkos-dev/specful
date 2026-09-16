@@ -1,0 +1,48 @@
+name: Release provenance bundles
+
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  attestations: read
+
+jobs:
+  bundles:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download platform artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: artifacts-build-local-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Export verified provenance bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAN: ${{ inputs.plan }}
+        shell: bash
+        run: |
+          mkdir bundles
+          while IFS= read -r archive; do
+            gh attestation verify "artifacts/$archive" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --source-digest "$GITHUB_SHA" \
+              --source-ref "$GITHUB_REF" \
+              --format json > verified.json
+            jq -e '.[0].attestation.bundle' verified.json > "bundles/$archive.sigstore.json"
+          done < <(jq -r '.artifacts | to_entries[] | select(.value.kind == "executable-zip") | .key' <<< "$PLAN")
+
+      - name: Upload provenance bundles
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifacts-provenance
+          path: bundles/*.sigstore.json
+          if-no-files-found: error
