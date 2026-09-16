@@ -211,6 +211,23 @@ fn output_path_is_safe(root: &Path, path: &str, findings: &mut Vec<Finding>) -> 
     true
 }
 
+fn read_view(root: &Path, path: &str) -> Result<Option<String>, Finding> {
+    match std::fs::read_to_string(root.join(path)) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(Finding::new(
+            path,
+            None,
+            format!("cannot read generated view: {error}"),
+        )),
+        Ok(content) if content.starts_with('\u{feff}') => Err(Finding::new(
+            path,
+            Some(1),
+            "save this file as UTF-8 without a byte-order mark (BOM)",
+        )),
+        Ok(content) => Ok(Some(content)),
+    }
+}
+
 /// Committed generated views on disk: the catalog plus every marker-bearing
 /// `index.md` under `docs/specs/`. Unmarked index files are author-owned and
 /// are not ours to manage.
@@ -227,10 +244,7 @@ fn committed_views(root: &Path, findings: &mut Vec<Finding>) -> Vec<String> {
         for (path, is_dir) in read_entries(root, &dir, findings) {
             if is_dir {
                 stack.push(path);
-            } else if path.file_name().is_some_and(|n| n == "index.md")
-                && std::fs::read_to_string(&path)
-                    .is_ok_and(|content| content.starts_with(GENERATED_MARKER))
-            {
+            } else if path.file_name().is_some_and(|n| n == "index.md") {
                 let relative = path
                     .strip_prefix(root)
                     .unwrap_or(&path)
@@ -238,7 +252,13 @@ fn committed_views(root: &Path, findings: &mut Vec<Finding>) -> Vec<String> {
                     .map(|c| c.as_os_str().to_string_lossy())
                     .collect::<Vec<_>>()
                     .join("/");
-                views.push(relative);
+                match read_view(root, &relative) {
+                    Ok(Some(content)) if content.starts_with(GENERATED_MARKER) => {
+                        views.push(relative)
+                    }
+                    Err(finding) => findings.push(finding),
+                    _ => {}
+                }
             }
         }
     }
@@ -254,7 +274,11 @@ pub(crate) fn check_generated_views(
     findings: &mut Vec<Finding>,
 ) {
     let expected_views = render_views(artifacts);
-    for committed in committed_views(root, findings) {
+    let mut discovery_findings = Vec::new();
+    let committed = committed_views(root, &mut discovery_findings);
+    let unreadable_paths: BTreeSet<_> = discovery_findings.iter().map(|f| f.path.clone()).collect();
+    findings.extend(discovery_findings);
+    for committed in committed {
         if !expected_views.contains_key(&committed) {
             findings.push(Finding::new(
                 &committed,
@@ -264,35 +288,31 @@ pub(crate) fn check_generated_views(
         }
     }
     for (path, expected) in expected_views {
+        if unreadable_paths.contains(&path) {
+            continue;
+        }
         if !output_path_is_safe(root, &path, findings) {
             continue;
         }
-        match std::fs::read_to_string(root.join(&path)) {
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => findings.push(
-                Finding::new(&path, None, "missing generated view; run specful index"),
-            ),
-            Err(error) => findings.push(Finding::new(
+        match read_view(root, &path) {
+            Err(finding) => findings.push(finding),
+            Ok(None) => findings.push(Finding::new(
                 &path,
                 None,
-                format!("cannot read generated view: {error}"),
+                "missing generated view; run specful index",
             )),
-            Ok(actual) if actual.starts_with('\u{feff}') => findings.push(Finding::new(
-                &path,
-                Some(1),
-                "save this file as UTF-8 without a byte-order mark (BOM)",
-            )),
-            Ok(actual) if path.ends_with("index.md") && !actual.starts_with(GENERATED_MARKER) => {
+            Ok(Some(actual))
+                if path.ends_with("index.md") && !actual.starts_with(GENERATED_MARKER) =>
+            {
                 findings.push(Finding::new(
                     &path,
                     Some(1),
                     "author-owned index.md must be removed before specful generates navigation here",
                 ));
             }
-            Ok(actual) if actual.replace("\r\n", "\n") != expected => findings.push(Finding::new(
-                &path,
-                None,
-                "generated view is stale; run specful index",
-            )),
+            Ok(Some(actual)) if actual.replace("\r\n", "\n") != expected => findings.push(
+                Finding::new(&path, None, "generated view is stale; run specful index"),
+            ),
             Ok(_) => {}
         }
     }
@@ -313,7 +333,11 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
         return findings;
     }
     let expected_views = render_views(&artifacts);
-    for committed in committed_views(root, &mut findings) {
+    let committed = committed_views(root, &mut findings);
+    if !findings.is_empty() {
+        return findings;
+    }
+    for committed in committed {
         if !expected_views.contains_key(&committed)
             && let Err(error) = std::fs::remove_file(root.join(&committed))
         {
@@ -329,16 +353,22 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
             continue;
         }
         let target = root.join(&path);
-        if path.ends_with("index.md")
-            && let Ok(existing) = std::fs::read_to_string(&target)
-            && !existing.starts_with(GENERATED_MARKER)
-        {
-            findings.push(Finding::new(
-                &path,
-                Some(1),
-                "author-owned index.md must be removed before specful generates navigation here",
-            ));
-            continue;
+        if path.ends_with("index.md") {
+            match read_view(root, &path) {
+                Err(finding) => {
+                    findings.push(finding);
+                    continue;
+                }
+                Ok(Some(existing)) if !existing.starts_with(GENERATED_MARKER) => {
+                    findings.push(Finding::new(
+                        &path,
+                        Some(1),
+                        "author-owned index.md must be removed before specful generates navigation here",
+                    ));
+                    continue;
+                }
+                _ => {}
+            }
         }
         if let Some(parent) = target.parent()
             && let Err(error) = std::fs::create_dir_all(parent)
