@@ -13,6 +13,8 @@ use crate::schemas::{
 };
 use crate::yaml::load_restricted_yaml;
 
+pub(crate) const MAX_SLUG_LENGTH: usize = 128;
+
 pub(crate) const ADR_DIR: &str = "docs/adr";
 pub(crate) const SPECS_DIR: &str = "docs/specs";
 
@@ -169,7 +171,7 @@ fn filename_sequence(path: &str, file_name: &str, findings: &mut Vec<Finding>) -
             digits.chars().all(|c| c.is_ascii_digit())
                 && slug.strip_prefix('-').is_some_and(|s| {
                     !s.is_empty()
-                        && s.len() <= 64
+                        && s.len() <= MAX_SLUG_LENGTH
                         && s.split('-').all(|part| {
                             !part.is_empty()
                                 && part
@@ -184,7 +186,7 @@ fn filename_sequence(path: &str, file_name: &str, findings: &mut Vec<Finding>) -
         findings.push(Finding::new(
             path,
             None,
-            "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
+            format!("filename must be NNNN-short-slug.md with a lowercase slug of at most {MAX_SLUG_LENGTH} characters"),
         ));
     }
     sequence

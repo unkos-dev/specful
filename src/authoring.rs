@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 use crate::config::{CONFIG_FILE, Config, load_config};
 use crate::diagnostics::Finding;
-use crate::repo::{ADR_DIR, SPECS_DIR, create_dir_verified};
+use crate::repo::{ADR_DIR, MAX_SLUG_LENGTH, SPECS_DIR, create_dir_verified};
 
 /// Sibling lock file guarding the read-modify-rename of `.specful/config.yaml`.
 /// Its presence is the allocation lock: a second `specful new` sees
@@ -412,7 +412,7 @@ fn slugify(title: &str) -> String {
     let trimmed = slug.trim_matches('-');
     trimmed
         .chars()
-        .take(64)
+        .take(MAX_SLUG_LENGTH)
         .collect::<String>()
         .trim_matches('-')
         .to_owned()
@@ -536,6 +536,12 @@ mod tests {
         );
         assert_eq!(slugify("  If-Match, revisited!  "), "if-match-revisited");
         assert_eq!(slugify("???"), "");
-        assert!(slugify(&"long word ".repeat(20)).len() <= 64);
+        assert_eq!(slugify(&"a".repeat(65)), "a".repeat(65));
+        assert_eq!(slugify(&"a".repeat(128)), "a".repeat(128));
+        assert_eq!(slugify(&"a".repeat(129)), "a".repeat(128));
+        assert_eq!(
+            slugify(&format!("{} next", "a".repeat(127))),
+            "a".repeat(127)
+        );
     }
 }
