@@ -19,6 +19,7 @@ hosting = "github"
 # body; dist attaches artifacts to that draft and publishes it.
 create-release = false
 github-attestations = true
+cargo-auditable = true
 # Checksum algorithm for artifacts
 checksum = "sha256"
 
