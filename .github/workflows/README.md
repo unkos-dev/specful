@@ -53,6 +53,8 @@ neither.
 | `pr-hygiene.yml` | `title`, `body` | Title lint; PR body structure. Standalone. |
 | `release-plz.yml` | `release-pr`, `release` | Rolling release PR; publish. |
 | `release.yml` | `plan`, `build-local-artifacts`, `build-global-artifacts`, `host`, `announce` | dist binary release. |
+| `release-provenance.yml` | `bundles` | Exports verified release provenance bundles. |
+| `release-check.yml` | `plan`, `build` | Checks release archives before publication. |
 | `docs-deploy.yml` | `build`, `deploy` | Builds and publishes the documentation site to GitHub Pages. Standalone. |
 
 Every third-party action is pinned to a full commit SHA with a trailing version comment that Renovate keeps current.
@@ -114,6 +116,20 @@ other failed dist run: re-run the workflow for transient failures. For a reposit
 crates.io already holds the source for that version, so the tag must keep pointing at it. Fix `main`, delete the
 binary-less draft, and ship the fix as the next patch release. No secrets beyond the workflow's own `GITHUB_TOKEN` are
 involved.
+
+`release-check.yml` builds the planned platform archives on release-plz pull requests, changes to release workflow files
+or `dist-workspace.toml`, and manual dispatches. It extracts the embedded dependency inventory and runs each packaged
+executable. The workflow has read permissions and uploads only Actions artifacts; it cannot publish a release. Review
+its platform results before merging a release pull request; it is not a required branch check.
+
+The release workflow exports each binary archive's verified GitHub attestation as an adjacent `.sigstore.json` asset.
+Verification requires the release workflow identity, source commit and ref to match the current build. A failed export
+blocks publication. Download an archive and its bundle, then verify them with:
+
+```sh
+gh attestation verify <archive> --bundle <archive>.sigstore.json --repo unkos-dev/specful \
+  --signer-workflow unkos-dev/specful/.github/workflows/release.yml
+```
 
 ## Documentation site
 
