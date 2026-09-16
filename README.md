@@ -71,8 +71,7 @@ The profile sources are available in the [ADR reference](docs/adr/README.md), [s
 
 ## Create your first artifact
 
-Choose one subject you need to understand. This walkthrough uses identifier allocation and scaffolding, the subject of
-an existing Specful Design. For your repository, substitute a subject from its implementation.
+Choose one subject you need to understand in your repository. This walkthrough creates a Design describing how it works.
 
 ### Install
 
@@ -129,18 +128,19 @@ or modify agent instruction files. `validate` checks this initial structure; you
 
 ### Describe one subject
 
-Scaffold a Design to describe how identifier allocation and scaffolding work:
-
-Replace the title and scope with your chosen subject and its area of the system.
+Scaffold a Design for your chosen subject.
 
 ```sh
 specful new design \
-  --title "Identifier allocation and scaffolding" \
-  --scope authoring
+  --title "<SUBJECT>" \
+  --scope <SCOPE>
 ```
 
-Open the Markdown file named in the output. For a completed example of the same subject, read Specful's
-[identifier allocation Design](docs/specs/authoring/design/0001-identifier-allocation-and-scaffolding.md).
+Replace `<SUBJECT>` with what you want to document and `<SCOPE>` with its area of your system. For example, use
+`"API error handling"` and `api` if that fits your repository.
+
+Open the Markdown file named in the output. For a completed Design, see how Specful documents its own
+[identifier allocation and scaffolding](docs/specs/authoring/design/0001-identifier-allocation-and-scaffolding.md).
 
 Replace the placeholders with an accurate description of that subject in your repository, checking it against the
 implementation and tests. Add relationships to existing Requirements or ADRs where they apply, and remove unused
@@ -154,8 +154,8 @@ specful index
 specful validate
 ```
 
-**Start reading at `docs/specs/index.md`** and follow your chosen scope (`authoring` in this example) to your new
-Design. Commit the source document with the regenerated views.
+**Start reading at `docs/specs/index.md`** and follow your chosen scope to your new Design. Commit the source document
+with the regenerated views.
 
 Validation checks structure and recorded relationships. Review the content against the code and tests to establish its
 accuracy. Add `specful validate` to pre-push or CI to check future changes; see
