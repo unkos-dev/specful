@@ -23,6 +23,9 @@ Configuration is restricted YAML without Markdown frontmatter or a body. Duplica
 aliases, merge keys, complex keys, empty unquoted scalars, and invalid UTF-8 are rejected. Exact lowercase JSON
 primitives and RFC 8259 numbers resolve to their JSON values; other non-empty scalars are strings.
 
+Save configuration, Markdown artifacts and generated views as UTF-8 without a byte-order mark (BOM). Specful does not
+automatically convert UTF-16 or legacy encodings. Non-ASCII text is supported within each profile's field constraints.
+
 Library operations receive the root explicitly. Command operations accept an explicit root or search upward from the
 working directory and select the nearest ancestor containing `.specful/config.yaml`. Traversal remains within that root.
 

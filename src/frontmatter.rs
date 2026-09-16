@@ -17,6 +17,13 @@ pub struct Split<'a> {
 /// The file must open with `---` on its first line and close the
 /// frontmatter with a matching `---` line.
 pub fn split_frontmatter<'a>(source: &'a str, path: &str) -> Result<Split<'a>, Vec<Finding>> {
+    if source.starts_with('\u{feff}') {
+        return Err(vec![Finding::new(
+            path,
+            Some(1),
+            "save this file as UTF-8 without a byte-order mark (BOM)",
+        )]);
+    }
     let mut lines = source.split_inclusive('\n');
     let Some(first) = lines.next() else {
         return Err(vec![Finding::new(path, Some(1), "file is empty")]);
