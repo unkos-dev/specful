@@ -2,7 +2,8 @@
 
 `specful index` derives two kinds of view from the committed artifacts. Both are disposable: they carry no canonical
 knowledge, and validation fails when a committed view disagrees with the documents it derives from.
-`specful index --check` reports that drift without writing.
+`specful index --check` reports that drift without writing. Validation and `index --check` treat LF and CRLF line
+endings as equivalent; `specful index` writes LF line endings.
 
 Generation requires every artifact to load and pass schema validation. If a defect prevents an artifact from being
 collected, `specful index` reports it and leaves all generated views unchanged. A generated view whose source artifacts
