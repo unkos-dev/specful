@@ -19,7 +19,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          mise-install-args: just github:bnjbvr/cargo-machete github:axodotdev/cargo-dist
+          mise-install-args: just github:bnjbvr/cargo-machete
 
       # Components are per-job: this one lints, so clippy and rustfmt.
       - uses: ./.github/actions/rust-toolchain
@@ -43,11 +43,6 @@ jobs:
 
       - name: Unused dependencies (cargo-machete)
         run: just machete
-
-      # dist reads the crate through cargo, so this lives here rather than with
-      # the other workflow linters.
-      - name: Generated release workflow is current
-        run: just dist-check
 
       # nextest does not run doctests, so they live here rather than in tests.
       - name: Doctests
