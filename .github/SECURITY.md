@@ -40,7 +40,6 @@ publication.
 - The content of an adopting repository's own Requirements, Designs and decision records.
 - The agent harness, the GitHub CLI or other third-party tools that install or run Specful, unless Specful's own code or
   skills are what enable the problem.
-- Issues that require write access to the adopting repository or the operator's machine to trigger.
 
 ## Safe harbour
 
