@@ -171,6 +171,9 @@ maintaining a separate classification taxonomy.
 ADR files use UTF-8 without a byte-order mark (BOM). Unicode normalization is not required or performed. The level-one
 heading must match the title exactly. Identifiers, schema keys, and filenames retain their separate ASCII constraints.
 
+Title/heading matching and participant uniqueness use exact character sequences; visually identical text in different
+Unicode forms is treated as different.
+
 Titles and participant values are single-line strings with no leading or trailing Unicode whitespace and no C0 or C1
 control characters. Internal spacing and punctuation are preserved exactly. Validation does not trim, fold, or otherwise
 rewrite these values.
