@@ -88,7 +88,7 @@ The four-digit filename number must match the sequence in the ADR identifier. Th
 author-selected ASCII kebab-case navigation slug. The project key and `ADR` artifact prefix are not repeated because the
 repository and `docs/adr/` path already provide that context.
 
-The slug contains 1 to 64 characters and matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`. It may begin with a letter or digit.
+The slug contains 1 to 128 characters and matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`. It may begin with a letter or digit.
 Leading, trailing, and repeated hyphens are invalid. The length limit applies to the slug alone, excluding the sequence,
 separator, and `.md` suffix.
 

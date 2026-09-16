@@ -21,7 +21,7 @@ fn flags_every_planted_defect_in_the_invalid_repository() {
         "filename sequence 0002 does not match identifier BAD-REQ-0003",
         "artifact type \"WIDGET\" is not REQ or DESIGN",
         "artifact type \"MSRS\" is not REQ or DESIGN",
-        "filename must be NNNN-short-slug.md with a lowercase slug of at most 64 characters",
+        "filename must be NNNN-short-slug.md with a lowercase slug of at most 128 characters",
         "BAD-ADR-0002 supersedes BAD-ADR-0003, but BAD-ADR-0003 does not record superseded-by BAD-ADR-0002",
         "supersession cycle detected involving BAD-ADR-0004",
         "governed-by target BAD-ADR-0009 does not exist",
@@ -1121,4 +1121,34 @@ fn reports_unreadable_directories() {
         "expected an unreadable directory finding, got:\n{}",
         rendered.join("\n")
     );
+}
+
+#[test]
+fn artifact_slug_length_boundary_applies_to_every_kind() {
+    for source in [
+        "docs/adr/0001-store-progress-events.md",
+        "docs/specs/system/requirements/0001-offline-replay.md",
+        "docs/specs/backend/design/0001-progress-pipeline.md",
+    ] {
+        for length in [64, 65, 128, 129] {
+            let scratch = copy_fixture("valid-repo", "slug-boundary");
+            let original = scratch.path().join(source);
+            let target = original.with_file_name(format!("0001-{}.md", "a".repeat(length)));
+            std::fs::rename(original, target).unwrap();
+            let findings = specful::index::run_index(scratch.path(), false);
+            if length <= 128 {
+                assert!(findings.is_empty(), "{source}, {length}: {findings:?}");
+                let validation = validate_repository(scratch.path());
+                assert!(validation.is_empty(), "{source}, {length}: {validation:?}");
+            } else {
+                let findings = validate_repository(scratch.path());
+                assert!(
+                    findings
+                        .iter()
+                        .any(|f| f.message.contains("slug of at most 128 characters")),
+                    "{source}: {findings:?}"
+                );
+            }
+        }
+    }
 }
