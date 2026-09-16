@@ -268,10 +268,18 @@ pub(crate) fn check_generated_views(
             continue;
         }
         match std::fs::read_to_string(root.join(&path)) {
-            Err(_) => findings.push(Finding::new(
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => findings.push(
+                Finding::new(&path, None, "missing generated view; run specful index"),
+            ),
+            Err(error) => findings.push(Finding::new(
                 &path,
                 None,
-                "missing generated view; run specful index",
+                format!("cannot read generated view: {error}"),
+            )),
+            Ok(actual) if actual.starts_with('\u{feff}') => findings.push(Finding::new(
+                &path,
+                Some(1),
+                "save this file as UTF-8 without a byte-order mark (BOM)",
             )),
             Ok(actual) if path.ends_with("index.md") && !actual.starts_with(GENERATED_MARKER) => {
                 findings.push(Finding::new(

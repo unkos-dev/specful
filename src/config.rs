@@ -82,6 +82,14 @@ pub fn load_config(root: &Path, findings: &mut Vec<Finding>) -> Option<Config> {
         }
     };
 
+    if source.starts_with('\u{feff}') {
+        findings.push(Finding::new(
+            CONFIG_FILE,
+            Some(1),
+            "save this file as UTF-8 without a byte-order mark (BOM)",
+        ));
+        return None;
+    }
     let value = match load_restricted_yaml(&source, CONFIG_FILE, 1) {
         Ok(value) => value,
         Err(mut errors) => {

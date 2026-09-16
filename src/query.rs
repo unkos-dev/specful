@@ -13,13 +13,24 @@ use crate::index::CATALOG_PATH;
 type Entry = serde_json::Value;
 
 fn load_catalog(root: &Path) -> Result<Vec<Entry>, Vec<Finding>> {
-    let content = std::fs::read_to_string(root.join(CATALOG_PATH)).map_err(|_| {
+    let content = std::fs::read_to_string(root.join(CATALOG_PATH)).map_err(|error| {
         vec![Finding::new(
             CATALOG_PATH,
             None,
-            "missing catalog; run specful index",
+            if error.kind() == std::io::ErrorKind::NotFound {
+                "missing catalog; run specful index".to_owned()
+            } else {
+                format!("cannot read catalog: {error}")
+            },
         )]
     })?;
+    if content.starts_with('\u{feff}') {
+        return Err(vec![Finding::new(
+            CATALOG_PATH,
+            Some(1),
+            "save this file as UTF-8 without a byte-order mark (BOM)",
+        )]);
+    }
     let catalog: serde_json::Value = serde_json::from_str(&content).map_err(|_| {
         vec![Finding::new(
             CATALOG_PATH,

@@ -51,6 +51,84 @@ fn copy_tree(from: &Path, to: &Path) {
 }
 
 #[test]
+fn reports_unsupported_file_encodings() {
+    let scratch = copy_fixture("valid-repo", "encodings");
+    for path in [
+        ".specful/config.yaml",
+        "docs/specs/system/requirements/0001-offline-replay.md",
+        ".specful/generated/catalog.json",
+        "docs/specs/system/index.md",
+    ] {
+        let file = scratch.path().join(path);
+        let original = std::fs::read(&file).unwrap();
+        let mut bom = vec![0xef, 0xbb, 0xbf];
+        bom.extend(&original);
+        let mut utf16 = vec![0xff, 0xfe];
+        utf16.extend(
+            String::from_utf8(original.clone())
+                .unwrap()
+                .encode_utf16()
+                .flat_map(u16::to_le_bytes),
+        );
+        for (bytes, message) in [
+            (bom, "UTF-8 without a byte-order mark"),
+            (utf16, "valid UTF-8"),
+            (vec![0xff], "valid UTF-8"),
+        ] {
+            std::fs::write(&file, &bytes).unwrap();
+            for mut args in [vec!["validate"], vec!["index", "--check"]] {
+                if path == ".specful/config.yaml" && args[0] == "index" {
+                    continue;
+                }
+                args.push(scratch.path().to_str().unwrap());
+                let (ok, output) = run_specful(&args);
+                assert!(!ok, "accepted {path}");
+                assert!(output.contains(message), "{path}: {output}");
+                assert!(!output.contains("missing generated view"), "{output}");
+                assert!(!output.contains("author-owned"), "{output}");
+                assert_eq!(std::fs::read(&file).unwrap(), bytes);
+            }
+            if path == ".specful/generated/catalog.json" {
+                let (ok, output) = run_specful(&[
+                    "show",
+                    "OK-REQ-0001",
+                    "--root",
+                    scratch.path().to_str().unwrap(),
+                ]);
+                assert!(!ok);
+                assert!(output.contains(message), "{output}");
+            }
+        }
+        std::fs::write(file, original).unwrap();
+    }
+}
+
+#[test]
+fn preserves_non_ascii_utf8_in_generated_views() {
+    let scratch = copy_fixture("valid-repo", "unicode-views");
+    let file = scratch
+        .path()
+        .join("docs/specs/system/requirements/0001-offline-replay.md");
+    let source = std::fs::read_to_string(&file)
+        .unwrap()
+        .replace("Offline replay", "Café 東京 🦀");
+    std::fs::write(&file, source).unwrap();
+    assert!(specful::index::run_index(scratch.path(), false).is_empty());
+    assert!(validate_repository(scratch.path()).is_empty());
+    assert!(specful::index::run_index(scratch.path(), true).is_empty());
+    for path in [
+        ".specful/generated/catalog.json",
+        "docs/specs/system/index.md",
+    ] {
+        assert!(
+            std::fs::read_to_string(scratch.path().join(path))
+                .unwrap()
+                .contains("Café 東京 🦀")
+        );
+    }
+}
+
+#[test]
 fn detects_stale_and_author_owned_views() {
     let scratch = tempfile::tempdir().expect("create scratch");
     let scratch = scratch.path();
