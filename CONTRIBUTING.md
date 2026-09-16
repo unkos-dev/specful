@@ -1,9 +1,8 @@
 # Contributing
 
-Specful is early and its contracts are still settling, but issues and pull requests are welcome.
+Specful's contracts are still evolving. Issues and pull requests are welcome.
 
-**Security issues are reported privately, not through issues.** Use GitHub's private vulnerability reporting on this
-repository.
+**Security issues are reported privately, not through issues.** See the [security policy](.github/SECURITY.md).
 
 ## Developer Certificate of Origin
 
