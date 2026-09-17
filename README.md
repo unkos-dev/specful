@@ -196,8 +196,8 @@ installation and updates.
   handing approved artifacts to the type-specific skills;
 - `specful-requirement`, `specful-design`, and `specful-adr` each teach authoring one artifact type, from scaffolding
   with `specful new` through validation and substantive review;
-- `specful-review` checks artifacts and changes for substantive defects, including acceptance-criteria quality, factual
-  accuracy, and missing or stale documentation affected by a change.
+- `specful-review` reviews code changes, plans and Specful artifacts. See
+  [review usage and modes](https://unkos-dev.github.io/specful/adoption/#review-changes-plans-and-artifacts).
 
 ### Plan and implement
 

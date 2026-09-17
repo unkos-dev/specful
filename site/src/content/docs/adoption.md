@@ -183,11 +183,27 @@ policy. For example:
 ```markdown
 For code changes, follow the [Specful development workflow](https://unkos-dev.github.io/specful/authoring-workflow/).
 Start at docs/specs/index.md, inspect the relevant artifacts and implementation, and propose worthwhile missing
-documentation for a decision. Include evidence for affected acceptance criteria in the change review.
+documentation for a decision. Record implementation verification with the change. For substantive review, reuse that
+evidence and investigate concrete concerns; missing or stale corpus coverage is advisory, while substantive obligation
+violations can hold the work.
 ```
 
 The adopter owns whether and where this guidance belongs; `specful init` does not install it or change instruction
 files. Contributors can use the same workflow directly without an agent harness.
+
+### Review changes, plans and artifacts
+
+`specful-review` assesses correctness, technical fitness and relevant standards. It reports substantive defects and
+useful advice, including warranted corpus updates. Review runs in the current session by default. Select another mode in
+ordinary language:
+
+- "Use specful-review on this plan."
+- "Use specful-review on PR #123 with an independent reviewer."
+- "Use specful-review on this branch with multi-agent review."
+
+Independent mode uses one isolated reviewer. Multi-agent mode starts with two independent reviewers and reconciles only
+when needed, with a fixed maximum of three rounds including the first. Review is read-only; delegated reviewers do not
+run development checks.
 
 ## Reconciling branch allocations
 

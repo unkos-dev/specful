@@ -7,9 +7,10 @@ Use this workflow for ordinary code changes as well as artifact authoring. Start
 deciding what the change affects. A code change may need no artifact edit or saved plan; apply the authoring steps only
 when a document needs to change. Coordinate a multi-step transition before implementation, as described in step 6.
 
-The opt-in [agent skills](/specful/adoption/#install-agent-skills-optional) apply this workflow during planning,
-implementation and review; the type-specific skills cover artifact craft. This page is the canonical procedure for
-people and agents, including contributors who use neither skills nor saved plans.
+The opt-in [agent skills](/specful/adoption/#install-agent-skills-optional) apply this workflow during planning and
+implementation; the type-specific skills cover artifact craft. This page is the canonical authoring and delivery
+procedure for people and agents, including contributors who use neither skills nor saved plans. `specful-review` uses
+the relevant artifacts and existing evidence for read-only substantive judgement, without repeating the delivery steps.
 
 For an existing repository that needs subjects, documentation dispositions and candidate obligations selected before
 authoring, use the [agent-led brownfield onboarding workflow](/specful/adoption/#agent-led-brownfield-onboarding).
@@ -62,6 +63,11 @@ subjects do not need another document. Gradual, partial coverage is valid; do no
 State the change's effect on the corpus with its reason as more complete, unchanged, or less accurate. A change that
 leaves a Design describing behaviour the tree no longer has makes the corpus less accurate even when every mechanical
 check passes.
+
+These authoring obligations remain in force, but `specful-review` treats missing or stale coverage as advisory,
+including gaps introduced by the change. A substantive violation of an applicable obligation can hold the work; a
+documentation omission alone cannot. The review explains worthwhile updates and their durable benefit without requiring
+the plan's disposition table or corpus-effect field in its report.
 
 Implement the authorised code change under the repository's contribution rules, keeping affected artifacts accurate. Use
 step 6 first if the work needs a saved plan; otherwise proceed to the relevant implementation and corpus checks without
@@ -151,10 +157,13 @@ configuration: there is no diagnostic rule registry, severity policy, or waiver 
 
 Run the repository's relevant implementation checks as well. Reuse existing tests and inspection evidence before
 proposing additional tests. For each consequential affected acceptance criterion, record the test or inspection that
-supports it, the observed result and the reviewed revision in the ordinary change record or review. State any unresolved
-gap explicitly. A passing `specful validate` establishes corpus conformance, and a `satisfies` edge declares a
-relationship; neither proves that the implementation meets the Requirement. Keep verification results with the change,
-not as permanent pass badges in the Requirement.
+supports it, the observed result and the reviewed revision in the ordinary change record. State any unresolved gap
+explicitly. A passing `specful validate` establishes corpus conformance, and a `satisfies` edge declares a relationship;
+neither proves that the implementation meets the Requirement. Keep verification results with the change, not as
+permanent pass badges in the Requirement.
+
+Review reuses this evidence and investigates concrete concerns. It does not routinely rerun checks, inspect CI or
+require a separate acceptance-evidence inventory. Known consequential failures still inform its verdict.
 
 ## 9. Commit the source and the regenerated views together
 
