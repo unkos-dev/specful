@@ -1,111 +1,143 @@
 ---
 name: specful-review
-description: Review a Specful Requirement, Design, ADR, or change for consequential substantive defects.
-compatibility: Requires the specful CLI on PATH.
+description: >-
+  Review a pull request, plan, branch, commit, local change, or Specful artifact for correctness, technical fitness,
+  standards alignment and consequential defects. Supports in-session, independent and multi-agent review.
 ---
 
-# Review a Specful artifact or change
+# Review a change, plan or artifact
 
-Review is read-only. Return the report in the conversation; do not edit files, post pull-request comments, submit a
-formal review, or publish a report. A correction needs separate authority.
+Review adds judgement, not a duplicate delivery process. Actively challenge whether the work is safe, correct, complete
+and technically appropriate. A sound review can find no issues and return `SHIP`; there is no finding quota.
 
-## Resolve the review boundary
+Review is read-only. Inspect source, documents and existing results; do not edit, fix, commit, change external state,
+post comments or publish a review. Return one report in the conversation. Corrections need separate authority.
 
-Identify the requested target before reviewing it:
+## Resolve the target and execution
 
-- An artifact review covers one named Requirement, Design, or ADR and the minimum repository evidence needed to judge
-  its claims. Do not turn it into a repository audit.
-- A change review resolves an immutable commit, commit range, or pull-request head and reviews the aggregate change,
-  including affected Specful artifacts together. Record that identity. A moved head invalidates a gate-grade verdict.
-- A draft review may cover mutable working-tree content. Identify it as draft and do not present its verdict as
-  gate-grade.
-- A re-review takes the previous conversational report and the new target as explicit inputs. If the prior report is
-  unavailable, perform a full review and say that correction verification and prior finding IDs are unavailable.
+Review the named or already-established target. Otherwise use the current branch or local changes when the intended
+scope is clear; ask only when competing interpretations would materially change the review. Without a discernible
+target, request one instead of starting a repository audit.
 
-For a gate-grade review, attribute mechanical validation only to evidence tied to the exact target. Inspect a
-provider-attested status for that target SHA, a clean checkout at that SHA, an isolated materialisation, or another
-demonstrably equivalent source. Implementer reports are leads, not evidence. When such evidence is unavailable, report
-validation as `NOT RUN` or `UNVERIFIED`; never substitute another working tree or claim a pass.
+- A PR review uses the requested PR's head and aggregate diff; do not substitute a local checkout for an unavailable PR.
+- A branch review normally covers committed changes from its merge base with the default branch. A commit or range
+  review uses the requested commits. Do not silently add uncommitted work.
+- Local-change review includes staged, unstaged and relevant untracked files. Explicit staged-only review uses index
+  versions, not working-tree replacements.
+- A plan or artifact review covers the named document and relevant evidence needed to judge it. A draft or mutable
+  target can receive `SHIP`; future implementation artifacts need not exist for a plan to be ready to implement.
 
-## Select execution
+Identify the inspected head, range, file/version or local scope. If it changes during review, do not imply the verdict
+covers unseen changes. Follow relevant dependencies and cross-file contracts without expanding into an unrelated audit.
+Preserve the user's exact scope and focus. Extra focus directs attention; it does not exclude other consequential
+problems within scope unless the user explicitly restricts it.
 
-When an interactive request has a real choice between independent delegation and in-session review, resolve the target
-and artifact types, then ask the user to choose:
+Use `In-session` by default. Honour an explicit `Independent` selection for one separate reviewer or `Multi-agent` for
+two initially independent reviewers. Select modes through ordinary language, without a configuration or round-count
+option. Follow the [execution reference](references/execution.md) for delegation, isolation and reconciliation.
 
-1. Delegate one independent review to the resolved reviewer model, recommended when that identity is known.
-2. Complete the review in the current session.
-3. Use another execution choice, such as a named model, a different topology, or additional focus.
-4. Cancel without starting review work.
+## Establish authority and gather evidence
 
-Name the reviewer model only when the harness exposes it. Otherwise say `default subagent model`. Do not make price or
-capability claims. Do not ask again when the user or harness has already selected the topology. Respect an explicit
-reviewer selection. If independent execution is unavailable, review sequentially and disclose that it was not
-independent. Optional specialists are justified only by distinct artifact or evidence domains; the coordinator owns the
-verdict and does not invent findings absent from the evidence gathered.
+Read applicable repository instructions and understand the intended outcome. In a Specful repository, start at
+`docs/specs/index.md` and follow relevant scope indexes, Requirements, Designs and accepted ADRs into source and
+existing tests. Search more broadly when navigation or coverage is missing. Ordinary files remain authoritative; neither
+a Specful corpus nor the CLI is a prerequisite for reviewing code or a plan. Available read-only lookups can help
+inspect relationships, but do not generate indexes or run validation as a routine review phase.
 
-## Gather minimum evidence
+Requirements state obligations, Designs describe relevant behaviour and constraints, and accepted ADRs record governing
+choices and their rationale. Investigate a discrepancy rather than assuming code or prose must be right. Present the
+evidence and recommendation; the user ultimately decides which side changes.
 
-Within the resolved review boundary, apply the
-[development workflow](https://unkos-dev.github.io/specful/authoring-workflow/): start at `docs/specs/index.md` and
-follow scope indexes, relevant Requirements, Designs and governing ADRs into targeted implementation and existing tests.
-Use broader search when coverage or directions are missing or inaccurate. A routine code review needs no saved plan. If
-useful coverage is missing, propose the artifact's subject, type and durable benefit for the user's decision and input;
-do not author it or require an artifact for every change. For a new or changed artifact, run `specful trace <ID>` and
-check the inbound side of its relationships: the Design that satisfies a Requirement, and the Requirements and Designs
-that cite an ADR. Report a missing counterpart as a finding when the change should have supplied it.
+Reuse existing evidence. Do not routinely rerun development checks, inspect or poll CI, or demand proof that routine
+checks occurred. Reviewer independence alone is not a reason to repeat work. Mechanical validation and `satisfies`
+relationships establish only their stated scope; neither proves implemented behaviour.
 
-Run `specful validate` and report mechanical findings as mechanical validation, not as substantive findings. Continue
-when the target remains interpretable. Stop or narrow the review when invalid identity, structure, or relationships make
-substantive conclusions unreliable.
+Expand investigation only for a concrete, consequential question that could change a finding or verdict. Inspect enough
+surrounding source to establish the causal path, then stop when the question is resolved. Do not manufacture acceptance
+criteria, verification matrices, tests or permanent tracking infrastructure to demonstrate thoroughness.
 
-Load only the references matching the artifact types in scope:
+Every delegated reviewer must receive explicit read-only instructions in every round, including a prohibition on
+development gates, test suites, builds and mechanical validation. A reviewer reports any question needing execution and
+why existing evidence is insufficient to the coordinator; it does not execute the check itself. Only the in-session
+reviewer or coordinator may undertake a necessary, focused, non-mutating investigation under existing user authority.
+Coordinate it once and share the evidence. This exception never authorises a full development gate or new test surface.
+
+Omit irrelevant checks not performed. Explain an actual evidence limitation with the concern it affects; an unnecessary
+check that was not run cannot create a condition on `SHIP`.
+
+## Apply substantive review lenses
+
+Use these lenses where relevant; they do not require separate report sections:
+
+- Trace realistic failures in interfaces, state transitions and cross-file contracts. Assess security, reliability,
+  compatibility, performance and usability where affected. Judge whether the solution is technically appropriate, not
+  merely buildable.
+- Establish whether the work delivers the intended outcome. For a plan, assess coherence, sufficient specification and
+  executability, including decisions whose absence would halt implementation or produce the wrong solution.
+- Assess current practice and relevant industry standards. Establish applicability and cite current primary sources,
+  with the relevant version or section. Distinguish binding obligations from useful guidance. An intentional deviation
+  can still warrant scrutiny; citing guidance alone does not establish a blocker.
+- Look first for a materially similar project solution that could be reused, adapted or used as precedent, then consider
+  standard-library, platform and appropriate industry libraries. Challenge unnecessary layers, duplicated state,
+  speculative abstractions and avoidable dependencies or coordination. Explain practical costs, a sound alternative and
+  its trade-offs. Preserve required behaviour; neither fewer lines nor one caller proves that a layer should be removed.
+- Inspect relevant existing tests and results for concrete concerns, including tests that could pass despite the defect
+  at issue. Do not impose a separate verification obligation on every claim.
+
+Load the references relevant to the target:
 
 - [Requirement lens](references/requirement-review.md)
 - [Design lens](references/design-review.md)
 - [ADR lens](references/adr-review.md)
-- [Change lens](references/change-review.md), for a change review
+- [Change and plan lens](references/change-review.md)
 
-Follow a reviewed claim only into evidence that can confirm or contradict it; do not conduct an unrelated audit.
+Assess relevant corpus impact even when no Specful file changed. A warranted missing or stale addition or update stays
+advisory, including where an authoring rule requires it. Explain the artifact's subject, type and durable benefit; do
+not require an artifact for every change. A substantive breach of an existing obligation is judged on its consequence
+and can hold the work. Do not disguise that breach as missing documentation or make a coverage omission blocking through
+an authoring rule. When an artifact itself is the target, technically unsound content remains subject to substantive
+review.
 
-In the report, connect each consequential affected acceptance criterion to exact-target test or inspection evidence and
-its result, or state the unresolved gap. Reuse existing checks before proposing additional tests. Mechanical corpus
-validation and `satisfies` relationships do not prove implemented behaviour; keep this evidence in the review rather
-than adding permanent pass claims to Requirements.
+## Findings and verdicts
 
-## Decide what is reportable
+Each finding needs a specific location or target reference, supported evidence, a realistic consequence or useful
+benefit, and a correct recommendation. Cite the applicable obligation or standard where relevant. Recommend a sound,
+standards-based solution; ease or bare minimum effort is not the quality criterion. Drop stylistic trivia, duplicates,
+unsupported speculation and observations outside scope.
 
-Report only a consequential finding with:
+Use `Critical` for an unacceptable severe failure, `High` for a substantial defect, `Medium` for a material but more
+bounded issue, and `Low` for a useful minor improvement. Explain whether correction or a decision is required before
+proceeding. Severity alone does not establish that consequence; corpus-coverage omissions remain advisory.
 
-- a lens ID: `R1`, `D1`, `A1`, or `X1`, incrementing within that lens;
-- exact location, applicable expectation and authority, observed evidence, realistic consequence, and smallest
-  defensible correction;
-- severity: `blocking`, `non-blocking`, or `suggestion`;
-- confidence: `high`, `medium`, or `low`.
+Do not assign numeric confidence or a replacement scoring scale. Explain material uncertainty in prose: what is known,
+what remains uncertain and why it matters. A confidence label cannot turn an unsupported suspicion into a finding.
 
-A record that fails its profile's stated purpose is a substantive finding with a consequence; a prose preference without
-that consequence is dropped. Low-confidence concerns cannot block and become questions or evidence requests. Suggestions
-do not affect the verdict. Drop stylistic preferences, duplicates, unsupported speculation, observations outside the
-requested boundary, and concerns without a realistic consequence.
+- `SHIP` for a PR means safe to merge: the correct solution, working as intended, with no remaining issue that should
+  hold merge, and defensible under public scrutiny.
+- `SHIP` for a plan means a technically sound, coherent and sufficiently specified solution ready to implement. For an
+  artifact it means fit to adopt for its purpose; for a branch, commit or local change it means correct and fit to
+  integrate for the stated purpose. Neither has a substantive issue requiring correction or a decision first.
+- `CONDITIONAL`: the approach is sound, but a specific correction or consequential decision must be resolved before it
+  is ready.
+- `NO-SHIP`: the reviewed work has a demonstrated critical defect or a fundamentally unsuitable approach. Proceeding
+  would be unacceptable. A critical defect can warrant this verdict even when its correct fix is small.
 
-## Determine the verdict
+All `SHIP` outcomes allow useful advisories. A credible unresolved concern warrants `CONDITIONAL` only with concrete
+supporting evidence, a consequential failure or decision at issue, and an explanation of what evidence or decision would
+resolve it. Mere lack of independent verification does not qualify; uncertainty alone cannot establish `NO-SHIP`.
 
-- `SHIP`: applicable mechanical validation passed and no open blocking substantive finding remains at the reviewed
-  boundary.
-- `CONDITIONAL`: bounded correction or decision, mechanical validation failure, or missing exact-target validation
-  evidence remains. `NOT RUN` and `UNVERIFIED` validation map here.
-- `NO-SHIP`: a fundamental authority, artifact-boundary, contradiction, or evidence problem prevents acceptance. This
-  includes validation that cannot execute on the reviewed tree or invalid structure that prevents reliable substantive
-  review.
+An inaccessible target or interrupted investigation is an incomplete review, not evidence for a negative verdict. Report
+the useful findings and consequential limitation. Do not issue `SHIP` while an essential part of the agreed scope
+remains unassessed. A verdict never grants merge, implementation or publication authority.
 
-Corpus effect is reported beside the verdict and does not change it; a proposal for a pre-existing gap never affects the
-verdict. A gate-grade review cannot return `SHIP` while required mechanical validation fails. The verdict describes
-readiness; it does not grant merge authority or determine the adopter's enforcement policy.
+## Re-review and report
 
-## Re-review corrections
+On a requested re-review, inspect the revised target, corrections and affected contracts. Retain prior finding IDs and
+mark them `resolved`, `open` or `disproved` with current evidence. Report newly exposed material issues, but do not
+restart every investigation or relitigate unchanged material. If the prior report is unavailable, disclose that limit
+and review the agreed target without claiming correction verification. Do not imply an earlier verdict covers unrelated
+new work.
 
-Resolve the new immutable target. Check each previous finding ID and label it `resolved`, `open`, or `disproved` with
-evidence. Inspect the aggregate correction diff for regressions and contradictions. Add a new finding only when the
-correction created it or newly supplied evidence exposed it; do not relitigate unchanged material. New findings use the
-next number for their lens. Do not create a finding database, content hash, or disposition ledger.
-
-Use the [report format](references/report-format.md) when producing the response.
+If interrupted, preserve accumulated evidence and useful partial findings. A complaint about duration does not authorise
+discarding the work or restarting automatically. Use the [report format](references/report-format.md) to deliver one
+proportionate report, including any consequential unresolved disagreement.

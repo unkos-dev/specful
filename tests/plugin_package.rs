@@ -296,6 +296,7 @@ fn review_skill_ships_named_non_empty_regular_references() {
         "adr-review.md",
         "change-review.md",
         "design-review.md",
+        "execution.md",
         "report-format.md",
         "requirement-review.md",
     ];

@@ -32,8 +32,8 @@ The package lives under `plugin/`:
 
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
 - `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` ships concise
-  Requirement, Design, ADR, change, and report-format references, while `specful-plan` ships change-plan and arc-plan
-  templates plus a planning-craft reference;
+  Requirement, Design, ADR, change/plan, execution, and report-format references, while `specful-plan` ships change-plan
+  and arc-plan templates plus a planning-craft reference;
 - `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
   frontmatter shape, and the named, regular, non-empty review and planning references;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
@@ -41,15 +41,16 @@ The package lives under `plugin/`:
 All directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated packages in
 shared flat namespaces. `specful-onboard` coordinates brownfield discovery and incremental adoption. The authoring set
 is `specful-requirement`, `specful-design`, and `specful-adr`. `specful-plan` plans implementation work,
-`specful-implement` executes a named plan one step at a time, and `specful-review` provides substantive artifact review.
+`specful-implement` executes a named plan one step at a time, and `specful-review` reviews artifacts, plans and changes.
 `specful-validate`, `specful-index`, `specful-show`, and `specful-trace` expose the matching CLI operations.
 
 ## Interfaces and dependencies
 
 Each skill uses Agent Skills frontmatter for its name and trigger description, followed by Markdown instructions that a
-harness loads when the skill applies. Skills that invoke the CLI declare a `compatibility` line requiring `specful` on
+harness loads when the skill applies. Skills that require the CLI declare a `compatibility` line requiring `specful` on
 `PATH`, carrying no version number: nothing reads it, and the installer pins skills to a release tag. Authoring,
 planning, implementation, and review skills also use repository artifacts and public documentation as source material.
+Review can inspect ordinary files without the CLI; available read-only lookups can help retrieve corpus relationships.
 
 Users install the package through the GitHub CLI:
 
@@ -92,15 +93,32 @@ for their stated mechanical checks. Substantive review follows adopter policy or
 
 Authoring skills scaffold through `specful new`, guide completion of one artifact type, and finish with indexing and
 mechanical validation. They point to substantive review when the adopting repository requires it or the user asks for
-it. Operation skills run the matching CLI command or commands and report the result. `specful-review` resolves an
-artifact, draft, immutable change, or bounded re-review target; validates first; loads only the references for artifact
-types in scope; and reports evidence-backed substantive findings with `SHIP`, `CONDITIONAL`, or `NO-SHIP`. Mechanical
-validation remains distinct from substantive judgement. A change review applies the authoring workflow's corpus
-questions: it checks inbound relationships through `specful trace`, separates gaps the change created from pre-existing
-gaps it proposes, and reports the change's corpus effect as more complete, unchanged, or less accurate. The skill
-returns its compact report in the conversation only; it does not edit a repository or publish a pull-request comment or
-formal review. An interactive harness may offer independent or in-session execution, while the adopting maintainer
-decides whether review is advisory or blocking. Non-interactive invocation policy remains outside this package.
+it. Operation skills run the matching CLI command or commands and report the result.
+
+`specful-review` resolves a PR, plan, branch, commit, local change or named artifact and records the inspected scope. It
+assesses correctness, technical fitness, relevant standards, simplification and applicable Specful authority, loading
+the relevant artifact or change/plan lenses. Plans are judged for coherence and executability without requiring future
+implementation artifacts or results. Draft and mutable targets can receive `SHIP`. Review reuses existing evidence;
+routine development checks, validation and CI inspection are outside its workflow.
+
+The shared review standard treats warranted missing or stale corpus coverage as advisory, including newly introduced
+gaps and updates required by authoring rules. A substantive conflict with an existing obligation is assessed on its
+consequence. When implementation and a Design disagree, the reviewer investigates which side needs correction and
+recommends an outcome for the user to decide.
+
+Execution defaults to in-session review. Ordinary invocation language selects independent review by one isolated
+reviewer or multi-agent review by two. The execution reference defines initial isolation from coordinator conclusions
+and other reviewers, retained context, evidence-based reconciliation and early stopping. Multi-agent review has a fixed
+maximum of three rounds including the first; later rounds occur only when needed to reach an outcome. Settled findings
+leave active discussion but remain in the final report, and consequential unresolved disagreement is explained.
+
+Review is read-only and returns one report in the conversation. Delegated reviewers receive explicit prohibitions on
+mutations and development checks in every round. They route concrete evidence requests to the coordinator, which may
+undertake a necessary, focused, non-mutating investigation once under existing user authority. The report leads with
+`SHIP`, `CONDITIONAL` or `NO-SHIP` when there is enough evidence for a verdict, scales detail with severity, and
+explains material uncertainty in prose. It has no confidence scores or routine validation inventory. Review does not fix
+or publish; the adopting maintainer owns whether its recommendation is advisory or blocking. Non-interactive invocation
+policy remains outside this package.
 
 The compatible CLI is a prerequisite for CLI-backed authoring. Installed skills, harness hooks and repository gates are
 separate, opt-in integration layers. The coordinator inspects existing configuration before offering them as separate

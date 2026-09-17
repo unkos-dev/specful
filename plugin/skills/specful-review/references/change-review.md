@@ -1,22 +1,52 @@
-# Change review lens
+# Change and plan review lens
 
-Apply this lens only when a change is in scope. The canonical rules are step 2 of the public
-[authoring workflow](https://unkos-dev.github.io/specful/authoring-workflow/#2-decide-what-the-change-affects), which
-states the corpus questions once, and the affected artifacts themselves.
+Apply the [shared review standard](../SKILL.md) to the agreed change or plan. Use the applicable corpus and the
+[authoring workflow](https://unkos-dev.github.io/specful/authoring-workflow/#2-decide-what-the-change-affects) to
+understand the affected subjects. Its documentation obligations do not override the review's advisory treatment of
+missing coverage.
 
-Traverse from each touched module through its scope index to the Designs that describe it and the Requirements those
-Designs satisfy. Check whether:
+## Changes
 
-- every affected artifact has a disposition: updated, created, or unaffected with a reason, where unaffected is a
-  complete answer when the touched subject's Design remains accurate;
-- a gap the change creates or widens is corrected within the change; it is a finding under this lens;
-- the change adds a durable decision that an ADR should record, or an obligation that needs a Requirement, given that
-  most internal changes produce no new Requirement;
-- artifacts in the aggregate change agree with each other and with the smallest relevant code, tests, configuration, or
-  public documentation: no contradiction, missing companion update, authority in the wrong direction, or incomplete
-  relationship.
+Understand the intended outcome and inspect the aggregate change with the surrounding source needed to establish its
+behaviour. Trace affected interfaces, callers, state and failure paths across files. Judge correctness, security and
+technical fitness, including whether the project already provides a suitable solution. Inspect existing tests where they
+bear on a concrete concern; a passing check proves only what it exercises.
 
-A gap that already existed before the change is a proposal, not a finding: name its subject, artifact type, and lasting
-benefit under Proposals, and never let it affect the verdict. Close with the change's corpus effect and its reason: more
-complete, unchanged, or less accurate. Do not demand an artifact for every change or audit subjects the change does not
-touch.
+Follow relevant scope indexes to the Designs describing affected subjects, their Requirements and governing ADRs. Read
+related records and inbound references where they can expose a consequential contradiction. Inspect source relationships
+directly or use available read-only lookups; a particular CLI command is not a prerequisite. Do not audit unrelated
+subjects or demand a disposition table for every file.
+
+## Plans
+
+Judge whether the proposed solution is technically appropriate, coherent, sufficiently specified and executable. Trace
+its intended behaviour through the relevant existing implementation and contracts. Check the ordering of dependent work,
+whether each dependency can actually be supplied, and whether the proposed boundaries, failure handling and relevant
+standards fit the problem.
+
+Report missing decisions that would make an implementer build the wrong solution or become stuck. Distinguish these from
+details an implementer can reasonably decide. Do not demand every implementation detail, an acceptance-evidence matrix,
+or completed tests and artifacts for work that has not begun. A sound plan can receive `SHIP` before implementation.
+
+Challenge unnecessary machinery even when the plan faithfully follows a proposed approach. Consider existing project
+solutions and standard alternatives, preserving required semantics and explaining trade-offs. Present the sound
+recommendation rather than silently replacing a user decision.
+
+## Corpus impact and authority
+
+Assess whether the change warrants a Requirement, Design update or durable decision record even when no Specful files
+changed. Most internal changes create no new observable obligation. Recommend an artifact only when it has a reason to
+exist, and explain its subject, type and durable benefit.
+
+Missing or stale coverage stays advisory whether it predates the change or the change creates or widens it. An authoring
+rule requiring an update does not make that omission blocking. Do not require a separate corpus-effect label or proposal
+inventory; include useful advice in the report.
+
+A substantive conflict with an existing applicable obligation is different: identify what the project requires or
+forbids, the observed or proposed behaviour, and its consequence. It may require correction or a user decision about
+changing the obligation. Calling it a missing Requirement update must not conceal the violation.
+
+When a Design and implementation disagree, investigate whether the behaviour violates an applicable constraint or the
+Design needs updating. Disagreement alone does not identify which side is wrong. Give the evidence and recommendation;
+the user makes the final decision. Technically unsound content in a reviewed plan or artifact is assessed on its own
+consequence and is not excused as missing corpus coverage.
