@@ -196,18 +196,8 @@ installation and updates.
   handing approved artifacts to the type-specific skills;
 - `specful-requirement`, `specful-design`, and `specful-adr` each teach authoring one artifact type, from scaffolding
   with `specful new` through validation and substantive review;
-- `specful-review` reviews code changes, plans and Specful artifacts for correctness, technical fitness and relevant
-  standards. It reports substantive defects and useful advice, including warranted corpus updates.
-
-Review runs in the current session by default. Select another mode in ordinary language:
-
-- "Use specful-review on this plan."
-- "Use specful-review on PR #123 with an independent reviewer."
-- "Use specful-review on this branch with multi-agent review."
-
-Independent mode uses one isolated reviewer. Multi-agent mode starts with two independent reviewers and reconciles only
-when needed, with a fixed maximum of three rounds including the first. Review is read-only; delegated reviewers do not
-run development checks.
+- `specful-review` reviews code changes, plans and Specful artifacts. See
+  [review usage and modes](https://unkos-dev.github.io/specful/adoption/#review-changes-plans-and-artifacts).
 
 ### Plan and implement
 
