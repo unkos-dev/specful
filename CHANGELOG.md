@@ -12,8 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `specful-review` explicitly supports implementation plans and defaults to in-session review. Natural-language requests
   can select one independent reviewer or two reviewers with reconciliation only when needed, up to three rounds total.
 - Review reuses existing evidence without automatically running validation or development checks. Missing or stale
-  corpus coverage remains advisory; substantive obligation violations can still hold the work. Reports scale detail
-  with severity and explain uncertainty without confidence scores. Review no longer requires the Specful CLI.
+  corpus coverage is now advisory, including gaps introduced by the change; substantive obligation violations can
+  still hold the work. Reports scale detail with severity and explain uncertainty without confidence scores. Review
+  no longer requires the Specful CLI.
 
 ## [0.5.2](https://github.com/unkos-dev/specful/compare/v0.5.1...v0.5.2) - 2026-09-16
 

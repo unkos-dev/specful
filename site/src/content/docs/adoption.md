@@ -183,7 +183,9 @@ policy. For example:
 ```markdown
 For code changes, follow the [Specful development workflow](https://unkos-dev.github.io/specful/authoring-workflow/).
 Start at docs/specs/index.md, inspect the relevant artifacts and implementation, and propose worthwhile missing
-documentation for a decision. Include evidence for affected acceptance criteria in the change review.
+documentation for a decision. Record implementation verification with the change. For substantive review, reuse that
+evidence and investigate concrete concerns; missing or stale corpus coverage is advisory, while substantive obligation
+violations can hold the work.
 ```
 
 The adopter owns whether and where this guidance belongs; `specful init` does not install it or change instruction
