@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.4](https://github.com/unkos-dev/specful/compare/v0.5.3...v0.5.4) - 2026-09-18
+
+### Fixed
+
+- *(release)* detect skill-only changes in release automation ([#176](https://github.com/unkos-dev/specful/pull/176))
+
 ### Skill updates
 
 - `specful-review` uses a compact summary table for multiple findings and keeps minor advisories brief. Reviewers check
