@@ -18,6 +18,54 @@ fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
+#[test]
+fn cargo_package_contains_skill_payload_without_repository_toolchains() {
+    let root = repo_root();
+    let output = std::process::Command::new(env!("CARGO"))
+        .args([
+            "package",
+            "--list",
+            "--locked",
+            "--offline",
+            "--allow-dirty",
+        ])
+        .current_dir(&root)
+        .output()
+        .expect("Cargo package listing should run");
+    assert!(
+        output.status.success(),
+        "Cargo package listing failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let listing = String::from_utf8(output.stdout).expect("package paths should be UTF-8");
+    let packaged: std::collections::BTreeSet<_> = listing.lines().collect();
+    let mut directories = vec![root.join("plugin")];
+    while let Some(directory) = directories.pop() {
+        for entry in fs::read_dir(directory).expect("payload directory should be readable") {
+            let path = entry.expect("payload entry should be readable").path();
+            if path.is_dir() {
+                directories.push(path);
+            } else {
+                let relative = path
+                    .strip_prefix(&root)
+                    .expect("payload path should be inside repository")
+                    .to_string_lossy()
+                    .replace('\\', "/");
+                assert!(
+                    packaged.contains(relative.as_str()),
+                    "skill payload missing from Cargo package: {relative}"
+                );
+            }
+        }
+    }
+    for excluded in [".mise.toml", "rust-toolchain.toml"] {
+        assert!(
+            !packaged.contains(excluded),
+            "repository toolchain configuration must not ship: {excluded}"
+        );
+    }
+}
+
 fn read_json(path: &Path) -> Value {
     serde_json::from_str(
         &fs::read_to_string(path)

@@ -16,6 +16,7 @@ include = [
   "/src/",
   "/schemas/",
   "/templates/",
+  "/plugin/",
   "/README.md",
   "/LICENSE",
   "/NOTICE.md",
