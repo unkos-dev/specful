@@ -68,6 +68,9 @@ The committed package tree is the complete skill payload. It contains no harness
 version field. The repository's release tag identifies the released payload at that commit; an exact commit pin can
 identify a payload between releases.
 
+The Cargo package includes `plugin/` so release-plz detects skill-only changes and proposes a shared repository release.
+Cargo installs only the CLI binary; skill installation remains a separate `gh skill install` operation.
+
 When installed with the documented `--scope user` flag, copies live in user-scoped locations managed by the selected
 harness and GitHub CLI. They contain no repository-specific knowledge or configuration. `specful init` neither reads nor
 writes that installed state, and an adopting repository records no skill version.
