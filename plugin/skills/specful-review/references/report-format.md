@@ -8,9 +8,10 @@ Lead with the verdict, inspected target and a short assessment explaining what h
 actual head, range, file/version or local scope without implying that mutable targets cannot ship. Explain a material
 scope or execution limitation where it affects the conclusion.
 
-For several findings, use a compact summary table when it helps the reader scan ID, severity, location and finding. Mark
-advisories plainly. A short report can use finding headings directly; do not repeat a one-line advisory in both a table
-and a separate body. A clean review needs only its target, `SHIP` and a concise explanation.
+For multiple findings, use a compact summary table with ID, severity, location and finding. Keep cells to short clauses
+and mark advisories plainly. Follow it with explanations only where needed; keep a one-line advisory in the table alone.
+A single finding can use a heading directly. A clean review needs only its target, `SHIP` and a concise explanation
+grounded in the inspected behaviour.
 
 ## Findings
 
@@ -53,17 +54,17 @@ These are fictional format examples, not findings about this repository.
 >
 > The approach is sound, but F1 must be resolved before implementation. F2 is advisory.
 >
-> **F1: High, Publication sequence**
+> | ID | Severity | Location | Finding |
+> | --- | --- | --- | --- |
+> | F1 | High | Publication sequence | Manifest can expose unavailable files |
+> | F2 | Low, advisory | Export Design | Document retention policy so maintainers can identify abandoned files |
+>
+> **F1: Publish the files before their manifest**
 >
 > The plan replaces the live manifest before uploading the files it names. Readers can receive references to unavailable
 > files during that interval, and a failed upload can leave that state indefinitely. Upload and verify the referenced
 > files first, then publish the manifest through an atomic switch that preserves the previous complete version on
 > failure.
->
-> **F2: Low, advisory, Export Design**
->
-> Document the missing retained-version policy in the Export Design so maintainers can distinguish intentional retention
-> from abandoned files.
 
 ### Clean review
 

@@ -165,6 +165,11 @@ permanent pass badges in the Requirement.
 Review reuses this evidence and investigates concrete concerns. It does not routinely rerun checks, inspect CI or
 require a separate acceptance-evidence inventory. Known consequential failures still inform its verdict.
 
+Review distinguishes proposed checks from observed results and tests candidate findings against existing safeguards and
+contrary evidence. Reports lead with the verdict and use a compact summary table for multiple findings. Detail scales
+with severity; a minor advisory can remain in its table row. Scratch space does not authorise artifact generation, tool
+downloads or other mutations during a read-only review.
+
 ## 9. Commit the source and the regenerated views together
 
 When authorised to commit, keep authored documents and the output of `specful index` in the same change. A committed
