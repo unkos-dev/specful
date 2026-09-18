@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.3](https://github.com/unkos-dev/specful/compare/v0.5.2...v0.5.3) - 2026-09-18
+
+### Added
+
+- *(skills)* unify review standards and execution modes ([#170](https://github.com/unkos-dev/specful/pull/170))
+
+### Dependencies
+
+- *(deps)* lock file maintenance ([#172](https://github.com/unkos-dev/specful/pull/172))
+
 ### Skill updates
 
 - `specful-review` explicitly supports implementation plans and defaults to in-session review. Natural-language requests
