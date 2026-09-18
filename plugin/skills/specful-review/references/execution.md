@@ -10,8 +10,10 @@ may clarify unsupported claims and organise its report, but does not automatical
 
 In either delegated mode, the initial reviewer receives no coordinator assessment, suspected-defect list or preferred
 outcome. Preserve concerns the user explicitly supplied. Isolation includes inherited conversation history, not only the
-prompt text. Use the harness's isolated-context mechanism; if it cannot provide this, report that independent execution
-is unavailable.
+prompt text, and includes persistent memories and cached prior reviews. Supply applicable project instructions and
+source artifacts without prior assessments. Use the harness's isolated-context mechanism; if it cannot provide this,
+report that independent execution is unavailable. Requested re-reviews retain their prior findings as described in the
+shared standard.
 
 Multi-agent review uses two separate reviewers, both covering the whole agreed scope. Give them identical target,
 authority, shared-standard and user-focus inputs. Neither receives the other's conclusions during the initial review.

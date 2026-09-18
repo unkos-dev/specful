@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Skill updates
+
+- `specful-review` uses a compact summary table for multiple findings and keeps minor advisories brief. Reviewers check
+  contrary evidence and recovery paths before assigning severity, distinguish proposed checks from observed results,
+  and treat prior findings as leads. Independent reviews exclude memories and cached assessments; scratch space does
+  not authorise mutating investigation.
+
 ## [0.5.3](https://github.com/unkos-dev/specful/compare/v0.5.2...v0.5.3) - 2026-09-18
 
 ### Added

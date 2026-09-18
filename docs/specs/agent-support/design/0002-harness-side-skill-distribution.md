@@ -101,6 +101,10 @@ the relevant artifact or change/plan lenses. Plans are judged for coherence and 
 implementation artifacts or results. Draft and mutable targets can receive `SHIP`. Review reuses existing evidence;
 routine development checks, validation and CI inspection are outside its workflow.
 
+Proposed checks, author assertions, observed results and reviewer inferences remain distinct. Prior findings guide
+inspection but need support against the current target. Reviewers assess contrary evidence, existing safeguards and
+recovery paths before retaining a finding; severity follows the supported impact, reach and recoverability.
+
 The shared review standard treats warranted missing or stale corpus coverage as advisory, including newly introduced
 gaps and updates required by authoring rules. A substantive conflict with an existing obligation is assessed on its
 consequence. When implementation and a Design disagree, the reviewer investigates which side needs correction and
@@ -108,17 +112,20 @@ recommends an outcome for the user to decide.
 
 Execution defaults to in-session review. Ordinary invocation language selects independent review by one isolated
 reviewer or multi-agent review by two. The execution reference defines initial isolation from coordinator conclusions
-and other reviewers, retained context, evidence-based reconciliation and early stopping. Multi-agent review has a fixed
-maximum of three rounds including the first; later rounds occur only when needed to reach an outcome. Settled findings
-leave active discussion but remain in the final report, and consequential unresolved disagreement is explained.
+and other reviewers, including persistent memories and cached reviews, retained context during reconciliation and early
+stopping. Multi-agent review has a fixed maximum of three rounds including the first; later rounds occur only when
+needed to reach an outcome. Settled findings leave active discussion but remain in the final report, and consequential
+unresolved disagreement is explained.
 
 Review is read-only and returns one report in the conversation. Delegated reviewers receive explicit prohibitions on
 mutations and development checks in every round. They route concrete evidence requests to the coordinator, which may
 undertake a necessary, focused, non-mutating investigation once under existing user authority. The report leads with
-`SHIP`, `CONDITIONAL` or `NO-SHIP` when there is enough evidence for a verdict, scales detail with severity, and
-explains material uncertainty in prose. It has no confidence scores or routine validation inventory. Review does not fix
-or publish; the adopting maintainer owns whether its recommendation is advisory or blocking. Non-interactive invocation
-policy remains outside this package.
+`SHIP`, `CONDITIONAL` or `NO-SHIP` when there is enough evidence for a verdict and uses a compact summary table for
+multiple findings. Detail scales with severity; minor advisories remain in the table without repeated explanations.
+Material uncertainty is explained in prose. Scratch artifact generation, tool downloads and other mutations need
+separate authority. The report has no confidence scores or routine validation inventory. Review does not fix or publish;
+the adopting maintainer owns whether its recommendation is advisory or blocking. Non-interactive invocation policy
+remains outside this package.
 
 The compatible CLI is a prerequisite for CLI-backed authoring. Installed skills, harness hooks and repository gates are
 separate, opt-in integration layers. The coordinator inspects existing configuration before offering them as separate
