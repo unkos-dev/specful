@@ -12,7 +12,7 @@ lefthook = "2.1.14"
 # markdownlint-compatible linter shipped as a single binary, so it needs no
 # Node toolchain in a Rust-only repository.
 rumdl = "0.2.73"
-snyk = "1.1307.2"
+snyk = "1.1307.3"
 typos = "1.50.2"
 zizmor = "1.30.1"
 
