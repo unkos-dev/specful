@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Upgrade guidance
+
+- A frontmatter or configuration key with no value, such as `x-note:`, is now a loading error instead of resolving to
+  `null`, matching the documented rule that empty unquoted scalars are rejected. Write `x-note: null` for an intended
+  null, or `x-note: ""` for an empty string.
+
 ## [0.5.4](https://github.com/unkos-dev/specful/compare/v0.5.3...v0.5.4) - 2026-09-18
 
 ### Fixed

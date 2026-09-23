@@ -183,8 +183,9 @@ rewrite these values.
 Frontmatter uses the JSON-compatible subset of YAML 1.2. Its top-level value is a mapping with string keys, and every
 loaded value must belong to the JSON data model: null, boolean, number, string, array, or object.
 
-Custom tags, anchors, aliases, merge keys, and complex mapping keys are invalid. Dates are strings governed by their
-field schema rather than YAML-specific timestamp values. These restrictions apply to core and extension fields.
+Custom tags, anchors, aliases, merge keys, complex mapping keys, and empty unquoted values, including a key with no
+value, are invalid: write `null` or quote an intentional empty string. Dates are strings governed by their field schema
+rather than YAML-specific timestamp values. These restrictions apply to core and extension fields.
 
 Required core fields are present and meaningful. Optional core fields are omitted when unavailable or inapplicable. A
 present core field cannot be null, an empty or whitespace-only string, or an empty array. Extension fields may use any
