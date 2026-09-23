@@ -135,6 +135,45 @@ fn index_commands_preserve_indexes_with_unsupported_encodings() {
 }
 
 #[test]
+fn rejects_keys_without_values_in_config_and_frontmatter() {
+    let scratch = copy_fixture("valid-repo", "omitted-values");
+    let config = scratch.path().join(".specful/config.yaml");
+    let config_source = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("{config_source}x-owner:\n")).unwrap();
+    let adr = scratch
+        .path()
+        .join("docs/adr/0001-store-progress-events.md");
+    let adr_source = std::fs::read_to_string(&adr).unwrap();
+    std::fs::write(
+        &adr,
+        adr_source.replacen(
+            "decided-on: 2026-08-01\n",
+            "decided-on: 2026-08-01\nx-note:\n",
+            1,
+        ),
+    )
+    .unwrap();
+
+    let (ok, output) = run_specful(&["validate", scratch.path().to_str().unwrap()]);
+    assert!(!ok, "{output}");
+    let message = "empty unquoted value; write null or quote an intentional empty string";
+    assert!(
+        output.contains(&format!(".specful/config.yaml:6: {message}")),
+        "{output}"
+    );
+
+    std::fs::write(&config, config_source).unwrap();
+    let findings = validate_repository(scratch.path());
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    assert!(
+        rendered.contains(&format!(
+            "docs/adr/0001-store-progress-events.md:9: {message}"
+        )),
+        "{rendered:#?}"
+    );
+}
+
+#[test]
 fn reports_unsupported_file_encodings() {
     let scratch = copy_fixture("valid-repo", "encodings");
     for path in [

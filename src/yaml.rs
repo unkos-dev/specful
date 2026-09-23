@@ -1,11 +1,11 @@
 //! Restricted YAML loading for frontmatter and repository configuration.
 //!
 //! Specful accepts a deliberately small YAML subset. Anchors, aliases, tags,
-//! merge keys, complex keys, duplicate keys, and empty unquoted scalars are
-//! loading errors. Plain scalars resolve under the restricted schema: exact
-//! lowercase `null`, `true`, and `false` and RFC 8259 numbers take their JSON
-//! values; every other non-empty plain scalar is a string. Quoted scalars are
-//! always strings.
+//! merge keys, complex keys, duplicate keys, and empty unquoted scalars,
+//! including a key with no value, are loading errors. Plain scalars resolve
+//! under the restricted schema: exact lowercase `null`, `true`, and `false`
+//! and RFC 8259 numbers take their JSON values; every other non-empty plain
+//! scalar is a string. Quoted scalars are always strings.
 
 use crate::diagnostics::Finding;
 use saphyr_parser::{Event, Marker, Parser, ScalarStyle, ScanError, Span, Tag};
@@ -450,7 +450,7 @@ fn resolve_scalar(
         findings.push(Finding::new(
             path,
             Some(line),
-            "empty plain scalar; quote an intentional empty string",
+            "empty unquoted value; write null or quote an intentional empty string",
         ));
         return serde_json::Value::String(String::new());
     }
@@ -632,18 +632,35 @@ mod tests {
     }
 
     #[test]
-    fn empty_plain_scalar_rejected() {
-        // An anchor with no scalar text after it is the one syntax that
-        // produces a genuinely empty plain scalar event (as opposed to
-        // `a:` with a missing value, which the parser fills in as `~`).
-        let err = load("a: &x\nb: 1\n").unwrap_err();
-        assert!(err.iter().any(|f| f.message.contains("empty plain scalar")));
+    fn omitted_mapping_value_rejected_on_its_key_line() {
+        let err = load("a: 1\nb:\nc: 2\n").unwrap_err();
+        assert_eq!(err.len(), 1, "{err:?}");
+        assert_eq!(err[0].line, Some(2));
+        assert!(err[0].message.contains("empty unquoted value"));
     }
 
     #[test]
-    fn omitted_value_resolves_to_null() {
-        let value = load("a:\nb: 1\n").expect("valid document");
-        assert_eq!(value, serde_json::json!({"a": null, "b": 1}));
+    fn omitted_sequence_item_rejected() {
+        let err = load("a:\n  -\n  - 1\n").unwrap_err();
+        assert!(
+            err.iter()
+                .any(|f| f.message.contains("empty unquoted value"))
+        );
+    }
+
+    #[test]
+    fn omitted_flow_mapping_value_rejected() {
+        let err = load("a: {b: }\n").unwrap_err();
+        assert!(
+            err.iter()
+                .any(|f| f.message.contains("empty unquoted value"))
+        );
+    }
+
+    #[test]
+    fn explicit_null_and_quoted_empty_string_accepted() {
+        let value = load("a: null\nb: \"\"\n").expect("valid document");
+        assert_eq!(value, serde_json::json!({"a": null, "b": ""}));
     }
 
     #[test]

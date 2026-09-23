@@ -20,8 +20,9 @@ snapshot, and never decreases. The value `10000` is the exhausted sentinel and i
 ## Loading and root selection
 
 Configuration is restricted YAML without Markdown frontmatter or a body. Duplicate keys, explicit tags, anchors,
-aliases, merge keys, complex keys, empty unquoted scalars, and invalid UTF-8 are rejected. Exact lowercase JSON
-primitives and RFC 8259 numbers resolve to their JSON values; other non-empty scalars are strings.
+aliases, merge keys, complex keys, empty unquoted scalars (including a key with no value), and invalid UTF-8 are
+rejected. Exact lowercase JSON primitives and RFC 8259 numbers resolve to their JSON values; other non-empty scalars are
+strings.
 
 Save configuration, Markdown artifacts and generated views as UTF-8 without a byte-order mark (BOM). Specful does not
 automatically convert UTF-16 or legacy encodings. Non-ASCII text is supported within each profile's field constraints.
