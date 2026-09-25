@@ -33,7 +33,7 @@ version_prefix = "v"
 filter_bins = "dist"
 
 [tools."github:nextest-rs/nextest"]
-version = "0.9.145"
+version = "0.9.146"
 version_prefix = "cargo-nextest-"
 filter_bins = "cargo-nextest"
 
