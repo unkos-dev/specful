@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.5](https://github.com/unkos-dev/specful/compare/v0.5.4...v0.5.5) - 2026-09-26
+
+### Fixed
+
+- *(yaml)* reject keys without values under saphyr-parser 0.1.0 ([#192](https://github.com/unkos-dev/specful/pull/192))
+
+### Dependencies
+
+- *(deps)* update rust crate jsonschema to 0.57.0 ([#198](https://github.com/unkos-dev/specful/pull/198))
+
 ### Upgrade guidance
 
 - A frontmatter or configuration key with no value, such as `x-note:`, is now a loading error instead of resolving to
