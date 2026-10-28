@@ -19,6 +19,13 @@ mutable description of how it currently works;
   the obvious or omits that reasoning fails its purpose;
 - the decision is not one another ADR already records, and one decision is not split across records.
 
+Corrections may update any section or factual metadata of an accepted, deprecated, or superseded ADR, including moving
+misplaced implementation details or obligations into Designs or Requirements. Check that the record retains the choice,
+rationale, credible alternatives, and material consequences, and that later knowledge is not presented as the original
+rationale. A finding that requires supersession identifies a change to the architectural choice, scope, or operative
+conditions; accepted status, the section edited, and diff size alone are not grounds. The maintainer resolves
+uncertainty. An authorised correction needs no renewed acceptance, special exception, or mandatory amendment log.
+
 Do not require a fixed number of options, reject an option solely because it lost, demand a Requirement for an internal
 choice that creates no observable obligation, or report prose preferences without a consequence; a prose preference
 without a purpose-fit consequence remains unreportable.

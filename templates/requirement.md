@@ -24,8 +24,8 @@ verifiable duties, split them into separate Requirements. Requirements describe 
 though the system has always carried them; delivery status, migration history, and rejected alternatives do not belong
 here, and durable rationale for a governing decision belongs in the ADR that `governed-by` cites (remove the field when
 no ADR governs this obligation). The boundary: a Requirement binds the system and is rewritten in place; an ADR records
-a choice and is only ever superseded. When a decision's outcome needs to bind, it is stated here, not in the ADR. Delete
-this paragraph.}
+a choice and is superseded when that choice changes. When a decision's outcome needs to bind, it is stated here, not in
+the ADR. Delete this paragraph.}
 
 ## Statement
 

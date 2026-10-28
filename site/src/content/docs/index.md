@@ -29,7 +29,7 @@ Specful distinguishes artifacts by responsibility:
 |---|---|---|
 | Requirement | States one obligation the software carries now | Rewritten or deleted in place |
 | Design | Describes how one subject currently works | Rewritten or deleted in place |
-| ADR | Records why a durable decision was made | Retained and superseded |
+| ADR | Records why a durable decision was made | Corrected in place; changed decisions superseded |
 | Plan | Coordinates an active transition | Temporary; archived or deleted on completion |
 | Git | Preserves what used to be true | Repository history |
 
