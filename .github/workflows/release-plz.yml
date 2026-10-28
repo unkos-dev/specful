@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: ./.github/actions/rust-toolchain
+      - uses: $/.github/actions/rust-toolchain
 
       - name: Generate GitHub App token
         id: app-token
@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: ./.github/actions/rust-toolchain
+      - uses: $/.github/actions/rust-toolchain
 
       - name: Generate GitHub App token
         id: app-token

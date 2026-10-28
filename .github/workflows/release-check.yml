@@ -47,7 +47,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
         if: steps.select.outputs.build == 'true'
         with:
           mise-install-args: github:axodotdev/cargo-dist
