@@ -140,7 +140,7 @@ sharing a build or a cache with the pull-request check), stages the output under
 site's configured base path, runs an offline `lychee` pass as a hard gate over that staged output and an advisory pass
 over live external links, then uploads and deploys through the official Pages actions. The build job carries no Pages
 permissions; only the `deploy` job does, scoped to `pages: write` and `id-token: write`. Neither workflow's build job
-uses `./.github/actions/setup` or an `actions/cache`-backed dependency cache: the setup composite leaves mise-action's
+uses `$/.github/actions/setup` or an `actions/cache`-backed dependency cache: the setup composite leaves mise-action's
 own cache on by default, and this build's output is what a privileged job later deploys, so its dependency install stays
 uncached end to end.
 

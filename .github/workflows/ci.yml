@@ -20,16 +20,16 @@ jobs:
   # never report and leave every pull request pending. Filtering lives inside
   # each called workflow.
   rust:
-    uses: ./.github/workflows/rust.yml
+    uses: $/.github/workflows/rust.yml
 
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: $/.github/workflows/lint.yml
 
   deps:
-    uses: ./.github/workflows/deps.yml
+    uses: $/.github/workflows/deps.yml
 
   snyk:
-    uses: ./.github/workflows/snyk.yml
+    uses: $/.github/workflows/snyk.yml
     permissions:
       contents: read
       security-events: write
@@ -37,4 +37,4 @@ jobs:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   docs:
-    uses: ./.github/workflows/docs.yml
+    uses: $/.github/workflows/docs.yml
