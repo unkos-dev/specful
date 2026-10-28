@@ -53,7 +53,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          app-id: ${{ secrets.RELEASE_PLZ_APP_ID }}
+          client-id: ${{ vars.RELEASE_PLZ_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_PLZ_APP_PRIVATE_KEY }}
           # Narrow the minted token below the App's own installation grant:
           # opening/updating the release PR and pushing its branch needs
@@ -90,7 +90,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          app-id: ${{ secrets.RELEASE_PLZ_APP_ID }}
+          client-id: ${{ vars.RELEASE_PLZ_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_PLZ_APP_PRIVATE_KEY }}
           # Narrow the minted token below the App's own installation grant:
           # tagging and creating the GitHub release needs contents write;

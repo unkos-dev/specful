@@ -1,7 +1,7 @@
 # Pinned tools for justfile recipes and agent hooks. CI uses the same pins
 # through mise-action for tools shared with local checks.
 [tools]
-actionlint = "1.7.12"
+jactionlint = "2.3.0"
 # Documentation site toolchain (site/): bun install and bun run build.
 bun = "1.4.4"
 gitleaks = "8.30.1"
