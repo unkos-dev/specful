@@ -74,8 +74,8 @@ specful-validate:
 
 # Workflow syntax and expression lint.
 [group('lint')]
-actionlint:
-    actionlint -color
+jactionlint:
+    jactionlint --color=always
 
 # --config is explicit: from a linked worktree zizmor does not discover
 # .github/zizmor.yml, and every suppression in it would silently stop applying.
@@ -96,4 +96,4 @@ check: fmt-check clippy doc-lint test
 
 # Local gates CI also runs; see .github/workflows/README.md for the CI-only differences.
 [group('aggregate')]
-preflight: check doctests machete deny typos markdownlint skills-ref specful-validate actionlint zizmor gitleaks
+preflight: check doctests machete deny typos markdownlint skills-ref specful-validate jactionlint zizmor gitleaks

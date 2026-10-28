@@ -21,10 +21,10 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          mise-install-args: just actionlint zizmor
+          mise-install-args: just jactionlint zizmor
 
       - name: Lint workflow files
-        run: just actionlint
+        run: just jactionlint
 
       - name: Workflow security audit (zizmor)
         run: just zizmor
