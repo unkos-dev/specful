@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.5](https://github.com/unkos-dev/specful/compare/v0.5.4...v0.5.5) - 2026-10-28
+
+### Fixed
+
+- *(yaml)* reject keys without values under saphyr-parser 0.1.0 ([#192](https://github.com/unkos-dev/specful/pull/192))
+
+### Other
+
+- *(adr)* allow corrections without supersession ([#239](https://github.com/unkos-dev/specful/pull/239))
+
+### Dependencies
+
+- *(deps)* update rust crate jsonschema to 0.60.0 ([#240](https://github.com/unkos-dev/specful/pull/240))
+- *(deps)* update rust crate pulldown-cmark to v0.13.5 ([#231](https://github.com/unkos-dev/specful/pull/231))
+- *(deps)* lock file maintenance ([#224](https://github.com/unkos-dev/specful/pull/224))
+- *(deps)* update rust crate jsonschema to 0.58.0 ([#205](https://github.com/unkos-dev/specful/pull/205))
+- *(deps)* lock file maintenance ([#210](https://github.com/unkos-dev/specful/pull/210))
+- *(deps)* lock file maintenance ([#202](https://github.com/unkos-dev/specful/pull/202))
+- *(deps)* update rust crate jsonschema to 0.57.0 ([#198](https://github.com/unkos-dev/specful/pull/198))
+
 ### Upgrade guidance
 
 - Accepted and terminal ADRs may be corrected in place, including moving misplaced content into Designs or
