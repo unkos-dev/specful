@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Upgrade guidance
 
+- Accepted and terminal ADRs may be corrected in place, including moving misplaced content into Designs or
+  Requirements, while preserving the architectural decision. Supersession remains required when the choice, scope, or
+  operative conditions change. Refresh installed skills with
+  `gh skill install unkos-dev/specful --all --scope user --pin <TAG> --force`, replacing `<TAG>` with the release tag
+  matching the installed binary, to receive the correction workflow. Existing records need no migration or
+  profile-version change.
 - A frontmatter or configuration key with no value, such as `x-note:`, is now a loading error instead of resolving to
   `null`, matching the documented rule that empty unquoted scalars are rejected. Write `x-note: null` for an intended
   null, or `x-note: ""` for an empty string.

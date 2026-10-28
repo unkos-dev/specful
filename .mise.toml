@@ -6,21 +6,21 @@ actionlint = "1.7.12"
 bun = "1.4.4"
 gitleaks = "8.30.1"
 jq = "1.8.2"
-just = "1.58.0"
+just = "1.59.0"
 # Git hook manager for the pre-push corpus check in lefthook.yml.
 lefthook = "2.2.2"
 # markdownlint-compatible linter shipped as a single binary, so it needs no
 # Node toolchain in a Rust-only repository.
 rumdl = "0.3.0"
-snyk = "1.1307.4"
+snyk = "1.1308.3"
 typos = "1.51.1"
-zizmor = "1.30.1"
+zizmor = "1.31.1"
 
 # Reference validator for the Agent Skills spec, pinned to an exact commit of its
 # subdirectory in the upstream monorepo; it is a demonstration tool, so Rust
 # checks in tests/plugin_package.rs back it with direct frontmatter assertions.
-[tools."pipx:git+https://github.com/agentskills/agentskills.git"]
-version = "69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
+[tools."pipx:git+https://github.com/agentskills/agentskills.git#subdirectory=skills-ref"]
+version = "69ef37e9424c0a7ea9dd2293b559e43ec8176379"
 
 # Prebuilt Rust tools. The GitHub backend verifies published checksums and
 # provenance where upstream ships them.
@@ -28,7 +28,7 @@ version = "69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
 version = "0.5.4"
 
 [tools."github:axodotdev/cargo-dist"]
-version = "0.33.0"
+version = "0.33.1"
 version_prefix = "v"
 filter_bins = "dist"
 

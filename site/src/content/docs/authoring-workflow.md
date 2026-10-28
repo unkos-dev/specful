@@ -39,7 +39,7 @@ verification; skip steps 3-5 when no artifact change is warranted.
 |---|---|---|
 | Normative obligation | Requirement | Rewrite in place |
 | How the system works | Design | Rewrite in place |
-| Durable decision rationale | ADR | New record, old one superseded |
+| Durable decision rationale | ADR | Corrected in place; changed decisions superseded |
 | Active transition | Plan | Archived or deleted once the transition lands |
 | What used to be true | Git history | Never restated in current-state docs |
 

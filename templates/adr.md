@@ -21,10 +21,12 @@ superseded-by:
 Consequences are required; Pros and cons of the options and More information are optional and are removed completely
 when they add no useful decision evidence. An ADR records a decision, not an obligation: the outcome says "chosen
 option: X, because ...", never "the system MUST". An obligation created by this decision belongs in a Requirement that
-cites this ADR through `governed-by`; once accepted, this record is never rewritten and only superseded, except More
-information, which may be edited in place. `decision-makers` is required; remove `decided-on` and the supersession
-fields that do not apply. The document is complete only when no braced text remains and `specful validate` passes.
-Delete this block last.}
+cites this ADR through `governed-by`. Accepted and terminal records may be corrected in any section or factual metadata
+while preserving the decision, including moving misplaced content into a Design or Requirement. Keep the choice,
+rationale, credible alternatives, and material consequences. A change to the choice, scope, or operative conditions
+requires supersession. An authorised correction needs no renewed acceptance or amendment log; Git preserves earlier
+versions. `decision-makers` is required; remove `decided-on` and the supersession fields that do not apply. The document
+is complete only when no braced text remains and `specful validate` passes. Delete this block last.}
 
 ## Context and problem statement
 
