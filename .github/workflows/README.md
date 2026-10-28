@@ -151,10 +151,10 @@ union of what its jobs declare. The `snyk` caller job is the one exception to th
 its `code` job needs `security-events: write` to upload SARIF, so `ci.yml` grants that at the caller job, mirroring the
 job-level grant already in `snyk.yml`.
 
-| Secret | Used by | When absent |
+| Secret or variable | Used by | When absent |
 | --- | --- | --- |
 | `SNYK_TOKEN` | `snyk` / `code` | Scan is skipped; job passes. |
-| `RELEASE_PLZ_APP_ID` | `release-plz` | Token mint fails; run fails. |
+| `RELEASE_PLZ_CLIENT_ID` (variable) | `release-plz` | Token mint fails; run fails. |
 | `RELEASE_PLZ_APP_PRIVATE_KEY` | `release-plz` | Token mint fails; run fails. |
 | `CARGO_REGISTRY_TOKEN` | `release-plz` / `release` | Publish fails. |
 
