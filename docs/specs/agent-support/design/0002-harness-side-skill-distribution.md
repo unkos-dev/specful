@@ -94,9 +94,11 @@ decisions, delivered artifacts and evidence revisions. It records documentation 
 affected by later source changes. It delegates artifact craft to the authoring skills and uses indexing and validation
 for their stated mechanical checks. Substantive review follows adopter policy or an explicit user request.
 
-Authoring skills scaffold through `specful new`, guide completion of one artifact type, and finish with indexing and
-mechanical validation. They point to substantive review when the adopting repository requires it or the user asks for
-it. Operation skills run the matching CLI command or commands and report the result.
+Authoring skills scaffold new records through `specful new`, guide completion of one artifact type, and finish with
+indexing and mechanical validation. The ADR skill also guides corrections to existing records, including moving
+misplaced content into Designs or Requirements while preserving the decision. They point to substantive review when the
+adopting repository requires it or the user asks for it. Operation skills run the matching CLI command or commands and
+report the result.
 
 `specful-review` resolves a PR, plan, branch, commit, local change or named artifact and records the inspected scope. It
 assesses correctness, technical fitness, relevant standards, simplification and applicable Specful authority, loading

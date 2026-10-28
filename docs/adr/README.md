@@ -35,8 +35,8 @@ Every completed ADR contains:
 - Consequences.
 
 Pros and cons of the options and More information are conditional sections. They are included only when they add
-material decision evidence. More information is the one section that may be edited in place after acceptance; it never
-restates a `satisfies`, `governed-by`, `supersedes`, or `superseded-by` relationship the frontmatter already carries.
+material decision evidence. More information never restates a `satisfies`, `governed-by`, `supersedes`, or
+`superseded-by` relationship the frontmatter already carries.
 
 ## Identifiers
 
@@ -60,9 +60,9 @@ change the identifier grammar. Supporting a wider sequence requires a later prof
 
 The adopting repository stores `next-adr-sequence` in `.specful/config.yaml` as the next value available for allocation.
 It starts at `1`, advances atomically with each durable allocation, and never decreases when an ADR is deleted. The
-value must be greater than every ADR sequence present in the current snapshot. Transition validation rejects a decrease
-and requires each newly allocated sequence to consume the prior next value. Allocating several ADRs in one transition
-consumes consecutive values and advances the high-water mark by the same count.
+value must be greater than every ADR sequence present in the current snapshot. Across edits, the counter never
+decreases, and each newly allocated sequence consumes the prior next value. Allocating several ADRs consumes consecutive
+values and advances the high-water mark by the same count.
 
 `next-adr-sequence` may range from `1` through `10000`; `10000` is an exhausted sentinel and is never allocated to an
 ADR. Brownfield initialization sets the value to one greater than the highest imported sequence, or to `1` when no ADR
@@ -130,14 +130,14 @@ old record.
 
 ## Dates
 
-`recorded-on` is required and records the date the ADR entered the repository. It is immutable.
+`recorded-on` is required and records the date the ADR entered the repository.
 
 `decided-on` records the date the decision became authoritative. It is omitted while an ADR is `proposed` and when the
-acceptance date of a brownfield decision is unknown. Accepted and terminal ADRs include it when that date is known. Once
-present, it is immutable.
+acceptance date of a brownfield decision is unknown. Accepted and terminal ADRs include it when that date is known.
 
-Both fields use the RFC 3339 full-date form `YYYY-MM-DD`. Deprecation, supersession, corrections, and renames do not
-alter either date. Git history records those later events.
+Both fields use the RFC 3339 full-date form `YYYY-MM-DD`. An erroneous date may be corrected, but neither field is an
+edit timestamp. Deprecation, supersession, content corrections, and renames do not reset either date. Git history
+records those later events.
 
 The metadata schema applies both an exact lexical pattern and the JSON Schema `date` format. Specful validation
 independently verifies that each value is a real RFC 3339 calendar date and does not rely on an external validator to
@@ -229,8 +229,8 @@ published, that identifier must never be reassigned to a different validation co
 
 Language-neutral positive and negative cases are stored in `schemas/adr/v1.cases.json`. Each case contains a loaded
 JSON-compatible frontmatter instance and its expected schema validity. These cases cover only the JSON Schema boundary.
-YAML loading, Markdown, filenames, repository relationships, configuration, and transitions remain separate validator
-responsibilities.
+YAML loading, Markdown, filenames, repository relationships, and configuration remain separate validator
+responsibilities. Lifecycle rules across edits require author and reviewer checks.
 
 Every ADR contains the required discriminator `type: ADR` and integer `profile-version: 1`. These fields identify the
 artifact and its complete Specful conformance profile without relying on its repository path. The path, filename, and
@@ -243,32 +243,22 @@ valid creates the next integer version instead, editorial corrections and equiva
 and existing documents retain their declared profile version until explicitly migrated. Extension usage does not change
 the profile version.
 
-Reading, indexing, and validation never migrate documents. Supported older profile versions are validated against their
-declared schemas and semantic rules, and an unknown newer profile version is an error rather than a fallback target.
-Only an explicit `specful migrate` operation may transform documents to another profile version. Migration updates
-affected documents, references, and generated artifacts as one logical operation for review in Git.
+Reading, indexing, and validation never migrate documents. An unsupported profile version is an error rather than a
+fallback target. The CLI has no automated migration command. Profile changes require the manual repository edits
+described in the release notes, with affected documents, references, and generated artifacts reviewed together in Git.
 
 JSON Schema validates the loaded frontmatter value. Specful document validation enforces invariants that cross into
 Markdown content, filenames, other artifacts, or repository state, including title parity and reciprocal supersession.
 
-Specful separates current-state validation from transition validation. Current-state validation evaluates one repository
-snapshot and does not inspect Git history. It verifies that each document and the complete document set are internally
-valid.
+The CLI performs current-state validation: it evaluates one repository snapshot without inspecting Git history and
+verifies that each document and the complete document set are internally valid. It does not implement transition
+validation or compare before and after snapshots. Authors and reviewers check rules that depend on earlier state,
+including forward-only status changes, identifier stability and non-reuse, allocation-counter progression, and
+preservation of established supersession relationships.
 
-Transition validation compares a valid before snapshot with a valid after snapshot. It enforces lifecycle rules that
-cannot be inferred from either snapshot alone, including forward-only status changes, immutable fields, identifier
-non-reuse, and the establishment or preservation of supersession relationships. Specful authoring commands apply
-transition validation to their proposed changes. Continuous integration may apply the same validation to a base and
-proposed repository snapshot, including changes made without Specful authoring commands.
-
-After an ADR first reaches `accepted`, transition validation emits a non-blocking review warning when its Markdown body
-or non-lifecycle metadata changes. Expected lifecycle metadata changes comprise forward status changes, supersession
-relationships governed by the status matrix, and the one-time addition of a previously unknown `decided-on` date. The
-warning does not make the transition invalid. An adopting project may promote it into blocking local policy.
-
-Transition validation does not reconstruct or require complete Git history. Brownfield adoption establishes the first
-validated snapshot as its baseline. Historical auditing, if introduced, remains a separate operation and does not change
-current-state validity.
+Changes to an ADR's Markdown body or factual metadata do not themselves trigger a review warning. Whether an edit
+corrects the record or changes the decision is an authoring and review judgement under the lifecycle rules below, rather
+than a mechanical conformance condition.
 
 ## Extensions
 
@@ -361,13 +351,24 @@ local review policy without changing the Specful profile.
 
 ## Lifecycle
 
-The substantive content of an accepted ADR is expected to remain stable, with one exception: More information may be
-edited in place, since it is evidence depth rather than part of the decision event. Whether a content edit is
-substantive requires engineering judgement, so this expectation is a review rule rather than a conformance condition. A
-later decision that replaces an accepted ADR is recorded in a new ADR, and the relationship between the records is
-expressed through their metadata, which `specful show` reports rather than a prose restatement.
+Accepted, deprecated, and superseded ADRs may be corrected and clarified in place while preserving the architectural
+decision being recorded. Corrections may update any section and factual metadata, including context, rationale,
+alternatives, consequences, dates, and participant names. Later knowledge must not be presented as the original reason
+for the decision. The identifier remains unchanged, and corrections do not change lifecycle state or supersession
+relationships.
 
-Git records editorial history. Requirements and design descriptions continue to describe current state and do not absorb
-ADR chronology.
+Implementation details and obligations that belong in a Design or Requirement may be moved out of an ADR without
+supersession when the decision remains unchanged. The ADR retains the choice, its rationale, credible alternatives, and
+material consequences. The destination artifacts cite the ADR through `governed-by` where its rationale governs them.
+
+A change to the architectural choice, its scope, or its operative conditions is a new decision and is recorded through
+supersession. The replacement and replaced records carry the reciprocal metadata relationships, which `specful show`
+reports rather than a prose restatement. A reviewer recommending supersession identifies the decision that changes;
+accepted status, the section edited, and diff size are not sufficient grounds.
+
+The maintainer owns lifecycle decisions and resolves uncertainty about whether an edit corrects the record or changes
+the decision. An authorised correction needs no renewed acceptance, special exception, or mandatory amendment log. Git
+preserves earlier versions. Requirements and Designs continue to describe current state and do not absorb ADR
+chronology.
 
 The ADR v1 metadata profile is fully specified above and ready to encode in its canonical schema.

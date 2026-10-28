@@ -4,8 +4,8 @@ description: What an Architecture Decision Record is, its sections, and the boun
 ---
 
 An Architecture Decision Record (ADR) records why a durable decision was made: the context, the options considered, and
-the outcome. Once accepted, an ADR is never rewritten, only superseded by a new record, with one exception:
-**More information** may be edited in place, since it is evidence depth rather than part of the decision event.
+the outcome. An accepted ADR may be corrected in place while preserving the decision. A changed architectural decision
+is recorded through supersession.
 
 ## Identity and file layout
 
@@ -34,6 +34,25 @@ docs/adr/<sequence>-<short-title>.md
 Supersession is the one relationship stored in both directions: both the replaced and replacement records carry
 reciprocal links, so either document remains independently navigable, and validation treats disagreement between those
 links as an error.
+
+## Corrections and supersession
+
+Accepted, deprecated, and superseded ADRs may be corrected and clarified in any section and factual metadata, including
+context, rationale, alternatives, consequences, dates, and participant names. Later knowledge must not be presented as
+the original reason for the decision. The identifier remains unchanged, and corrections do not change lifecycle state or
+supersession relationships. Date fields continue to identify the original recording and decision events; correct an
+erroneous date, but do not reset it when editing the record.
+
+Implementation details and obligations that belong in a Design or Requirement may be moved out of an ADR without
+supersession when the decision remains unchanged. The ADR retains the choice, its rationale, credible alternatives, and
+material consequences. The destination artifacts cite the ADR through `governed-by` where its rationale governs them.
+
+A change to the architectural choice, its scope, or its operative conditions is a new decision and requires
+supersession. The maintainer resolves uncertainty about whether an edit corrects the record or changes the decision. An
+authorised correction needs no renewed acceptance, special exception, or mandatory amendment log. Git preserves earlier
+versions. A reviewer recommending supersession identifies the decision that changes; accepted status, the section
+edited, and diff size are not sufficient grounds. Body and factual metadata edits do not themselves trigger a validation
+warning; the distinction is an authoring and review judgement rather than a mechanical conformance rule.
 
 ## Sections
 
@@ -82,9 +101,10 @@ are deleted. `status` drops MADR's `rejected` value. No frontmatter key outside 
 
 A Requirement binds the system; an ADR records a choice. A Requirement states what must be true of the system now,
 observable and yes/no checkable, and is rewritten in place when it changes. An ADR records a decision event, with its
-alternatives and reasoning, and is never rewritten, only superseded. The seam is `governed-by`: when a decision creates
-an obligation, the ADR carries the why-this-over-that and a Requirement carries the enforceable now, linked through
-`governed-by`. Neither duplicates the other: an ADR cannot bind, and a Requirement does not explain the road not taken.
+alternatives and reasoning; corrections preserve that decision, while a changed decision requires supersession. The seam
+is `governed-by`: when a decision creates an obligation, the ADR carries the why-this-over-that and a Requirement
+carries the enforceable now, linked through `governed-by`. Neither duplicates the other: an ADR cannot bind, and a
+Requirement does not explain the road not taken.
 
 With Design in the same picture, the triangle is complete: Requirement is what must hold, Design is how the system
 currently works, ADR is why the durable choices were made. Most internal technology choices produce an ADR and Design
@@ -94,7 +114,8 @@ where an externally imposed constraint (a mandated protocol, format, mechanism, 
 Two litmus questions settle nearly every case:
 
 1. Could tooling or a test ever check it against the system? Yes: Requirement. No, the value is the reasoning: ADR.
-2. If it stopped being true tomorrow, would it be rewritten or superseded? Rewritten: Requirement. Superseded: ADR.
+2. If the obligation or architectural decision changed tomorrow, would its record be rewritten or superseded? Rewritten:
+   Requirement. Superseded: ADR. Correcting the record does not itself change the decision.
 
 The discipline that keeps the line crisp: an ADR outcome never says "the system MUST", and whether a decision is being
 followed is read from the Requirements and Designs that cite it through `governed-by`, not from the record itself. See
