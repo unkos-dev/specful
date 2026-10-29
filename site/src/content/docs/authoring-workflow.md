@@ -131,8 +131,8 @@ establish approval. Keep unresolved material choices in Open decisions without d
 answers settle only the questions they address. Keep unapproved documentation proposals distinct from committed tasks.
 Routine implementation choices within authorised scope remain the executor's discretion.
 
-Once this plan is approved and implementation is authorised, execute it as written. Stop and obtain approval before any
-deviation.
+Each plan's execution contract requires it to be executed as written once the plan is approved and implementation is
+authorised. Any deviation stops for approval.
 
 Plan approval and implementation authorisation are separate. `specful-implement` executes one step, stops when the
 repository contradicts the plan or correctness requires a deviation, records the evidence, and waits for approval. It

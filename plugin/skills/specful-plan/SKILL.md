@@ -84,8 +84,8 @@ when that subject has no Design the row names the subject by path, gives the dis
 with the proposal made or declined. Remove an optional frontmatter field that does not apply. `type`, `status`, and
 `created` are required. `issue`, `relates-to`, and `part-of` are optional where present.
 
-Once this plan is approved and implementation is authorised, execute it as written. Stop and obtain approval before any
-deviation.
+Each plan's execution contract requires it to be executed as written once the plan is approved and implementation is
+authorised. Any deviation stops for approval.
 
 Write tasks only for settled scope, with material decisions and their basis in Design decisions. Keep unapproved
 documentation proposals distinct from created or updated dispositions and their committed tasks. Write tasks verb-first.

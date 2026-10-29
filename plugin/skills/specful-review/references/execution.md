@@ -83,9 +83,9 @@ consequence for the recommendation. Disagreement alone does not lower the verdic
 supported defects and credible unresolved concerns. Leave decisions about changing project obligations to the user.
 
 For each consequential finding, retain whether it requires a correction or a user decision. A finding of unapproved
-behaviour remains an approval gap in the synthesis, not an instruction to finish designing that behaviour. The author
-may recommend a solution, but the recommendation does not settle the decision. Rejecting or materially narrowing a
-finding requires stated contrary evidence, not the author's preference.
+behaviour remains an approval gap in the synthesis, not an instruction to finish designing that behaviour. The author of
+the reviewed work may recommend a solution, but the recommendation does not settle the decision. Anyone rejecting or
+materially narrowing a finding, including the coordinator, must state contrary evidence; preference is insufficient.
 
 If a reviewer becomes unavailable or loses context, preserve its useful findings and evidence. A replacement is an
 exception, does not reset the round cap, and is not an original independent opinion if it receives prior conclusions.
