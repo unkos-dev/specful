@@ -24,6 +24,11 @@ its intended behaviour through the relevant existing implementation and contract
 whether each dependency can actually be supplied, and whether the proposed boundaries, failure handling and relevant
 standards fit the problem.
 
+Check the governing artifact or explicit user decision behind each material product, interaction or architectural
+choice. Recommendations, implementation limitations, and inclusion in an issue or earlier plan do not establish
+approval. Unresolved choices belong in Open decisions without dependent implementation tasks; partial answers do not
+settle other outstanding questions. Check that documentation proposals remain distinct from committed work.
+
 Report missing decisions that would make an implementer build the wrong solution or become stuck. Distinguish these from
 details an implementer can reasonably decide. Do not demand every implementation detail, an acceptance-evidence matrix,
 or completed tests and artifacts for work that has not begun. A sound plan can receive `SHIP` before implementation.

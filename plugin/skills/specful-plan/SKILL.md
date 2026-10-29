@@ -7,9 +7,9 @@ description: >-
 
 # Planning a change
 
-The plan's reader is an agent with no prior context. Planning is read-only apart from the plan files the user
-authorises. Do not implement, create a branch, commit, publish, or mutate a tracker. Approval of a plan grants no
-implementation authority.
+The plan's reader is an agent with no prior context. Planning authorises only the requested plan files, not
+implementation, branch creation, commits, publication or tracker writes. Approval of a plan grants no implementation
+authority. Honour separately granted user or applicable project-policy authority to maintain settled issue scope.
 
 ## Resolve authority and intent
 
@@ -23,18 +23,28 @@ and existing tests. Use broader search when coverage or directions are missing o
 acceptance criteria and the evidence needed to check them. Follow each touched module through its scope index to the
 Designs and Requirements that describe it, and record a disposition for every affected artifact in the plan's
 Documentation section; "unaffected, because the Design remains accurate" is a complete answer. A pre-existing gap is a
-proposal with its subject, type and durable benefit for the user's decision, not a task, and planning remains read-only
-apart from authorised plan files. This navigation also applies to bounded work that needs no saved plan.
+proposal with its subject, type and durable benefit for the user's decision, not a task. This navigation also applies to
+bounded work that needs no saved plan.
 
-Establish the problem, intended outcome, fixed constraints, and the observable result. Preserve authoritative and
-explicitly approved decisions. Surface contrary evidence instead of silently reopening or overriding them.
+Before recommending an approach, explain in the initial discussion which relevant Requirements, Designs and accepted
+ADRs constrain the change, citing their operative clauses; which decisions the user has already supplied; where current
+implementation conflicts with those constraints; and which material choices remain unresolved. Follow scope indexes and
+relationships to decisive source passages, recovering truncated passages before relying on them. A document inventory
+alone is insufficient. Carry the constraints into Binding inputs and unresolved choices into Open decisions.
+
+Establish the problem, intended outcome and observable result. Preserve authoritative and explicitly approved decisions;
+an implementation limitation does not override them. Surface contrary evidence instead of silently changing them.
 
 ## Decide whether design is settled
 
 Read [planning craft](references/planning-craft.md) and state the invariant before judging the design. Proceed directly
 when the governing artifacts and approved discussion settle the material design. Otherwise inspect the repository,
 gather only evidence that can change the approach, present credible options with a recommendation, and wait for the
-user's decision before writing tasks.
+user's decision before writing dependent tasks. For each material product, interaction or architectural decision,
+identify the governing artifact or explicit user decision that settles it. An agent recommendation, an implementation
+limitation, or inclusion in an issue or earlier plan does not establish approval. Partial answers settle only the
+questions they address; keep other material choices under Open decisions. Routine implementation choices within
+authorised scope remain the executor's discretion.
 
 Gather evidence the executor would otherwise rediscover: precise `path:line` references, the primitives and extension
 points that already exist, the closest useful precedent, the repository's verified validation commands, and the
@@ -74,11 +84,15 @@ when that subject has no Design the row names the subject by path, gives the dis
 with the proposal made or declined. Remove an optional frontmatter field that does not apply. `type`, `status`, and
 `created` are required. `issue`, `relates-to`, and `part-of` are optional where present.
 
-Every statement in a plan is exact; the executor treats deviation as a stop. State an open choice in its task with the
-reason. Write tasks verb-first. Every task verifies with a command and its expected output, and the command fails when
-that task's behaviour is absent. When a task creates or replaces a short file whose content is the specification, quote
-the exact content in the task. Quote an indented replacement line in a fenced block, never a code span. A step's Context
-describes the repository state when the step starts, not the history that produced it.
+Each plan's execution contract requires it to be executed as written once the plan is approved and implementation is
+authorised. Any deviation stops for approval.
+
+Write tasks only for settled scope, with material decisions and their basis in Design decisions. Keep unapproved
+documentation proposals distinct from created or updated dispositions and their committed tasks. Write tasks verb-first.
+Every task verifies with a command and its expected output, and the command fails when that task's behaviour is absent.
+When a task creates or replaces a short file whose content is the specification, quote the exact content in the task.
+Quote an indented replacement line in a fenced block, never a code span. A step's Context describes the repository state
+when the step starts, not the history that produced it.
 
 A maintainer-owned act that must happen after the pull request is green and before merge, such as a required-check
 change, is recorded under Merge conditions. It is never a task or a prerequisite, and the executor reports it unrun.
@@ -97,8 +111,8 @@ Check the plan against each item, then fix what fails:
 - every exit criterion and expected output is checkable without judgement;
 - every step with an irreversible effect has a rollback;
 - every declared dependency edge matches an artifact one step produces and another consumes;
-- every open choice names what is open and why;
-- every deliverable in the objective maps to a task and a verification row;
+- every unresolved material choice is in Open decisions, with no dependent implementation task;
+- every settled deliverable in the objective maps to a task and a verification row; unresolved scope stays explicit;
 - every artifact the Documentation section marks created or updated maps to a task and a verification row, and every
   unaffected disposition states its reason;
 - every Verify command has been run once against the current tree and fails as absence predicts, and its pattern cannot

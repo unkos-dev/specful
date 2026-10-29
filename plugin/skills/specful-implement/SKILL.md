@@ -6,8 +6,12 @@ description: >-
 
 # Implementing a plan
 
-Execute the plan the user names, one step at a time. The plan is the specification. The repository's instructions own
-branching, commits, pushes, and merges; this skill never merges.
+Execute the approved plan the user authorises for implementation, one step at a time. Plan approval alone does not
+authorise implementation. The repository's instructions own branching, commits, pushes, and merges; this skill never
+merges.
+
+Once this plan is approved and implementation is authorised, execute it as written. Stop and obtain approval before any
+deviation.
 
 A change plan is one step. Its frontmatter `status` is the step status. Checkpoint records the last completed task, its
 evidence, and the branch when one exists. Next names the current task and nothing else. Blocked records a deviation and
@@ -41,9 +45,12 @@ code work can follow the workflow directly without a saved plan; this skill rema
 1. Set the step `active` in the Progress log and record the branch when the repository has one. For a change plan, set
    frontmatter `status: active`.
 2. Read the step's Context and confirm it matches the repository. A mismatch is a deviation.
-3. Do the tasks in order. Every statement is exact. An open choice stated in the task with a reason is the executor's;
-   record the choice made in Notes. Where the plan is silent, follow the repository's instructions and do what is
-   correct.
+3. Before each task, check its material product, interaction and architectural choices against the decision basis in
+   Design decisions and Binding inputs, and any outstanding Open decisions. Account for later explicit user decisions
+   and approved amendments, recording them in the plan without seeking approval again for settled choices. Missing or
+   conflicting authority follows Deviation below; task wording alone does not grant approval. Do the tasks in order.
+   Routine implementation choices within authorised scope remain the executor's discretion, subject to repository
+   instructions.
 4. Run each task's Verify command and compare the output to the expected result. A mismatch is a deviation.
 5. Run the step's Verification and the plan's every-step rows. Check the Exit criteria. Complete required local
    verification before publication, including after remediation. For each consequential affected acceptance criterion,
@@ -62,7 +69,8 @@ code work can follow the workflow directly without a saved plan; this skill rema
 ## Deviation
 
 A deviation is anything the plan states that the repository contradicts, any change correctness requires beyond what the
-plan states, or any verification that does not match its expected result.
+plan states, or any verification that does not match its expected result. Missing or conflicting authority for a
+material choice, or an outstanding Open decision on which a task depends, is also a deviation.
 
 1. Stop the step. Do not work around it.
 2. Set the step `blocked`. Record in Notes what the plan states, what was found, and the proposed change with its
