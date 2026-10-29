@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.6](https://github.com/unkos-dev/specful/compare/v0.5.5...v0.5.6) - 2026-10-29
+
+### Fixed
+
+- *(planning)* preserve decision authority through plan execution ([#254](https://github.com/unkos-dev/specful/pull/254))
+
+### Dependencies
+
+- *(deps)* update rust crate saphyr-parser to 0.3.3 ([#253](https://github.com/unkos-dev/specful/pull/253))
+
 ## [0.5.5](https://github.com/unkos-dev/specful/compare/v0.5.4...v0.5.5) - 2026-10-28
 
 ### Fixed
