@@ -9,7 +9,8 @@ relates-to:
 
 # {Arc plan title}
 
-Every statement in this plan is exact. A deviation stops for approval.
+Once this plan is approved and implementation is authorised, execute it as written. Stop and obtain approval before any
+deviation.
 
 ## Objective
 
@@ -25,6 +26,9 @@ Every statement in this plan is exact. A deviation stops for approval.
 | --- | --- | --- |
 | `{Specful identifier or path}` | {created, updated, unaffected, or none} | {Reason, or the task that changes it.} |
 
+Unapproved documentation proposals: {Subject, artifact type and durable benefit for decision, or `None`; no committed
+task until approved.}
+
 Corpus effect: {more complete, unchanged, or less accurate, with the reason.}
 
 ## Binding inputs
@@ -35,9 +39,12 @@ Corpus effect: {more complete, unchanged, or less accurate, with the reason.}
 
 ## Design decisions
 
-1. **{Decision}:** {Rationale, and the alternative it beats.}
+1. **{Decision}:** {Governing artifact and operative clause, or explicit user decision, that settles this material
+   choice; rationale and alternative it beats.}
 
 ## Open decisions
+
+{Keep unresolved material choices here; do not write dependent implementation tasks until they are settled.}
 
 | Decision | Options | Recommendation | Owner | Consequence if different |
 | --- | --- | --- | --- | --- |
@@ -70,7 +77,7 @@ One step is one pull request.
 **Tasks:**
 
 1. {Verb-first instruction.}
-2. {Verb-first instruction. Open choice: {what is open}, because {reason}.}
+2. {Verb-first instruction within the settled scope.}
 
 **Rollback:** `{command}` — {What it restores.}
 

@@ -6,8 +6,12 @@ description: >-
 
 # Implementing a plan
 
-Execute the plan the user names, one step at a time. The plan is the specification. The repository's instructions own
-branching, commits, pushes, and merges; this skill never merges.
+Execute the approved plan the user authorises for implementation, one step at a time. Plan approval alone does not
+authorise implementation. The repository's instructions own branching, commits, pushes, and merges; this skill never
+merges.
+
+Once this plan is approved and implementation is authorised, execute it as written. Stop and obtain approval before any
+deviation.
 
 A change plan is one step. Its frontmatter `status` is the step status. Checkpoint records the last completed task, its
 evidence, and the branch when one exists. Next names the current task and nothing else. Blocked records a deviation and
@@ -41,9 +45,9 @@ code work can follow the workflow directly without a saved plan; this skill rema
 1. Set the step `active` in the Progress log and record the branch when the repository has one. For a change plan, set
    frontmatter `status: active`.
 2. Read the step's Context and confirm it matches the repository. A mismatch is a deviation.
-3. Do the tasks in order. Every statement is exact. An open choice stated in the task with a reason is the executor's;
-   record the choice made in Notes. Where the plan is silent, follow the repository's instructions and do what is
-   correct.
+3. Do the tasks in order. Routine implementation choices within authorised scope remain the executor's discretion,
+   subject to repository instructions. An unresolved material product, interaction or architectural choice, even if
+   embedded in a task, follows Deviation below; task wording does not grant approval.
 4. Run each task's Verify command and compare the output to the expected result. A mismatch is a deviation.
 5. Run the step's Verification and the plan's every-step rows. Check the Exit criteria. Complete required local
    verification before publication, including after remediation. For each consequential affected acceptance criterion,

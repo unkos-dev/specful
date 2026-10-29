@@ -82,6 +82,11 @@ and assign stable final finding IDs. Explain consequential unresolved disagreeme
 consequence for the recommendation. Disagreement alone does not lower the verdict; apply the shared standard's rules for
 supported defects and credible unresolved concerns. Leave decisions about changing project obligations to the user.
 
+For each consequential finding, retain whether it requires a correction or a user decision. A finding of unapproved
+behaviour remains an approval gap in the synthesis, not an instruction to finish designing that behaviour. The author
+may recommend a solution, but the recommendation does not settle the decision. Rejecting or materially narrowing a
+finding requires stated contrary evidence, not the author's preference.
+
 If a reviewer becomes unavailable or loses context, preserve its useful findings and evidence. A replacement is an
 exception, does not reset the round cap, and is not an original independent opinion if it receives prior conclusions.
 Disclose when the requested mode could not be completed instead of presenting a different mode as equivalent.

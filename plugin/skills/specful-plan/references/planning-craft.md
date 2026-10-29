@@ -58,8 +58,8 @@ missing; syntax-only checks do not count when behaviour changed.
 
 Every unresolved item states the decision, the recommendation, the evidence, what changes if the user chooses
 differently, and the safe default if deferral is harmless. A decision that changes product behaviour, architecture, or a
-foundational data shape is put to the user before the plan is written. The plan is not a hiding place for decisions the
-user needs to make.
+foundational data shape is put to the user before dependent tasks are written. Keep it under Open decisions until
+settled; a recommendation or a safe deferral does not approve the proposed behaviour.
 
 ## Consider delivery only where it applies
 

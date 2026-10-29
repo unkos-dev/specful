@@ -153,9 +153,11 @@ changes rather than applying them automatically. Plans stay outside the permanen
 indexing or validation.
 
 The planning skill stops after the authorised plan files are written. `specful-implement` executes the named plan one
-step at a time under its exact-by-default contract. It stops on a contradiction or required deviation, records the
-evidence in the plan, and waits for approval. The implementation skill follows repository-owned branch, commit, and
-publication rules and never merges. Neither skill changes an external tracker.
+step at a time after plan approval and separate implementation authorisation, executing it as written. It stops on a
+contradiction or required deviation, records the evidence in the plan, and waits for approval. The implementation skill
+follows repository-owned branch, commit, and publication rules and never merges. Planning and plan approval grant no
+tracker-write authority; explicit user or applicable project-policy authority to maintain settled issue scope remains
+separate.
 
 ## Failure and recovery
 

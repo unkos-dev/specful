@@ -21,7 +21,8 @@ Read the repository's instructions, then start at `docs/specs/index.md` and foll
 need. Read its relevant Requirements for obligations and acceptance criteria, Designs for structure and behaviour, and
 governing ADRs for the alternatives and reasons behind decisions. Use `specful show <ID>` to print the catalog record
 for an identifier, `specful trace <ID>` to follow requirement-to-design links or list the artifacts that cite an ADR.
-The Markdown files and their links remain readable without the CLI.
+The Markdown files and their links remain readable without the CLI. Read the decisive source passages, recovering any
+truncated text before relying on it; an inventory of documents alone does not establish their constraints.
 
 Follow the relevant Design into the implementation and existing tests. Check its claims against those sources before
 choosing an approach: the documents guide inspection but do not prove what the code does. If an index is missing, or
@@ -30,10 +31,12 @@ treating missing documentation as permission to invent a contract.
 
 ## 2. Decide what the change affects
 
-Identify the obligations and acceptance criteria the requested change could affect, including behaviour it must
-preserve. If code and documentation disagree, surface the evidence and obtain a decision before changing an approved
-obligation or durable choice. A refactor that preserves the documented behaviour may need only code changes and
-verification; skip steps 3-5 when no artifact change is warranted.
+Before recommending an approach, explain the relevant obligations and constraints with their operative clauses, the
+decisions already supplied by the user, any implementation conflicts, and unresolved material choices. Identify the
+affected acceptance criteria, including behaviour the change must preserve. If code and documentation disagree, surface
+the evidence and obtain a decision before changing an approved obligation or durable choice. A refactor that preserves
+the documented behaviour may need only code changes and verification; skip steps 3-5 when no artifact change is
+warranted.
 
 | Kind of change | Artifact | How it changes |
 |---|---|---|
@@ -121,12 +124,22 @@ coordination. An arc contains the ordered steps, and each step is one pull reque
 rollback, verification, and exit criteria. Write a separate change plan only when a step needs a standalone execution
 packet.
 
-`specful-plan` selects and fills the same templates. Every statement in the resulting plan is exact unless its task
-states an open choice and the reason. `specful-implement` executes one step, stops when the repository contradicts the
-plan or correctness requires a deviation, records the evidence, and waits for approval. It never merges. The adopting
-repository owns the plan location, branch and publication rules, and retention policy. Preserve an established location;
-otherwise propose `docs/plans/`. When tracking policy is absent, ask whether plans should be tracked or ignored before
-writing.
+`specful-plan` selects and fills the same templates. Binding inputs records the governing constraints; Design decisions
+records the governing artifact or explicit user decision that settles each material product, interaction or
+architectural choice. Recommendations, implementation limitations, and inclusion in issues or earlier plans do not
+establish approval. Keep unresolved material choices in Open decisions without dependent implementation tasks. Partial
+answers settle only the questions they address. Keep unapproved documentation proposals distinct from committed tasks.
+Routine implementation choices within authorised scope remain the executor's discretion.
+
+Once this plan is approved and implementation is authorised, execute it as written. Stop and obtain approval before any
+deviation.
+
+Plan approval and implementation authorisation are separate. `specful-implement` executes one step, stops when the
+repository contradicts the plan or correctness requires a deviation, records the evidence, and waits for approval. It
+never merges. Planning grants no tracker-write authority; explicit user or applicable project-policy authority to
+maintain settled issue scope remains separate. The adopting repository owns the plan location, branch and publication
+rules, and retention policy. Preserve an established location; otherwise propose `docs/plans/`. When tracking policy is
+absent, ask whether plans should be tracked or ignored before writing.
 
 By default, plans need exclusion from Git and documentation publishing inputs before they are written. A location under
 `docs/` does not imply publication intent. Obtain approval for any needed ignore or publishing configuration changes; do
