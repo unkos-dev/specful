@@ -19,8 +19,16 @@ its evidence. Amendments records approved deviations with their dates. While a s
 that plan's frontmatter is authoritative and the arc row is updated from it at the step boundary.
 
 A change plan starts in `draft`; treat that as its pending state. For a change plan, references below to Notes mean
-Blocked for a deviation and Amendments for an approved change. Its Verification table supplies the Completion
-verification rows.
+Checkpoint for execution evidence and readiness, Blocked for a deviation, and Amendments for an approved change. Its
+Verification table supplies the Completion verification rows.
+
+Keep Progress and Progress log Notes current in place. Replace superseded checkpoints and readiness statements. Retain
+applicable verification evidence with its revision and result, current blockers, unresolved gaps, and approvals that
+still govern or explain the plan, including their dates and reasons. Remove superseded decisions and deviations once
+their replacement and authority are explicit. Preserve skipped and abandoned step records.
+
+Remove obsolete review narratives, usage reports and superseded proof without creating an archive. Existing pull
+requests and transcripts may retain those details.
 
 ## Read
 
@@ -62,9 +70,9 @@ code work can follow the workflow directly without a saved plan; this skill rema
    them as unrun Merge conditions and stop after any in-scope remediation. Each published update gets one inspection. Do
    not poll, watch, sleep, or keep the session active solely for CI unless the user explicitly asks to monitor or wait.
    Checks that have not appeared or cannot be inspected remain unrun, never presumed successful.
-7. Record the evidence in Notes and report the PR URL, exact head SHA, completed checks and their results, pending
-   checks, and every other Merge condition unrun, then stop. The step stays `active` until its pull request merges, and
-   a review change is an amendment on the active step. The user starts the next step.
+7. Update Notes with current evidence and readiness, and report the PR URL, exact head SHA, completed checks and their
+   results, pending checks, and every other Merge condition unrun, then stop. The step stays `active` until its pull
+   request merges, and a review change is an amendment on the active step. The user starts the next step.
 
 ## Deviation
 
@@ -75,11 +83,11 @@ material choice, or an outstanding Open decision on which a task depends, is als
 1. Stop the step. Do not work around it.
 2. Set the step `blocked`. Record in Notes what the plan states, what was found, and the proposed change with its
    evidence. When a tool wrote a verdict, quote that line before any inferred cause.
-3. Report and wait. On approval, record the change under Amendments with the date, then continue.
+3. Report and wait. On approval, update Notes with the approved change, its reason and date, then continue.
 
 ## Mutate
 
-Apply only an approved change. Record every mutation in Notes with its reason.
+Apply only an approved change and update Notes with the change and its reason.
 
 - Split: rename Step N to Na, add Nb, update the graph.
 - Insert: add a letter suffix, never renumber, update the graph.

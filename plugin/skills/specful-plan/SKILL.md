@@ -94,6 +94,9 @@ When a task creates or replaces a short file whose content is the specification,
 Quote an indented replacement line in a fenced block, never a code span. A step's Context describes the repository state
 when the step starts, not the history that produced it.
 
+Keep Progress and Progress log Notes as current execution state. Use the template's existing fields for applicable
+evidence, blockers, unresolved gaps and operative approvals, replacing superseded state in place.
+
 A maintainer-owned act that must happen after the pull request is green and before merge, such as a required-check
 change, is recorded under Merge conditions. It is never a task or a prerequisite, and the executor reports it unrun.
 

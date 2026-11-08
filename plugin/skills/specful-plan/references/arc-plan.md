@@ -109,6 +109,11 @@ One step is one pull request.
 
 This table is the only record of execution state.
 
+Keep each row current in place. Retain applicable verification evidence with its revision and result, current readiness,
+blockers, unresolved gaps, and approvals that still govern or explain the plan, including their dates and reasons.
+Remove superseded decisions and deviations once their replacement and authority are explicit. Obsolete execution
+narrative needs no archive.
+
 | Step | Status | Branch | PR | Notes |
 | --- | --- | --- | --- | --- |
 | 01 | pending | — | — | — |
