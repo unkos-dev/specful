@@ -322,6 +322,11 @@ pub(crate) fn check_generated_views(
 /// generation stops before comparing or writing views when an artifact cannot
 /// be collected, and refuses to overwrite an author-owned index.md.
 pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
+    generate_views(root, check, &mut Vec::new())
+}
+
+/// [`run_index`] that also records each view file it wrote where none existed.
+pub(crate) fn generate_views(root: &Path, check: bool, created: &mut Vec<String>) -> Vec<Finding> {
     let mut collection_findings = Vec::new();
     let (artifacts, collection_complete) = collect_artifacts(root, &mut collection_findings);
     if !collection_complete {
@@ -380,12 +385,16 @@ pub fn run_index(root: &Path, check: bool) -> Vec<Finding> {
             ));
             continue;
         }
+        let existed = target.exists();
         if let Err(error) = std::fs::write(&target, content) {
             findings.push(Finding::new(
                 &path,
                 None,
                 format!("cannot write view: {error}"),
             ));
+        }
+        if !existed {
+            created.push(path);
         }
     }
     findings
