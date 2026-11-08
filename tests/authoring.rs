@@ -48,6 +48,45 @@ fn failed_init_preserves_author_owned_specs_index() {
 }
 
 #[test]
+fn failed_init_over_existing_artifacts_removes_every_view_it_created() {
+    let root = scratch();
+    let fixture =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/valid-repo");
+    for artifact in [
+        "docs/adr/0001-store-progress-events.md",
+        "docs/specs/backend/design/0001-progress-pipeline.md",
+        "docs/specs/system/requirements/0001-offline-replay.md",
+        "docs/specs/system/requirements/0002-replay-pacing.md",
+    ] {
+        let target = root.path().join(artifact);
+        std::fs::create_dir_all(target.parent().expect("parent")).expect("create artifact dir");
+        std::fs::copy(fixture.join(artifact), &target).expect("copy artifact");
+    }
+    let author_owned = "# My hand-written index\n";
+    std::fs::write(root.path().join("docs/specs/index.md"), author_owned)
+        .expect("plant author-owned index");
+
+    init(root.path(), "OK").expect_err("init must refuse an author-owned index");
+
+    for leftover in [
+        ".specful/config.yaml",
+        CATALOG_PATH,
+        "docs/specs/backend/index.md",
+        "docs/specs/system/index.md",
+    ] {
+        assert!(
+            !root.path().join(leftover).exists(),
+            "failed init left {leftover} behind"
+        );
+    }
+    assert_eq!(
+        std::fs::read_to_string(root.path().join("docs/specs/index.md"))
+            .expect("author-owned index must survive"),
+        author_owned
+    );
+}
+
+#[test]
 fn adopter_owned_agents_md_remains_byte_for_byte_untouched() {
     let root = scratch();
     let content = b"# Existing guidance\r\n\r\nDo the thing.\r\n";
