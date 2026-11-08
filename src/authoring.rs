@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 use crate::config::{CONFIG_FILE, Config, load_config};
 use crate::diagnostics::Finding;
-use crate::repo::{ADR_DIR, MAX_SLUG_LENGTH, SPECS_DIR, create_dir_verified};
+use crate::repo::{ADR_DIR, MAX_SLUG_LENGTH, SPECS_DIR, create_dir_verified, is_scope_segment};
 
 /// Sibling lock file guarding the read-modify-rename of `.specful/config.yaml`.
 /// Its presence is the allocation lock: a second `specful new` sees
@@ -251,22 +251,11 @@ pub fn new_artifact(
             )]);
         }
         (NewKind::Requirement | NewKind::Design, Some(scope)) => {
-            let well_formed = !scope.is_empty()
-                && scope.split('/').all(|segment| {
-                    !segment.is_empty()
-                        && segment
-                            .chars()
-                            .next()
-                            .is_some_and(|c| c.is_ascii_lowercase())
-                        && segment
-                            .chars()
-                            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-                });
-            if !well_formed {
+            if let Some(segment) = scope.split('/').find(|segment| !is_scope_segment(segment)) {
                 return Err(vec![Finding::new(
                     SPECS_DIR,
                     None,
-                    "scope segments use lowercase letters, digits, and hyphens",
+                    format!("scope segment {segment:?} must be lowercase ASCII kebab-case"),
                 )]);
             }
             Some(scope)
