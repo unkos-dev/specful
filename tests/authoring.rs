@@ -2,6 +2,7 @@
 
 use specful::authoring::{NewKind, init, new_artifact};
 use specful::index::CATALOG_PATH;
+use specful::repo::validate_repository;
 
 fn scratch() -> tempfile::TempDir {
     tempfile::tempdir().expect("create scratch")
@@ -251,6 +252,49 @@ fn a_plain_file_blocking_the_scope_path_is_reported_as_not_a_directory() {
     assert!(
         !findings.iter().any(|f| f.message == "symlink not allowed"),
         "a plain file is not a symlink and must not be reported as one, got {findings:?}"
+    );
+}
+
+#[test]
+fn new_rejects_a_scope_that_validation_would_reject() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+
+    for scope in [
+        "broken--scope",
+        "trailing-",
+        "system/-sync",
+        "system//sync",
+        "",
+    ] {
+        let findings = new_artifact(root.path(), NewKind::Design, Some(scope), "Rejected")
+            .expect_err("a malformed scope must be rejected");
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.ends_with("must be lowercase ASCII kebab-case")),
+            "expected a scope finding for {scope:?}, got {findings:?}"
+        );
+    }
+    assert!(
+        !root.path().join("docs/specs/broken--scope").exists(),
+        "a rejected scope must not create a directory"
+    );
+}
+
+#[test]
+fn new_accepts_every_scope_that_validation_accepts() {
+    let root = scratch();
+    init(root.path(), "EXAMPLE").expect("init");
+
+    let path = new_artifact(root.path(), NewKind::Design, Some("2fa/s3"), "Digit scopes")
+        .expect("a digit-leading kebab-case scope must be accepted");
+    assert_eq!(path, "docs/specs/2fa/s3/design/0001-digit-scopes.md");
+
+    let findings = validate_repository(root.path());
+    assert!(
+        !findings.iter().any(|f| f.message.contains("kebab-case")),
+        "validation must accept the scope new created, got {findings:?}"
     );
 }
 

@@ -293,14 +293,7 @@ fn check_scope_segments(path: &str, findings: &mut Vec<Finding>) {
         return;
     };
     for segment in scope_segments {
-        let valid = !segment.is_empty()
-            && segment.split('-').all(|part| {
-                !part.is_empty()
-                    && part
-                        .chars()
-                        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
-            });
-        if !valid {
+        if !is_scope_segment(segment) {
             findings.push(Finding::new(
                 path,
                 None,
@@ -308,6 +301,15 @@ fn check_scope_segments(path: &str, findings: &mut Vec<Finding>) {
             ));
         }
     }
+}
+
+pub(crate) fn is_scope_segment(segment: &str) -> bool {
+    segment.split('-').all(|part| {
+        !part.is_empty()
+            && part
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+    })
 }
 
 fn collect_adr_directory(
