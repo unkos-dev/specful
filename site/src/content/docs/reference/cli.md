@@ -55,8 +55,9 @@ specful new <adr|requirement|design> --title <TITLE> [--scope <SCOPE>] [--root <
 | `--scope <SCOPE>` | Required for a requirement or design, for example `backend/sync`. Not for an ADR. |
 | `--root <ROOT>` | Repository root; defaults to the nearest ancestor containing `.specful/config.yaml`. |
 
-A scope is a slash-separated path whose segments start with a lowercase letter and use lowercase letters, digits, and
-hyphens. The first artifact in a scope creates its directory under `docs/specs/`.
+A scope is a slash-separated path. Each segment is one or more groups of lowercase ASCII letters and digits joined by
+single hyphens, such as `backend`, `2fa` or `sync-v2`. `specful validate` applies the same rule to scope directories.
+The first artifact in a scope creates its directory under `docs/specs/`.
 
 Filename slugs use lowercase ASCII letters, digits and hyphens, with a maximum of 128 characters across all artifact
 types. Longer title-derived slugs are truncated; the title is preserved in full.
