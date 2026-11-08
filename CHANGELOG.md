@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.5.7](https://github.com/unkos-dev/specful/compare/v0.5.6...v0.5.7) - 2026-11-08
+
+### Fixed
+
+- *(authoring)* make new accept exactly the scopes validate accepts ([#281](https://github.com/unkos-dev/specful/pull/281))
+- *(authoring)* leave no generated views behind when init fails ([#282](https://github.com/unkos-dev/specful/pull/282))
+
+### Other
+
+- keep plan progress current ([#276](https://github.com/unkos-dev/specful/pull/276))
+
 ## [0.5.6](https://github.com/unkos-dev/specful/compare/v0.5.5...v0.5.6) - 2026-10-29
 
 ### Fixed
