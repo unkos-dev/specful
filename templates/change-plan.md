@@ -105,10 +105,16 @@ state that no broken behaviour was asserted.}
 
 ## Progress
 
-Checkpoint: {Last completed state.}
+Keep execution state current in place. Replace superseded checkpoints and readiness statements. Retain applicable
+evidence with its revision and result, current blockers, unresolved gaps, and approvals that still govern or explain the
+plan. Remove superseded decisions and deviations once their replacement and authority are explicit. Obsolete execution
+narrative needs no archive.
+
+Checkpoint: {Last completed state, branch, current readiness and applicable verification evidence with revisions and
+results.}
 
 Next: {The next task.}
 
 Blocked: {Deviation awaiting approval with its evidence, or `None`.}
 
-Amendments: {Approved deviations, dated, or `None`.}
+Amendments: {Approved deviations still governing or explaining the plan, with their dates and reasons, or `None`.}
