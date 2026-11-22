@@ -57,8 +57,10 @@ body previews only generated entries; the published release notes come from the 
 ## Pull request process
 
 1. Branch from `main`.
+
 2. Write tests alongside any behaviour change. Specification artifacts follow the writing model in
    [docs/project-charter.md](docs/project-charter.md).
+
 3. Run the full local gate before pushing:
 
    ```sh
@@ -67,5 +69,6 @@ body previews only generated entries; the published release notes come from the 
 
    Once per checkout, `lefthook install` installs the Git hooks that check the DCO sign-off on each commit and run
    `specful validate` before each push.
+
 4. Open the pull request using [`.github/pull_request_template.md`](.github/pull_request_template.md) as the body
    structure. Complete the relevant sections and remove optional sections that do not apply.
