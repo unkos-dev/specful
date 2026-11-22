@@ -39,7 +39,7 @@ fn cargo_package_contains_skill_payload_without_repository_toolchains() {
     );
     let listing = String::from_utf8(output.stdout).expect("package paths should be UTF-8");
     let packaged: std::collections::BTreeSet<_> = listing.lines().collect();
-    let mut directories = vec![root.join("plugin")];
+    let mut directories = vec![root.join("plugin"), root.join("profiles")];
     while let Some(directory) = directories.pop() {
         for entry in fs::read_dir(directory).expect("payload directory should be readable") {
             let path = entry.expect("payload entry should be readable").path();
@@ -53,7 +53,7 @@ fn cargo_package_contains_skill_payload_without_repository_toolchains() {
                     .replace('\\', "/");
                 assert!(
                     packaged.contains(relative.as_str()),
-                    "skill payload missing from Cargo package: {relative}"
+                    "payload missing from Cargo package: {relative}"
                 );
             }
         }
@@ -340,11 +340,20 @@ fn every_skill_has_valid_agent_skills_frontmatter() {
 #[test]
 fn review_skill_ships_named_non_empty_regular_references() {
     let review_references = repo_root().join("plugin/skills/specful-review/references");
-    let expected = [
+    let expected_files = [
         "adr-review.md",
         "change-review.md",
         "design-review.md",
         "execution.md",
+        "report-format.md",
+        "requirement-review.md",
+    ];
+    let expected_entries = [
+        "adr-review.md",
+        "change-review.md",
+        "design-review.md",
+        "execution.md",
+        "profiles",
         "report-format.md",
         "requirement-review.md",
     ];
@@ -355,9 +364,9 @@ fn review_skill_ships_named_non_empty_regular_references() {
         .map(|entry| entry.file_name().to_string_lossy().into_owned())
         .collect();
     actual.sort();
-    assert_eq!(actual, expected);
+    assert_eq!(actual, expected_entries);
 
-    for name in expected {
+    for name in expected_files {
         let path = review_references.join(name);
         let metadata = fs::symlink_metadata(&path)
             .unwrap_or_else(|error| panic!("failed to inspect {}: {error}", path.display()));
@@ -372,6 +381,102 @@ fn review_skill_ships_named_non_empty_regular_references() {
             "{}/{} must not be empty",
             review_references.display(),
             name
+        );
+    }
+
+    let profiles_dir = review_references.join("profiles");
+    let profiles_meta = fs::symlink_metadata(&profiles_dir)
+        .unwrap_or_else(|error| panic!("failed to inspect {}: {error}", profiles_dir.display()));
+    assert!(
+        profiles_meta.file_type().is_dir(),
+        "{} must be a directory",
+        profiles_dir.display()
+    );
+}
+
+#[test]
+fn profile_references_match_canonical_profiles_across_all_four_skills() {
+    let root = repo_root();
+    let skills = [
+        "specful-adr",
+        "specful-design",
+        "specful-requirement",
+        "specful-review",
+    ];
+    let profile_names = ["adr.md", "design.md", "requirement.md"];
+
+    for skill in skills {
+        let profiles_dir = root.join(format!("plugin/skills/{skill}/references/profiles"));
+        let mut actual: Vec<_> = fs::read_dir(&profiles_dir)
+            .unwrap_or_else(|error| panic!("failed to read {}: {error}", profiles_dir.display()))
+            .map(|entry| entry.expect("profile entry should be readable"))
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .collect();
+        actual.sort();
+        assert_eq!(
+            actual,
+            profile_names,
+            "{} must ship exact canonical profile files",
+            profiles_dir.display()
+        );
+
+        for name in profile_names {
+            let packaged = profiles_dir.join(name);
+            let metadata = fs::symlink_metadata(&packaged).unwrap_or_else(|error| {
+                panic!("failed to inspect {}: {error}", packaged.display())
+            });
+            assert!(
+                metadata.file_type().is_file(),
+                "{} must be a regular file",
+                packaged.display()
+            );
+            let canonical = root.join(format!("profiles/{name}"));
+            assert_eq!(
+                fs::read(&packaged).expect("read packaged profile"),
+                fs::read(&canonical).expect("read canonical profile"),
+                "{} must match {} byte-for-byte",
+                packaged.display(),
+                canonical.display()
+            );
+        }
+    }
+}
+
+#[test]
+fn profile_references_plan_templates_match_canonical_templates() {
+    let root = repo_root();
+    for name in ["arc-plan.md", "change-plan.md"] {
+        let packaged = root.join(format!("plugin/skills/specful-plan/references/{name}"));
+        let canonical = root.join(format!("templates/{name}"));
+        assert_eq!(
+            fs::read(&packaged).expect("read packaged plan template"),
+            fs::read(&canonical).expect("read canonical plan template"),
+            "{} must match {} byte-for-byte",
+            packaged.display(),
+            canonical.display()
+        );
+    }
+}
+
+#[test]
+fn profile_references_review_lenses_omit_template_paths() {
+    let root = repo_root();
+    for (lens, profile) in [
+        ("adr-review.md", "profiles/adr.md"),
+        ("design-review.md", "profiles/design.md"),
+        ("requirement-review.md", "profiles/requirement.md"),
+    ] {
+        let path = root.join(format!("plugin/skills/specful-review/references/{lens}"));
+        let text = fs::read_to_string(&path).expect("read review lens");
+        assert!(
+            !text.contains("templates/"),
+            "{} must not cite adopter-local templates/ paths",
+            path.display()
+        );
+        assert!(
+            text.contains(profile),
+            "{} must cite bundled {profile}",
+            path.display()
         );
     }
 }

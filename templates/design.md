@@ -16,9 +16,10 @@ governed-by:
 below stays, exactly as written, so Designs stay searchable and parseable across the repository; where a section does
 not apply to this subject, keep the heading and state "Not applicable: {reason}", since a bare not-applicable with no
 reason is a review flag, not an answer. More information is the exception: it is optional and is removed completely when
-it adds nothing. Add subject-specific sections freely; the set below is the completeness baseline, not a ceiling. The
-document is complete only when no braced text remains, `specful validate` passes, and every remaining section carries
-real content or a reasoned not-applicable. Delete this block last.}
+it adds nothing. Add subject-specific sections freely; the set below is the completeness baseline, not a ceiling. Run
+`specful profile design` for the full Design profile. The document is complete only when no braced text remains,
+`specful validate` passes, and every remaining section carries real content or a reasoned not-applicable. Delete this
+block last.}
 
 {A Design explains how one coherent subject currently works: a system, component, surface, mechanism, or collaboration a
 reader normally needs to understand as one thing. It serves developers, maintainers, adopters, and self-hosters through

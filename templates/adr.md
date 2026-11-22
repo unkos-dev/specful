@@ -25,8 +25,9 @@ cites this ADR through `governed-by`. Accepted and terminal records may be corre
 while preserving the decision, including moving misplaced content into a Design or Requirement. Keep the choice,
 rationale, credible alternatives, and material consequences. A change to the choice, scope, or operative conditions
 requires supersession. An authorised correction needs no renewed acceptance or amendment log; Git preserves earlier
-versions. `decision-makers` is required; remove `decided-on` and the supersession fields that do not apply. The document
-is complete only when no braced text remains and `specful validate` passes. Delete this block last.}
+versions. `decision-makers` is required; remove `decided-on` and the supersession fields that do not apply. Run
+`specful profile adr` for the full ADR profile. The document is complete only when no braced text remains and
+`specful validate` passes. Delete this block last.}
 
 ## Context and problem statement
 

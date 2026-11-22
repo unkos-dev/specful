@@ -26,7 +26,7 @@ docs/adr/<sequence>-<short-title>.md
 | `title` | Short title naming the problem and chosen solution. | validate (H1 parity); index; show |
 | `status` | One of `proposed`, `accepted`, `deprecated`, `superseded`. | validate (supersession pairing); index; show |
 | `recorded-on` | The date this record was written. | validate (schema); readers |
-| `decided-on` | The date the decision was made, when it differs from `recorded-on`. | validate (schema); readers |
+| `decided-on` | The date the decision was accepted; omit while `proposed` or unknown. | validate (schema); readers |
 | `decision-makers` | Who made the decision. | validate (schema); names the authority to reconsider |
 | `supersedes` | Optional: the ADR identifier(s) this record replaces. | validate (reciprocity); index; show; trace |
 | `superseded-by` | Optional: the ADR that replaced this record. | validate (reciprocity); index; show; trace |
@@ -34,6 +34,11 @@ docs/adr/<sequence>-<short-title>.md
 Supersession is the one relationship stored in both directions: both the replaced and replacement records carry
 reciprocal links, so either document remains independently navigable, and validation treats disagreement between those
 links as an error.
+
+Only an `accepted` ADR carries architectural authority. `specful validate` allows a Requirement or Design to cite a
+`proposed` ADR in `governed-by` so one change can introduce a proposal alongside dependent artifacts, while that
+citation remains provisional until the maintainer accepts the ADR. Citations to `deprecated` or `superseded` ADRs fail
+validation.
 
 ## Corrections and supersession
 
@@ -60,10 +65,13 @@ warning; the distinction is an authoring and review judgement rather than a mech
 that exact order and wording, and requires the level-three **Consequences** heading, but only within the Decision
 outcome span: a stray top-level heading of the same name elsewhere does not satisfy it. Each required heading must
 appear exactly once, in order, and carry content; a missing, duplicated, out-of-order, or empty required section is a
-finding. When present, **Pros and cons of the options** and **More information** must be non-empty. The document H1 must
-match the frontmatter `title`, and no template placeholder residue may remain outside a code span. The tool cannot tell
-whether the considered options were the materially viable ones, whether the chosen option's reasoning is honest, or
-whether a stated consequence is real: that judgement is the author's and reviewer's, and the authoring skills teach it.
+finding. When present, **Pros and cons of the options** and **More information** must be non-empty. Validation also
+rejects foreign canonical level-two headings belonging to Requirements or Designs, Markdown task checkboxes outside
+code, and any required section, **Consequences**, or present optional section consisting solely of bare filler
+(`Not applicable`, `N/A`, `NA`, `None`, `TBD`, `TODO`, or `TBA`). The document H1 must match the frontmatter `title`,
+and no template placeholder residue may remain outside a code span. The tool cannot tell whether the considered options
+were the materially viable ones, whether the chosen option's reasoning is honest, or whether a stated consequence is
+real: that judgement is the author's and reviewer's, and the authoring skills teach it.
 
 Through **Consequences**, every section is required. **Pros and cons of the options** and **More information** are
 optional, and are removed completely when they add no useful decision evidence, unlike a Requirement or Design section,
@@ -90,8 +98,8 @@ This profile derives from the MADR 4.0.0 complete template and is tighter than M
 canonical MADR record does not validate against it unchanged. Section headings are sentence case and compared exactly,
 so `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
 are required here where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
-still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
-the record, replaces MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
+still carries one validates, but the section is not read. `recorded-on` and `decided-on` (omitted while `proposed` or
+when unknown) replace MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
 and `informed` participant roles are not part of this profile; a record carrying either fails validation until the lines
 are deleted. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other than an
 `x-` extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
@@ -118,6 +126,6 @@ Two litmus questions settle nearly every case:
    Requirement. Superseded: ADR. Correcting the record does not itself change the decision.
 
 The discipline that keeps the line crisp: an ADR outcome never says "the system MUST", and whether a decision is being
-followed is read from the Requirements and Designs that cite it through `governed-by`, not from the record itself. See
-the [Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/) for the
-other two sides of the same triangle.
+followed is read from the Requirements and Designs that cite it through `governed-by`, not from the record itself.
+
+See the [Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/).

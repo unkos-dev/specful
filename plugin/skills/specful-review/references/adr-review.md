@@ -1,8 +1,7 @@
 # ADR review lens
 
-Apply this lens only when an ADR is in scope. The canonical rules are the public
-[ADR profile](https://unkos-dev.github.io/specful/profiles/adr/), the repository's `templates/adr.md`, and the named ADR
-itself.
+Apply this lens only when an ADR is in scope. The canonical rules are the bundled [ADR profile](profiles/adr.md) and the
+named ADR itself.
 
 Inspect the durable decision record and the smallest linked artifacts needed to judge it. Check whether:
 

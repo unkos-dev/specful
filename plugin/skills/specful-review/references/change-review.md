@@ -1,9 +1,11 @@
 # Change and plan review lens
 
-Apply the [shared review standard](../SKILL.md) to the agreed change or plan. Use the applicable corpus and the
-[authoring workflow](https://unkos-dev.github.io/specful/authoring-workflow/#2-decide-what-the-change-affects) to
-understand the affected subjects. Its documentation obligations do not override the review's advisory treatment of
-missing coverage.
+Apply the [shared review standard](../SKILL.md) to the agreed change or plan. Identify affected subjects from the
+applicable corpus by starting at `docs/specs/index.md` and following relevant scope indexes, Designs, Requirements, and
+governing ADRs (the public
+[authoring workflow](https://unkos-dev.github.io/specful/authoring-workflow/#2-decide-what-the-change-affects) gives
+optional background, and its documentation obligations do not override the review's advisory treatment of missing
+coverage).
 
 ## Changes
 

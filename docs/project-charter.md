@@ -117,11 +117,14 @@ carry no canonical knowledge.
 
 Validation is mechanical and covers three layers:
 
-- relationship integrity: identifiers resolve, `satisfies` targets exist, supersession links agree, citations point at
-  real ADRs, generated views match their sources;
+- relationship integrity: identifiers resolve, `satisfies` targets exist, supersession links agree, `governed-by`
+  citations point at existing `accepted` or provisional `proposed` ADRs (rejecting `deprecated` and `superseded` ADRs),
+  and generated views match their sources;
 - metadata shape: frontmatter conforms to the artifact's published JSON Schema profile;
-- document structure: canonical headings present, requirement records well-formed, title and heading agree, template
-  placeholder text absent, and every requirement statement uses at least one uppercase BCP 14 keyword.
+- document structure: canonical headings present without foreign canonical headings from other artifact types,
+  requirement statements are a single paragraph carrying at least one uppercase BCP 14 keyword, title and heading agree,
+  template placeholder text and bare-filler sections are absent, and Markdown task checkboxes do not appear outside
+  code.
 
 Diagnostics are human-readable text with a meaningful exit status. A `--json` flag emits a plain machine-readable
 listing that is explicitly unstable. There is no diagnostic rule registry, no severity policy, and no waiver system; a

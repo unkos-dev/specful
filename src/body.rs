@@ -1,15 +1,16 @@
 //! Markdown body structure checks for the artifact profiles.
 //!
-//! Profile rules stay line-based: every rule is anchored to whole lines (ATX
-//! headings, section order, placeholder residue). The CommonMark parser is
-//! used for one thing only, locating code so it is exempt from residue
-//! scanning, because code spans may wrap across lines while never crossing a
-//! block boundary, and that structure cannot be recovered line by line.
+//! Most profile rules stay line-based (required ATX headings, section order,
+//! placeholder residue, bare filler). The CommonMark parser handles the checks
+//! that require block or inline syntax awareness: locating code so it is exempt
+//! from residue and heading scanning, parsing level-two headings for foreign
+//! canonical-heading detection, checking that a Requirement's `## Statement` is
+//! a single paragraph, and detecting Markdown task checkboxes outside code.
 
 use std::collections::HashSet;
 use std::ops::Range;
 
-use pulldown_cmark::{Event, Options, Parser, Tag};
+use pulldown_cmark::{Event, HeadingLevel, Options, Parser, Tag, TagEnd};
 
 use crate::diagnostics::Finding;
 
@@ -284,8 +285,26 @@ fn collect_frontmatter_placeholders(
     }
 }
 
+fn check_task_checkboxes(body: &str, path: &str, body_first_line: usize) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let options = Options::ENABLE_TABLES | Options::ENABLE_TASKLISTS;
+    for (event, range) in Parser::new_ext(body, options).into_offset_iter() {
+        if matches!(event, Event::TaskListMarker(_)) {
+            let file_line =
+                body_first_line + body[..range.start].bytes().filter(|&b| b == b'\n').count();
+            findings.push(Finding::new(
+                path,
+                Some(file_line),
+                "task checklist items do not belong in permanent Specful artifacts; track work items in a plan instead",
+            ));
+        }
+    }
+    findings
+}
+
 fn check_common(
     lines: &[Line<'_>],
+    body: &str,
     frontmatter: &serde_json::Value,
     path: &str,
     body_first_line: usize,
@@ -331,6 +350,7 @@ fn check_common(
 
     findings.extend(placeholder_findings(lines, path));
     findings.extend(frontmatter_placeholder_findings(frontmatter, path));
+    findings.extend(check_task_checkboxes(body, path, body_first_line));
     findings
 }
 
@@ -494,6 +514,246 @@ const REQUIREMENT_REQUIRED_H2: [&str; 3] = ["Statement", "Rationale", "Acceptanc
 
 const OPTIONAL_H2: [&str; 1] = ["More information"];
 
+const BARE_FILLER_TOKENS: [&str; 7] = ["not applicable", "n/a", "na", "none", "tbd", "todo", "tba"];
+
+#[derive(Clone, Copy)]
+enum FillerKind {
+    Optional,
+    AdrRequired,
+    ReasonedRequired,
+}
+
+fn kind_article_and_name(kind: ArtifactKind) -> (&'static str, &'static str) {
+    match kind {
+        ArtifactKind::Adr => ("an ADR", "adr"),
+        ArtifactKind::Requirement => ("a Requirement", "requirement"),
+        ArtifactKind::Design => ("a Design", "design"),
+    }
+}
+
+fn foreign_heading_owner(kind: ArtifactKind, heading: &str) -> Option<ArtifactKind> {
+    if kind != ArtifactKind::Requirement
+        && REQUIREMENT_REQUIRED_H2
+            .iter()
+            .any(|h| heading.eq_ignore_ascii_case(h))
+    {
+        return Some(ArtifactKind::Requirement);
+    }
+    if kind != ArtifactKind::Design
+        && DESIGN_REQUIRED_H2
+            .iter()
+            .any(|h| heading.eq_ignore_ascii_case(h))
+    {
+        return Some(ArtifactKind::Design);
+    }
+    if kind != ArtifactKind::Adr
+        && ADR_REQUIRED_H2
+            .iter()
+            .chain(std::iter::once(&"Pros and cons of the options"))
+            .any(|h| heading.eq_ignore_ascii_case(h))
+    {
+        return Some(ArtifactKind::Adr);
+    }
+    None
+}
+
+fn check_foreign_canonical_headings(
+    kind: ArtifactKind,
+    body: &str,
+    path: &str,
+    body_first_line: usize,
+) -> Vec<Finding> {
+    let (current_label, profile_arg) = kind_article_and_name(kind);
+    let mut findings = Vec::new();
+    let mut in_h2 = false;
+    let mut heading_start = 0usize;
+    let mut heading_text = String::new();
+
+    for (event, range) in Parser::new_ext(body, Options::ENABLE_TABLES).into_offset_iter() {
+        match event {
+            Event::Start(Tag::Heading {
+                level: HeadingLevel::H2,
+                ..
+            }) => {
+                in_h2 = true;
+                heading_start = range.start;
+                heading_text.clear();
+            }
+            Event::End(TagEnd::Heading(HeadingLevel::H2)) if in_h2 => {
+                in_h2 = false;
+                let text = heading_text.trim();
+                if let Some(owner) = foreign_heading_owner(kind, text) {
+                    let (owner_label, _) = kind_article_and_name(owner);
+                    let file_line = body_first_line
+                        + body[..heading_start]
+                            .bytes()
+                            .filter(|&b| b == b'\n')
+                            .count();
+                    findings.push(Finding::new(
+                        path,
+                        Some(file_line),
+                        format!(
+                            "\"## {text}\" is {owner_label} section and does not belong in {current_label}; move this content to {owner_label} or run specful profile {profile_arg}"
+                        ),
+                    ));
+                }
+            }
+            Event::Text(text) | Event::Code(text) if in_h2 => {
+                heading_text.push_str(&text);
+            }
+            Event::SoftBreak | Event::HardBreak if in_h2 => {
+                heading_text.push(' ');
+            }
+            _ => {}
+        }
+    }
+
+    findings
+}
+
+fn check_section_bare_filler(
+    lines: &[Line<'_>],
+    start_idx: usize,
+    level: usize,
+    name: &str,
+    file_line: usize,
+    filler_kind: FillerKind,
+    path: &str,
+) -> Option<Finding> {
+    let end = section_end(lines, start_idx, level);
+    let direct_end = lines[start_idx + 1..end]
+        .iter()
+        .position(|l| !l.in_code_block && heading_level_and_text(l.text).is_some())
+        .map_or(end, |rel| start_idx + 1 + rel);
+    let direct = &lines[start_idx + 1..direct_end];
+    if direct.iter().any(|l| l.in_code_block) {
+        return None;
+    }
+
+    let collapsed: String = direct
+        .iter()
+        .flat_map(|l| l.text.split_ascii_whitespace())
+        .collect::<Vec<_>>()
+        .join(" ");
+    if collapsed.is_empty() {
+        return None;
+    }
+
+    let without_bullet = collapsed
+        .strip_prefix("- ")
+        .or_else(|| collapsed.strip_prefix("* "))
+        .or_else(|| collapsed.strip_prefix("+ "))
+        .unwrap_or(&collapsed);
+    let normalised = without_bullet
+        .trim_end_matches(['.', ':', '!', '?'])
+        .trim_ascii_end()
+        .to_ascii_lowercase();
+
+    if !BARE_FILLER_TOKENS.contains(&normalised.as_str()) {
+        return None;
+    }
+
+    let marker = "#".repeat(level);
+    let message = match filler_kind {
+        FillerKind::Optional => format!(
+            "\"{marker} {name}\" section contains bare filler; omit this optional section when it adds nothing"
+        ),
+        FillerKind::AdrRequired => format!(
+            "\"{marker} {name}\" section contains bare filler; provide real decision content"
+        ),
+        FillerKind::ReasonedRequired => format!(
+            "\"{marker} {name}\" section contains bare filler; provide real content or state why it does not apply (for example, \"Not applicable: <reason>\")"
+        ),
+    };
+    Some(Finding::new(path, Some(file_line), message))
+}
+
+fn check_bare_filler(
+    lines: &[Line<'_>],
+    path: &str,
+    required_h2: &[&str],
+    optional_h2: &[&str],
+    required_kind: FillerKind,
+) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    for (idx, line) in lines.iter().enumerate() {
+        if line.in_code_block {
+            continue;
+        }
+        if let Some((2, text)) = heading_level_and_text(line.text) {
+            let filler_kind = if required_h2.contains(&text) {
+                Some(required_kind)
+            } else if optional_h2.contains(&text) {
+                Some(FillerKind::Optional)
+            } else {
+                None
+            };
+            if let Some(filler_kind) = filler_kind
+                && let Some(finding) = check_section_bare_filler(
+                    lines,
+                    idx,
+                    2,
+                    text,
+                    line.file_line,
+                    filler_kind,
+                    path,
+                )
+            {
+                findings.push(finding);
+            }
+        }
+    }
+    findings
+}
+
+fn check_requirement_statement_single_paragraph(
+    lines: &[Line<'_>],
+    idx: usize,
+    end: usize,
+    file_line: usize,
+    path: &str,
+) -> Option<Finding> {
+    let section_text: String = lines[idx + 1..end]
+        .iter()
+        .map(|l| l.text)
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut depth = 0usize;
+    let mut top_level_blocks = 0usize;
+    let mut only_paragraph = true;
+    for event in Parser::new_ext(&section_text, Options::ENABLE_TABLES) {
+        match event {
+            Event::Start(tag) => {
+                if depth == 0 {
+                    top_level_blocks += 1;
+                    if !matches!(tag, Tag::Paragraph) {
+                        only_paragraph = false;
+                    }
+                }
+                depth += 1;
+            }
+            Event::End(_) => {
+                depth = depth.saturating_sub(1);
+            }
+            Event::Rule if depth == 0 => {
+                top_level_blocks += 1;
+                only_paragraph = false;
+            }
+            _ => {}
+        }
+    }
+
+    if top_level_blocks == 1 && only_paragraph {
+        None
+    } else {
+        Some(Finding::new(
+            path,
+            Some(file_line),
+            "\"## Statement\" section must be a single normative paragraph",
+        ))
+    }
+}
+
 fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
     let mut findings = check_required_sections_in_order(lines, path, 2, &REQUIREMENT_REQUIRED_H2);
     findings.extend(check_optional_sections_nonempty(
@@ -501,6 +761,13 @@ fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         path,
         2,
         &OPTIONAL_H2,
+    ));
+    findings.extend(check_bare_filler(
+        lines,
+        path,
+        &REQUIREMENT_REQUIRED_H2,
+        &OPTIONAL_H2,
+        FillerKind::ReasonedRequired,
     ));
 
     let statement_headings: Vec<(usize, usize)> = lines
@@ -515,6 +782,12 @@ fn check_requirement(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         .collect();
     if let Some(&(idx, file_line)) = statement_headings.first() {
         let end = section_end(lines, idx, 2);
+        if section_nonempty(lines, idx, end)
+            && let Some(finding) =
+                check_requirement_statement_single_paragraph(lines, idx, end, file_line, path)
+        {
+            findings.push(finding);
+        }
         let has_bcp14 = lines[idx + 1..end]
             .iter()
             .any(|l| !l.in_code_block && contains_bcp14_term(l.text));
@@ -547,6 +820,13 @@ fn check_design(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         path,
         2,
         &OPTIONAL_H2,
+    ));
+    findings.extend(check_bare_filler(
+        lines,
+        path,
+        &DESIGN_REQUIRED_H2,
+        &OPTIONAL_H2,
+        FillerKind::ReasonedRequired,
     ));
     findings
 }
@@ -583,6 +863,13 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
         path,
         2,
         &ADR_OPTIONAL_H2,
+    ));
+    findings.extend(check_bare_filler(
+        lines,
+        path,
+        &ADR_REQUIRED_H2,
+        &ADR_OPTIONAL_H2,
+        FillerKind::AdrRequired,
     ));
 
     // Consequences is a level-three subsection of Decision outcome. Scope
@@ -656,6 +943,11 @@ fn check_adr(lines: &[Line<'_>], path: &str) -> Vec<Finding> {
                 Some(*fl),
                 format!("\"### {text}\" section has no content"),
             ));
+        } else if ADR_REQUIRED_H3.contains(text)
+            && let Some(finding) =
+                check_section_bare_filler(lines, *idx, 3, text, *fl, FillerKind::AdrRequired, path)
+        {
+            findings.push(finding);
         }
     }
 
@@ -676,7 +968,13 @@ pub fn check_body(
 ) -> Vec<Finding> {
     let lines = scan_lines(body, body_first_line);
 
-    let mut findings = check_common(&lines, frontmatter, path, body_first_line);
+    let mut findings = check_common(&lines, body, frontmatter, path, body_first_line);
+    findings.extend(check_foreign_canonical_headings(
+        kind,
+        body,
+        path,
+        body_first_line,
+    ));
 
     match kind {
         ArtifactKind::Requirement => findings.extend(check_requirement(&lines, path)),
@@ -1530,5 +1828,250 @@ mod tests {
                 .iter()
                 .any(|f| f.message.contains("More information"))
         );
+    }
+
+    // ---- boundary and completeness checks ----
+
+    #[test]
+    fn boundary_requirement_statement_accepts_wrapped_single_paragraph() {
+        let fm = json!({"title": "Real title"});
+        let body = complete_requirement_body().replace(
+            "The system MUST do the thing.",
+            "WHEN the input arrives, the system\nMUST do the thing\nwithin 100 ms.",
+        );
+        let findings = findings_for(ArtifactKind::Requirement, fm, &body);
+        assert!(findings.is_empty(), "{findings:?}");
+    }
+
+    #[test]
+    fn boundary_requirement_statement_rejects_non_single_paragraph_blocks() {
+        let fm = json!({"title": "Real title"});
+        let cases = [
+            (
+                "two paragraphs",
+                "The system MUST do the thing.\n\nSecond paragraph.",
+            ),
+            ("bullet list", "- The system MUST do the thing."),
+            ("subheading", "### Detail\n\nThe system MUST do the thing."),
+            (
+                "code block",
+                "The system MUST do the thing.\n\n```text\nexample\n```",
+            ),
+            (
+                "table",
+                "The system MUST do the thing.\n\n| A | B |\n|---|---|\n| 1 | 2 |",
+            ),
+        ];
+
+        for (label, replacement) in cases {
+            let body =
+                complete_requirement_body().replace("The system MUST do the thing.", replacement);
+            let findings = findings_for(ArtifactKind::Requirement, fm.clone(), &body);
+            assert!(
+                findings.iter().any(|f| {
+                    f.message == "\"## Statement\" section must be a single normative paragraph"
+                        && f.line == Some(3)
+                }),
+                "case `{label}` should fail single-paragraph check, got: {findings:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn boundary_foreign_canonical_headings_rejected_across_kinds() {
+        let fm = json!({"title": "Real title"});
+
+        let mut req_with_adr = complete_requirement_body();
+        req_with_adr.push_str("## Considered options\n\n- Option A\n");
+        let req_findings = findings_for(ArtifactKind::Requirement, fm.clone(), &req_with_adr);
+        assert!(
+            req_findings.iter().any(|f| {
+                f.message
+                    .contains("\"## Considered options\" is an ADR section")
+                    && f.message.contains("specful profile requirement")
+            }),
+            "{req_findings:?}"
+        );
+
+        let mut req_mixed_case = complete_requirement_body();
+        req_mixed_case.push_str("## Context and Problem Statement\n\nBackground.\n");
+        let mixed_findings = findings_for(ArtifactKind::Requirement, fm.clone(), &req_mixed_case);
+        assert!(
+            mixed_findings.iter().any(|f| {
+                f.message
+                    .contains("\"## Context and Problem Statement\" is an ADR section")
+            }),
+            "{mixed_findings:?}"
+        );
+
+        let mut design_with_req = complete_design_body();
+        design_with_req.push_str("## Acceptance criteria\n\n- Criteria.\n");
+        let design_findings = findings_for(ArtifactKind::Design, fm.clone(), &design_with_req);
+        assert!(
+            design_findings.iter().any(|f| {
+                f.message
+                    .contains("\"## Acceptance criteria\" is a Requirement section")
+                    && f.message.contains("specful profile design")
+            }),
+            "{design_findings:?}"
+        );
+
+        let mut design_with_commonmark_variants = complete_design_body();
+        design_with_commonmark_variants
+            .push_str("## Statement ##\n\nClosing hashes.\n\n   ## Rationale\n\nLeading spaces.\n");
+        let variant_findings = findings_for(
+            ArtifactKind::Design,
+            fm.clone(),
+            &design_with_commonmark_variants,
+        );
+        assert!(
+            variant_findings.iter().any(|f| f
+                .message
+                .contains("\"## Statement\" is a Requirement section")),
+            "{variant_findings:?}"
+        );
+        assert!(
+            variant_findings.iter().any(|f| f
+                .message
+                .contains("\"## Rationale\" is a Requirement section")),
+            "{variant_findings:?}"
+        );
+
+        let mut adr_with_design = complete_adr_body();
+        adr_with_design.push_str("## Runtime behaviour\n\nRuns in a loop.\n");
+        let adr_findings = findings_for(ArtifactKind::Adr, adr_frontmatter(), &adr_with_design);
+        assert!(
+            adr_findings.iter().any(|f| {
+                f.message
+                    .contains("\"## Runtime behaviour\" is a Design section")
+                    && f.message.contains("specful profile adr")
+            }),
+            "{adr_findings:?}"
+        );
+
+        let mut design_with_custom_and_shared = complete_design_body();
+        design_with_custom_and_shared
+            .push_str("## Custom deployment topology\n\nSingle node.\n\n## More information\n\nSee runbook.\n");
+        let ok_design = findings_for(ArtifactKind::Design, fm, &design_with_custom_and_shared);
+        assert!(ok_design.is_empty(), "{ok_design:?}");
+
+        let mut adr_with_confirmation = complete_adr_body();
+        adr_with_confirmation.push_str("### Confirmation\n\nVerified in staging.\n");
+        let ok_adr = findings_for(ArtifactKind::Adr, adr_frontmatter(), &adr_with_confirmation);
+        assert!(ok_adr.is_empty(), "{ok_adr:?}");
+    }
+
+    #[test]
+    fn boundary_bare_filler_rejected_and_reasoned_prose_accepted() {
+        let fm = json!({"title": "Real title"});
+        let filler_samples = [
+            "Not applicable",
+            "Not applicable:",
+            "N/A",
+            "NA",
+            "None",
+            "- TBD",
+            "TODO",
+            "TBA",
+        ];
+
+        for sample in filler_samples {
+            let body = complete_design_body().replace("Data explanation.", sample);
+            let findings = findings_for(ArtifactKind::Design, fm.clone(), &body);
+            assert!(
+                findings.iter().any(|f| f
+                    .message
+                    .contains("\"## Data and state\" section contains bare filler")),
+                "sample `{sample}` should be rejected as bare filler, got: {findings:?}"
+            );
+        }
+
+        let adr_outcome_filler = complete_adr_body().replace("Chosen option: PostgreSQL.", "TBD");
+        let findings = findings_for(ArtifactKind::Adr, adr_frontmatter(), &adr_outcome_filler);
+        assert!(
+            findings.iter().any(|f| {
+                f.message
+                    .contains("\"## Decision outcome\" section contains bare filler")
+            }),
+            "{findings:?}"
+        );
+
+        let adr_consequences_filler =
+            complete_adr_body().replace("- Positive: mature tooling", "- N/A");
+        let findings = findings_for(
+            ArtifactKind::Adr,
+            adr_frontmatter(),
+            &adr_consequences_filler,
+        );
+        assert!(
+            findings.iter().any(|f| {
+                f.message
+                    .contains("\"### Consequences\" section contains bare filler")
+            }),
+            "{findings:?}"
+        );
+
+        let mut req_optional_filler = complete_requirement_body();
+        req_optional_filler.push_str("## More information\n\nNone.\n");
+        let findings = findings_for(ArtifactKind::Requirement, fm.clone(), &req_optional_filler);
+        assert!(
+            findings.iter().any(|f| {
+                f.message
+                    .contains("\"## More information\" section contains bare filler")
+                    && f.message.contains("omit this optional section")
+            }),
+            "{findings:?}"
+        );
+
+        let reasoned = complete_design_body()
+            .replace("Data explanation.", "Not applicable: stateless module.")
+            .replace(
+                "Security explanation.",
+                "This module holds none of the caller's credentials.",
+            );
+        let findings = findings_for(ArtifactKind::Design, fm.clone(), &reasoned);
+        assert!(findings.is_empty(), "{findings:?}");
+
+        let parent_with_subsection = complete_design_body().replace(
+            "## Structure\n\nStructure explanation.",
+            "## Structure\n\n### Components\n\nComponent breakdown.",
+        );
+        let findings = findings_for(ArtifactKind::Design, fm, &parent_with_subsection);
+        assert!(findings.is_empty(), "{findings:?}");
+    }
+
+    #[test]
+    fn boundary_task_checkboxes_flagged_with_exact_lines_and_code_ignored() {
+        let fm = json!({"title": "Real title"});
+
+        let body_lf = complete_design_body().replace(
+            "Failure explanation.",
+            "- [ ] Retry transient errors\n- [x] Log failures\n* [X] Alert operator",
+        );
+        let findings_lf = check_body(ArtifactKind::Design, &fm, &body_lf, "docs/example.md", 10);
+        let checkbox_lines_lf: Vec<Option<usize>> = findings_lf
+            .iter()
+            .filter(|f| f.message.contains("task checklist items"))
+            .map(|f| f.line)
+            .collect();
+        // Line 25 in body (1-based) + offset 10 - 1 = 34, 35, 36.
+        assert_eq!(checkbox_lines_lf, vec![Some(34), Some(35), Some(36)]);
+
+        let body_crlf = body_lf.replace('\n', "\r\n");
+        let findings_crlf =
+            check_body(ArtifactKind::Design, &fm, &body_crlf, "docs/example.md", 10);
+        let checkbox_lines_crlf: Vec<Option<usize>> = findings_crlf
+            .iter()
+            .filter(|f| f.message.contains("task checklist items"))
+            .map(|f| f.line)
+            .collect();
+        assert_eq!(checkbox_lines_crlf, vec![Some(34), Some(35), Some(36)]);
+
+        let body_in_code = complete_design_body().replace(
+            "Failure explanation.",
+            "Inline `- [ ] not a task` stays allowed.\n\n```markdown\n- [ ] fenced task\n* [x] done\n```",
+        );
+        let findings_code = findings_for(ArtifactKind::Design, fm, &body_in_code);
+        assert!(findings_code.is_empty(), "{findings_code:?}");
     }
 }

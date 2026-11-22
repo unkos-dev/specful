@@ -55,12 +55,10 @@ Run `specful validate` when a corpus change is ready to check:
 specful validate
 ```
 
-Validation is mechanical and covers three layers: relationship integrity (identifiers resolve, `satisfies` targets
-exist, supersession links agree, generated views match their sources), metadata shape (frontmatter conforms to the
-artifact's JSON Schema profile), and document structure (canonical headings present, requirement records well-formed,
-template placeholder text absent, and every requirement statement uses at least one uppercase BCP 14 keyword).
-Diagnostics are human-readable text with a meaningful exit status; a `--json` flag emits a plain machine-readable
-listing that is explicitly unstable.
+Validation is mechanical and checks relationship integrity, metadata shape, and document structure; see
+[What it checks](/specful/reference/cli/#what-it-checks) in the CLI reference for the full rule list. Diagnostics are
+human-readable text with a meaningful exit status; a `--json` flag emits a plain machine-readable listing that is
+explicitly unstable.
 
 This validates the current snapshot, not Git history. It cannot prove that the project key never changed, that counters
 never decreased or that a deleted identifier was never reused. Review those historical guarantees when integrating

@@ -1191,3 +1191,149 @@ fn artifact_slug_length_boundary_applies_to_every_kind() {
         }
     }
 }
+
+#[test]
+fn governed_by_status_allows_proposed_adr() {
+    let scratch = copy_fixture("valid-repo", "governed-by-proposed");
+    let root = scratch.path();
+    let adr_path = root.join("docs/adr/0001-store-progress-events.md");
+    let adr = std::fs::read_to_string(&adr_path)
+        .expect("read ADR")
+        .replace("status: accepted\n", "status: proposed\n")
+        .replace("decided-on: 2026-08-01\n", "");
+    std::fs::write(&adr_path, adr).expect("write proposed ADR");
+
+    let index_findings = specful::index::run_index(root, false);
+    assert!(index_findings.is_empty(), "{index_findings:?}");
+
+    let findings = validate_repository(root);
+    assert!(
+        findings.is_empty(),
+        "provisional citation to a proposed ADR must pass: {findings:?}"
+    );
+}
+
+#[test]
+fn governed_by_status_rejects_superseded_adr_naming_successor() {
+    let scratch = copy_fixture("valid-repo", "governed-by-superseded");
+    let root = scratch.path();
+
+    let config_path = root.join(".specful/config.yaml");
+    let config = std::fs::read_to_string(&config_path)
+        .expect("read config")
+        .replace("next-adr-sequence: 2", "next-adr-sequence: 3");
+    std::fs::write(&config_path, config).expect("write config");
+
+    let adr1_path = root.join("docs/adr/0001-store-progress-events.md");
+    let adr1 = std::fs::read_to_string(&adr1_path)
+        .expect("read ADR 1")
+        .replace(
+            "status: accepted\n",
+            "status: superseded\nsuperseded-by:\n  - OK-ADR-0002\n",
+        );
+    std::fs::write(&adr1_path, adr1).expect("write superseded ADR 1");
+
+    std::fs::write(
+        root.join("docs/adr/0002-store-progress-snapshots.md"),
+        "---\n\
+         type: ADR\n\
+         profile-version: 1\n\
+         id: OK-ADR-0002\n\
+         title: Store progress snapshots\n\
+         status: accepted\n\
+         recorded-on: 2026-08-02\n\
+         decided-on: 2026-08-02\n\
+         decision-makers:\n\
+         \x20 - John\n\
+         supersedes:\n\
+         \x20 - OK-ADR-0001\n\
+         ---\n\
+         \n\
+         # Store progress snapshots\n\
+         \n\
+         ## Context and problem statement\n\
+         \n\
+         Event logs grew unbounded on long-lived offline clients.\n\
+         \n\
+         ## Decision drivers\n\
+         \n\
+         - Bounded local storage.\n\
+         \n\
+         ## Considered options\n\
+         \n\
+         - Store compacted progress snapshots.\n\
+         - Keep unbounded event logs.\n\
+         \n\
+         ## Decision outcome\n\
+         \n\
+         Chosen option: store compacted progress snapshots, because it bounds storage.\n\
+         \n\
+         ### Consequences\n\
+         \n\
+         - Positive: bounded client storage.\n",
+    )
+    .expect("write successor ADR 2");
+
+    let index_findings = specful::index::run_index(root, false);
+    assert!(index_findings.is_empty(), "{index_findings:?}");
+
+    let findings = validate_repository(root);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    assert_eq!(
+        findings.len(),
+        2,
+        "expected findings for Requirement and Design governed-by only, got:\n{}",
+        rendered.join("\n")
+    );
+    for path in [
+        "docs/specs/system/requirements/0001-offline-replay.md",
+        "docs/specs/backend/design/0001-progress-pipeline.md",
+    ] {
+        assert!(
+            findings.iter().any(|f| {
+                f.path == path
+                    && f.message
+                        .contains("governed-by target OK-ADR-0001 is superseded by OK-ADR-0002")
+            }),
+            "expected superseded governed-by finding for {path}, got:\n{}",
+            rendered.join("\n")
+        );
+    }
+}
+
+#[test]
+fn governed_by_status_rejects_deprecated_adr() {
+    let scratch = copy_fixture("valid-repo", "governed-by-deprecated");
+    let root = scratch.path();
+    let adr_path = root.join("docs/adr/0001-store-progress-events.md");
+    let adr = std::fs::read_to_string(&adr_path)
+        .expect("read ADR")
+        .replace("status: accepted\n", "status: deprecated\n");
+    std::fs::write(&adr_path, adr).expect("write deprecated ADR");
+
+    let index_findings = specful::index::run_index(root, false);
+    assert!(index_findings.is_empty(), "{index_findings:?}");
+
+    let findings = validate_repository(root);
+    let rendered: Vec<String> = findings.iter().map(|f| f.render()).collect();
+    assert_eq!(
+        findings.len(),
+        2,
+        "expected findings for Requirement and Design governed-by only, got:\n{}",
+        rendered.join("\n")
+    );
+    for path in [
+        "docs/specs/system/requirements/0001-offline-replay.md",
+        "docs/specs/backend/design/0001-progress-pipeline.md",
+    ] {
+        assert!(
+            findings.iter().any(|f| {
+                f.path == path
+                    && f.message
+                        .contains("governed-by target OK-ADR-0001 is deprecated")
+            }),
+            "expected deprecated governed-by finding for {path}, got:\n{}",
+            rendered.join("\n")
+        );
+    }
+}

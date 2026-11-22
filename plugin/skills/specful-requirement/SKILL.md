@@ -1,8 +1,9 @@
 ---
 name: specful-requirement
 description: >-
-  Use when evaluating, selecting, writing, or updating a Specful Requirement: a candidate normative obligation, a new
-  obligation, or a change to what the software must do. Do not use for general product discovery.
+  Use when evaluating, selecting, creating, writing, or updating a Specful Requirement under
+  `docs/specs/**/requirements/*.md`: a candidate normative obligation, a new obligation, or a change to what the
+  software must do. Do not use for general product discovery.
 compatibility: Requires the specful CLI on PATH.
 ---
 
@@ -15,8 +16,9 @@ is a plan, and what used to be true is Git history.
 
 ## Workflow
 
-1. Before evaluating or selecting a candidate obligation, read the full
-   [Requirement profile](https://unkos-dev.github.io/specful/profiles/requirement/), including Rationale and Acceptance
+1. Before evaluating or selecting a candidate obligation, read the bundled
+   [Requirement profile](references/profiles/requirement.md) (or run `specful profile requirement`) and
+   [Requirement versus ADR](references/profiles/adr.md#requirement-versus-adr), including Rationale and Acceptance
    criteria. Confirm the real need and authority for the obligation and whether its acceptance criteria can observe a
    violation. Existing behaviour alone does not establish what the software must do. Apply approved local selection
    rules as supplements; surface a conflict with the profile rather than silently replacing its definitions. If the
@@ -25,14 +27,22 @@ is a plan, and what used to be true is Git history.
    neighbouring Requirements and the Designs that satisfy them before writing.
 3. Scaffold with `specful new requirement --title <TITLE> --scope <SCOPE>`. Never hand-allocate an identifier; the
    command owns the counter.
-4. Complete the placeholders. The Statement section carries at least one uppercase BCP 14 keyword (MUST, MUST NOT,
-   SHOULD, SHOULD NOT, MAY); cite governing ADRs through `governed-by`, naming only the ADR whose rationale this
-   obligation embodies, never a related or organising decision such as the decision to adopt a convention, and omit the
-   field when that record does not exist in the profile. Write obligations testably: a Requirement that no observable
-   behaviour could violate is decoration, not specification. More information is optional and is removed completely when
-   it adds nothing; it never restates a `governed-by` edge as a link, since `specful show` already renders it.
+4. Complete the placeholders. The Statement section carries one normative paragraph with at least one uppercase BCP 14
+   keyword (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY); cite governing ADRs through `governed-by`, naming only the ADR
+   whose rationale this obligation embodies, never a related or organising decision such as the decision to adopt a
+   convention, and omit the field when that record does not exist in the profile. Write obligations testably: a
+   Requirement that no observable behaviour could violate is decoration, not specification. More information is optional
+   and is removed completely when it adds nothing; it never restates a `governed-by` edge as a link, since
+   `specful show` already renders it.
 5. Run `specful index`, then `specful validate`; commit the regenerated views with the change.
 6. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
    substantive review or the user asks for it.
 
-For field-by-field guidance, use the Requirement profile linked in step 1.
+## Blurred versus clean
+
+- **Blurred:** `## Statement` uses two paragraphs and a bulleted list prescribing an internal worker queue and SQL
+  schema. **Clean:** `## Statement` is one paragraph stating the observable external contract with an uppercase BCP 14
+  keyword; the worker queue and schema live in a satisfying Design.
+- **Blurred:** `## Rationale` weighs three candidate frameworks and explains why two lost, while
+  `## Acceptance criteria` uses `- [ ]` rollout checkboxes. **Clean:** Option trade-offs live in an ADR cited via
+  `governed-by`, and acceptance criteria are plain bullets stating yes/no observable checks.

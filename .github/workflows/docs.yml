@@ -29,6 +29,7 @@ jobs:
           filters: |
             docs:
               - 'site/**'
+              - 'profiles/**'
               - 'docs/specs/**'
               - 'templates/**'
               - '.mise.toml'
