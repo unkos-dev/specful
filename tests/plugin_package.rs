@@ -521,6 +521,8 @@ fn run_hook_command(command: &str, cwd: &Path, stdin_payload: &str) -> String {
     let mut child = Command::new("sh")
         .args(["-c", command])
         .current_dir(cwd)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -546,6 +548,8 @@ fn run_git(cwd: &Path, args: &[&str]) {
     let output = std::process::Command::new("git")
         .args(args)
         .current_dir(cwd)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
         .env("GIT_AUTHOR_NAME", "Test")
         .env("GIT_AUTHOR_EMAIL", "test@example.com")
         .env("GIT_COMMITTER_NAME", "Test")
@@ -715,6 +719,50 @@ fn harness_hooks_push_reminder_stays_silent_outside_specful_repositories() {
             out.contains("specful-review"),
             "push hook should remind from {}, got: {out:?}",
             cwd.display()
+        );
+    }
+
+    let plain_event = json!({
+        "cwd": plain_repo.path(),
+        "tool_input": {"command": "git push"}
+    })
+    .to_string();
+    let plain_from_specful_session =
+        run_hook_command(claude_push, specful_repo.path(), &plain_event);
+    assert!(
+        plain_from_specful_session.is_empty(),
+        "push hook must follow event cwd into plain repo instead of Specful session cwd, got: {plain_from_specful_session:?}"
+    );
+
+    for event_cwd in [specful_repo.path(), &specful_repo.path().join("nested")] {
+        let specful_event = json!({
+            "cwd": event_cwd,
+            "tool_input": {"command": "git push origin HEAD"}
+        })
+        .to_string();
+        let specful_from_plain_session =
+            run_hook_command(claude_push, plain_repo.path(), &specful_event);
+        assert!(
+            specful_from_plain_session.contains("specful-review"),
+            "push hook must follow event cwd {} from plain session cwd, got: {specful_from_plain_session:?}",
+            event_cwd.display()
+        );
+    }
+
+    for skipped in [
+        "cd ../plain && git push",
+        "git -C ../plain push",
+        "echo 'git push'",
+    ] {
+        let payload = json!({
+            "cwd": specful_repo.path(),
+            "tool_input": {"command": skipped}
+        })
+        .to_string();
+        let out = run_hook_command(claude_push, specful_repo.path(), &payload);
+        assert!(
+            out.is_empty(),
+            "non-direct push command {skipped:?} must stay silent, got: {out:?}"
         );
     }
 }
