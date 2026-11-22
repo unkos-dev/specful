@@ -35,6 +35,11 @@ Supersession is the one relationship stored in both directions: both the replace
 reciprocal links, so either document remains independently navigable, and validation treats disagreement between those
 links as an error.
 
+Only an `accepted` ADR carries architectural authority. `specful validate` allows a Requirement or Design to cite a
+`proposed` ADR in `governed-by` so one change can introduce a proposal alongside dependent artifacts, while that
+citation remains provisional until the maintainer accepts the ADR. Citations to `deprecated` or `superseded` ADRs fail
+validation.
+
 ## Corrections and supersession
 
 Accepted, deprecated, and superseded ADRs may be corrected and clarified in any section and factual metadata, including
@@ -60,10 +65,13 @@ warning; the distinction is an authoring and review judgement rather than a mech
 that exact order and wording, and requires the level-three **Consequences** heading, but only within the Decision
 outcome span: a stray top-level heading of the same name elsewhere does not satisfy it. Each required heading must
 appear exactly once, in order, and carry content; a missing, duplicated, out-of-order, or empty required section is a
-finding. When present, **Pros and cons of the options** and **More information** must be non-empty. The document H1 must
-match the frontmatter `title`, and no template placeholder residue may remain outside a code span. The tool cannot tell
-whether the considered options were the materially viable ones, whether the chosen option's reasoning is honest, or
-whether a stated consequence is real: that judgement is the author's and reviewer's, and the authoring skills teach it.
+finding. When present, **Pros and cons of the options** and **More information** must be non-empty. Validation also
+rejects foreign canonical level-two headings belonging to Requirements or Designs, Markdown task checkboxes outside
+code, and any required section, **Consequences**, or present optional section consisting solely of bare filler
+(`Not applicable`, `N/A`, `NA`, `None`, `TBD`, `TODO`, or `TBA`). The document H1 must match the frontmatter `title`,
+and no template placeholder residue may remain outside a code span. The tool cannot tell whether the considered options
+were the materially viable ones, whether the chosen option's reasoning is honest, or whether a stated consequence is
+real: that judgement is the author's and reviewer's, and the authoring skills teach it.
 
 Through **Consequences**, every section is required. **Pros and cons of the options** and **More information** are
 optional, and are removed completely when they add no useful decision evidence, unlike a Requirement or Design section,
@@ -118,6 +126,6 @@ Two litmus questions settle nearly every case:
    Requirement. Superseded: ADR. Correcting the record does not itself change the decision.
 
 The discipline that keeps the line crisp: an ADR outcome never says "the system MUST", and whether a decision is being
-followed is read from the Requirements and Designs that cite it through `governed-by`, not from the record itself. See
-the [Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/) for the
-other two sides of the same triangle.
+followed is read from the Requirements and Designs that cite it through `governed-by`, not from the record itself.
+
+See the [Requirement profile](/specful/profiles/requirement/) and the [Design profile](/specful/profiles/design/).

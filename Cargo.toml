@@ -14,6 +14,7 @@ categories = ["command-line-utilities", "development-tools"]
 # broke mise-wrapped builds in 0.1.0.
 include = [
   "/src/",
+  "/profiles/",
   "/schemas/",
   "/templates/",
   "/plugin/",

@@ -13,9 +13,9 @@ governed-by:
 by `specful new requirement` and is never edited by hand. Replace every braced block with real content. Every section
 heading stays, exactly as written, so Requirements stay searchable and parseable across the repository; where a section
 has nothing to say, keep the heading and state "Not applicable: {reason}". More information is the exception: it is
-optional and is removed completely when it adds nothing. The document is complete only when no braced text remains,
-`specful validate` passes, and every remaining section carries real content or a reasoned not-applicable. Delete this
-block last.}
+optional and is removed completely when it adds nothing. Run `specful profile requirement` for the full Requirement
+profile. The document is complete only when no braced text remains, `specful validate` passes, and every remaining
+section carries real content or a reasoned not-applicable. Delete this block last.}
 
 {A Requirement is one coherent normative obligation plus the information needed to understand and evaluate it. One
 obligation per file does not mean one sentence per file: complex acceptance boundaries, tables, examples, and

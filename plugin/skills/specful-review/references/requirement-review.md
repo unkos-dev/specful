@@ -1,8 +1,7 @@
 # Requirement review lens
 
-Apply this lens only when a Requirement is in scope. The canonical rules are the public
-[Requirement profile](https://unkos-dev.github.io/specful/profiles/requirement/), the repository's
-`templates/requirement.md`, and the named Requirement itself.
+Apply this lens only when a Requirement is in scope. The canonical rules are the bundled
+[Requirement profile](profiles/requirement.md) and the named Requirement itself.
 
 Inspect the coherent obligation, its linked governing ADRs where relevant, and only the evidence needed to test a
 material claim. Check whether:

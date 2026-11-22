@@ -31,11 +31,15 @@ instructions, or any other repository control.
 The package lives under `plugin/`:
 
 - `plugin/plugin.json` carries harness-neutral package metadata and no package version;
-- `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-review` ships concise
-  Requirement, Design, ADR, change/plan, execution, and report-format references, while `specful-plan` ships change-plan
-  and arc-plan templates plus a planning-craft reference;
-- `tests/plugin_package.rs` checks the manifest policy, the exact skill set, directory and frontmatter naming,
-  frontmatter shape, and the named, regular, non-empty review and planning references;
+- `plugin/skills/<name>/SKILL.md` contains one Agent Skills document per workflow; `specful-adr`, `specful-design`,
+  `specful-requirement`, and `specful-review` each bundle exact copies of all three canonical profiles under
+  `references/profiles/{adr,design,requirement}.md`; `specful-review` also ships concise Requirement, Design, ADR,
+  change/plan, execution, and report-format references; `specful-plan` ships change-plan and arc-plan templates plus a
+  planning-craft reference; and `specful-validate` ships optional harness-hook examples;
+- `tests/plugin_package.rs` checks the manifest policy, Cargo packaging of `plugin/` and `profiles/`, the exact skill
+  set, directory and frontmatter naming, frontmatter shape, named non-empty regular references, exact byte parity of all
+  bundled `references/profiles/` files against `profiles/` and plan templates against `templates/`, and absence of
+  adopter-local `templates/` paths in review lenses;
 - the `skills-ref` preflight recipe validates every skill against the pinned Agent Skills validator.
 
 All directory and frontmatter names use the `specful-` prefix because installers place skills from unrelated packages in
@@ -48,9 +52,12 @@ is `specful-requirement`, `specful-design`, and `specful-adr`. `specful-plan` pl
 
 Each skill uses Agent Skills frontmatter for its name and trigger description, followed by Markdown instructions that a
 harness loads when the skill applies. Skills that require the CLI declare a `compatibility` line requiring `specful` on
-`PATH`, carrying no version number: nothing reads it, and the installer pins skills to a release tag. Authoring,
-planning, implementation, and review skills also use repository artifacts and public documentation as source material.
-Review can inspect ordinary files without the CLI; available read-only lookups can help retrieve corpus relationships.
+`PATH`, carrying no version number: nothing reads it, and the installer pins skills to a release tag. Authoring and
+review skills read their bundled `references/profiles/` files offline (and authoring skills can also invoke
+`specful profile <kind>`), so cross-profile links resolve inside each self-contained skill directory without network
+access or adopter-local `templates/` files. Planning, implementation, and review skills also use repository artifacts as
+source material. Review can inspect ordinary files without the CLI; available read-only lookups can help retrieve corpus
+relationships.
 
 Users install the package through the GitHub CLI:
 
@@ -94,17 +101,19 @@ decisions, delivered artifacts and evidence revisions. It records documentation 
 affected by later source changes. It delegates artifact craft to the authoring skills and uses indexing and validation
 for their stated mechanical checks. Substantive review follows adopter policy or an explicit user request.
 
-Authoring skills scaffold new records through `specful new`, guide completion of one artifact type, and finish with
-indexing and mechanical validation. The ADR skill also guides corrections to existing records, including moving
-misplaced content into Designs or Requirements while preserving the decision. They point to substantive review when the
-adopting repository requires it or the user asks for it. Operation skills run the matching CLI command or commands and
-report the result.
+Authoring skills consult their bundled `references/profiles/` files (or `specful profile <kind>`), scaffold new records
+through `specful new`, guide completion of one artifact type, and finish with indexing and mechanical validation. The
+ADR skill also guides corrections to existing records, including moving misplaced content into Designs or Requirements
+while preserving the decision, and tracing citing artifacts with `specful trace` during supersession. They point to
+substantive review when the adopting repository requires it or the user asks for it. Operation skills run the matching
+CLI command or commands and report the result.
 
 `specful-review` resolves a PR, plan, branch, commit, local change or named artifact and records the inspected scope. It
 assesses correctness, technical fitness, relevant standards, simplification and applicable Specful authority, loading
-the relevant artifact or change/plan lenses. Plans are judged for coherence and executability without requiring future
-implementation artifacts or results. Draft and mutable targets can receive `SHIP`. Review reuses existing evidence;
-routine development checks, validation and CI inspection are outside its workflow.
+the relevant artifact or change/plan lenses and bundled `references/profiles/` files offline. Plans are judged for
+coherence and executability without requiring future implementation artifacts or results. Draft and mutable targets can
+receive `SHIP`. Review reuses existing evidence; routine development checks, validation and CI inspection are outside
+its workflow.
 
 Proposed checks, author assertions, observed results and reviewer inferences remain distinct. Prior findings guide
 inspection but need support against the current target. Reviewers assess contrary evidence, existing safeguards and
