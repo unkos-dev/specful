@@ -38,7 +38,7 @@ version_prefix = "cargo-nextest-"
 filter_bins = "cargo-nextest"
 
 [tools."github:bnjbvr/cargo-machete"]
-version = "0.9.2"
+version = "0.10.1"
 version_prefix = "v"
 filter_bins = "cargo-machete"
 
