@@ -1,16 +1,16 @@
 //! Markdown body structure checks for the artifact profiles.
 //!
-//! Most profile rules stay line-based (ATX headings, section order,
-//! placeholder residue, bare filler). The CommonMark parser handles the three
-//! checks that require block or inline syntax awareness: locating code so it is
-//! exempt from residue and heading scanning, checking that a Requirement's
-//! `## Statement` is a single paragraph, and detecting Markdown task checkboxes
-//! outside code.
+//! Most profile rules stay line-based (required ATX headings, section order,
+//! placeholder residue, bare filler). The CommonMark parser handles the checks
+//! that require block or inline syntax awareness: locating code so it is exempt
+//! from residue and heading scanning, parsing level-two headings for foreign
+//! canonical-heading detection, checking that a Requirement's `## Statement` is
+//! a single paragraph, and detecting Markdown task checkboxes outside code.
 
 use std::collections::HashSet;
 use std::ops::Range;
 
-use pulldown_cmark::{Event, Options, Parser, Tag};
+use pulldown_cmark::{Event, HeadingLevel, Options, Parser, Tag, TagEnd};
 
 use crate::diagnostics::Finding;
 
@@ -559,28 +559,55 @@ fn foreign_heading_owner(kind: ArtifactKind, heading: &str) -> Option<ArtifactKi
 
 fn check_foreign_canonical_headings(
     kind: ArtifactKind,
-    lines: &[Line<'_>],
+    body: &str,
     path: &str,
+    body_first_line: usize,
 ) -> Vec<Finding> {
     let (current_label, profile_arg) = kind_article_and_name(kind);
     let mut findings = Vec::new();
-    for line in lines {
-        if line.in_code_block {
-            continue;
-        }
-        if let Some((2, text)) = heading_level_and_text(line.text)
-            && let Some(owner) = foreign_heading_owner(kind, text)
-        {
-            let (owner_label, _) = kind_article_and_name(owner);
-            findings.push(Finding::new(
-                path,
-                Some(line.file_line),
-                format!(
-                    "\"## {text}\" is {owner_label} section and does not belong in {current_label}; move this content to {owner_label} or run specful profile {profile_arg}"
-                ),
-            ));
+    let mut in_h2 = false;
+    let mut heading_start = 0usize;
+    let mut heading_text = String::new();
+
+    for (event, range) in Parser::new_ext(body, Options::ENABLE_TABLES).into_offset_iter() {
+        match event {
+            Event::Start(Tag::Heading {
+                level: HeadingLevel::H2,
+                ..
+            }) => {
+                in_h2 = true;
+                heading_start = range.start;
+                heading_text.clear();
+            }
+            Event::End(TagEnd::Heading(HeadingLevel::H2)) if in_h2 => {
+                in_h2 = false;
+                let text = heading_text.trim();
+                if let Some(owner) = foreign_heading_owner(kind, text) {
+                    let (owner_label, _) = kind_article_and_name(owner);
+                    let file_line = body_first_line
+                        + body[..heading_start]
+                            .bytes()
+                            .filter(|&b| b == b'\n')
+                            .count();
+                    findings.push(Finding::new(
+                        path,
+                        Some(file_line),
+                        format!(
+                            "\"## {text}\" is {owner_label} section and does not belong in {current_label}; move this content to {owner_label} or run specful profile {profile_arg}"
+                        ),
+                    ));
+                }
+            }
+            Event::Text(text) | Event::Code(text) if in_h2 => {
+                heading_text.push_str(&text);
+            }
+            Event::SoftBreak | Event::HardBreak if in_h2 => {
+                heading_text.push(' ');
+            }
+            _ => {}
         }
     }
+
     findings
 }
 
@@ -942,7 +969,12 @@ pub fn check_body(
     let lines = scan_lines(body, body_first_line);
 
     let mut findings = check_common(&lines, body, frontmatter, path, body_first_line);
-    findings.extend(check_foreign_canonical_headings(kind, &lines, path));
+    findings.extend(check_foreign_canonical_headings(
+        kind,
+        body,
+        path,
+        body_first_line,
+    ));
 
     match kind {
         ArtifactKind::Requirement => findings.extend(check_requirement(&lines, path)),
@@ -1882,6 +1914,27 @@ mod tests {
                     && f.message.contains("specful profile design")
             }),
             "{design_findings:?}"
+        );
+
+        let mut design_with_commonmark_variants = complete_design_body();
+        design_with_commonmark_variants
+            .push_str("## Statement ##\n\nClosing hashes.\n\n   ## Rationale\n\nLeading spaces.\n");
+        let variant_findings = findings_for(
+            ArtifactKind::Design,
+            fm.clone(),
+            &design_with_commonmark_variants,
+        );
+        assert!(
+            variant_findings.iter().any(|f| f
+                .message
+                .contains("\"## Statement\" is a Requirement section")),
+            "{variant_findings:?}"
+        );
+        assert!(
+            variant_findings.iter().any(|f| f
+                .message
+                .contains("\"## Rationale\" is a Requirement section")),
+            "{variant_findings:?}"
         );
 
         let mut adr_with_design = complete_adr_body();

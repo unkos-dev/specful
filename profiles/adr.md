@@ -23,7 +23,7 @@ docs/adr/<sequence>-<short-title>.md
 | `title` | Short title naming the problem and chosen solution. | validate (H1 parity); index; show |
 | `status` | One of `proposed`, `accepted`, `deprecated`, `superseded`. | validate (supersession pairing); index; show |
 | `recorded-on` | The date this record was written. | validate (schema); readers |
-| `decided-on` | The date the decision was made, when it differs from `recorded-on`. | validate (schema); readers |
+| `decided-on` | The date the decision was accepted; omit while `proposed` or unknown. | validate (schema); readers |
 | `decision-makers` | Who made the decision. | validate (schema); names the authority to reconsider |
 | `supersedes` | Optional: the ADR identifier(s) this record replaces. | validate (reciprocity); index; show; trace |
 | `superseded-by` | Optional: the ADR that replaced this record. | validate (reciprocity); index; show; trace |
@@ -95,8 +95,8 @@ This profile derives from the MADR 4.0.0 complete template and is tighter than M
 canonical MADR record does not validate against it unchanged. Section headings are sentence case and compared exactly,
 so `Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
 are required here where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
-still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
-the record, replaces MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
+still carries one validates, but the section is not read. `recorded-on` and `decided-on` (omitted while `proposed` or
+when unknown) replace MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
 and `informed` participant roles are not part of this profile; a record carrying either fails validation until the lines
 are deleted. `status` drops MADR's `rejected` value. No frontmatter key outside the profile is accepted other than an
 `x-` extension key. A MADR record joins the profile by being re-recorded, never edited in place; see
