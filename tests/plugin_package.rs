@@ -480,3 +480,241 @@ fn profile_references_review_lenses_omit_template_paths() {
         );
     }
 }
+
+fn harness_hook_blocks() -> Vec<Value> {
+    let source = fs::read_to_string(
+        repo_root().join("plugin/skills/specful-validate/references/harness-hooks.md"),
+    )
+    .expect("read harness-hooks.md");
+    let mut blocks = Vec::new();
+    let mut in_json = false;
+    let mut current = String::new();
+    for line in source.lines() {
+        if line == "```json" {
+            in_json = true;
+            current.clear();
+        } else if in_json && line == "```" {
+            in_json = false;
+            blocks.push(
+                serde_json::from_str::<Value>(&current).unwrap_or_else(|error| {
+                    panic!("invalid JSON block in harness-hooks.md: {error}")
+                }),
+            );
+        } else if in_json {
+            current.push_str(line);
+            current.push('\n');
+        }
+    }
+    assert_eq!(
+        blocks.len(),
+        2,
+        "harness-hooks.md should carry Claude Code and Codex JSON examples"
+    );
+    blocks
+}
+
+#[cfg(unix)]
+fn run_hook_command(command: &str, cwd: &Path, stdin_payload: &str) -> String {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+
+    let mut child = Command::new("sh")
+        .args(["-c", command])
+        .current_dir(cwd)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn sh for hook");
+    child
+        .stdin
+        .take()
+        .expect("stdin pipe")
+        .write_all(stdin_payload.as_bytes())
+        .expect("write hook stdin");
+    let output = child.wait_with_output().expect("wait for hook");
+    assert!(
+        output.status.success(),
+        "hook exited non-zero: stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout).expect("hook stdout is UTF-8")
+}
+
+#[cfg(unix)]
+fn run_git(cwd: &Path, args: &[&str]) {
+    let output = std::process::Command::new("git")
+        .args(args)
+        .current_dir(cwd)
+        .env("GIT_AUTHOR_NAME", "Test")
+        .env("GIT_AUTHOR_EMAIL", "test@example.com")
+        .env("GIT_COMMITTER_NAME", "Test")
+        .env("GIT_COMMITTER_EMAIL", "test@example.com")
+        .output()
+        .expect("run git");
+    assert!(
+        output.status.success(),
+        "git {args:?} failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn harness_hooks_pre_edit_stays_silent_outside_specful_repositories() {
+    let blocks = harness_hook_blocks();
+    let pre_edit = blocks[0]["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+        .as_str()
+        .expect("Claude Code pre-edit command");
+
+    let specful_repo = tempfile::tempdir().expect("create specful scratch");
+    fs::create_dir_all(specful_repo.path().join(".specful")).expect("create .specful");
+    fs::write(
+        specful_repo.path().join(".specful/config.yaml"),
+        "project-key: TST\n",
+    )
+    .expect("write config");
+
+    let plain_repo = tempfile::tempdir().expect("create plain scratch");
+
+    for (rel, expected) in [
+        ("docs/adr/0001-choice.md", "specful-adr"),
+        ("docs/specs/api/design/0001-api.md", "specful-design"),
+        (
+            "docs/specs/api/requirements/0001-api.md",
+            "specful-requirement",
+        ),
+    ] {
+        let abs_specful = specful_repo.path().join(rel);
+        let payload_specful =
+            json!({"tool_name": "Edit", "tool_input": {"file_path": abs_specful}}).to_string();
+        let out = run_hook_command(pre_edit, plain_repo.path(), &payload_specful);
+        assert!(
+            out.contains(expected),
+            "expected {expected} reminder for Specful path {rel}, got: {out:?}"
+        );
+
+        let payload_rel =
+            json!({"tool_name": "Write", "tool_input": {"file_path": rel}}).to_string();
+        let out_rel = run_hook_command(pre_edit, specful_repo.path(), &payload_rel);
+        assert!(
+            out_rel.contains(expected),
+            "expected {expected} reminder for relative Specful path {rel}, got: {out_rel:?}"
+        );
+
+        let abs_plain = plain_repo.path().join(rel);
+        let payload_plain =
+            json!({"tool_name": "Edit", "tool_input": {"file_path": abs_plain}}).to_string();
+        let out_plain = run_hook_command(pre_edit, specful_repo.path(), &payload_plain);
+        assert!(
+            out_plain.is_empty(),
+            "non-Specful path {rel} must stay silent even from a Specful cwd, got: {out_plain:?}"
+        );
+
+        let out_plain_rel = run_hook_command(pre_edit, plain_repo.path(), &payload_rel);
+        assert!(
+            out_plain_rel.is_empty(),
+            "relative non-Specful path {rel} must stay silent, got: {out_plain_rel:?}"
+        );
+    }
+
+    for ignored in [
+        "docs/adr/README.md",
+        "docs/specs/api/index.md",
+        "src/main.rs",
+    ] {
+        let payload = json!({
+            "tool_name": "Edit",
+            "tool_input": {"file_path": specful_repo.path().join(ignored)}
+        })
+        .to_string();
+        let out = run_hook_command(pre_edit, specful_repo.path(), &payload);
+        assert!(
+            out.is_empty(),
+            "ignored path {ignored} must stay silent, got: {out:?}"
+        );
+    }
+}
+
+#[test]
+#[cfg(unix)]
+fn harness_hooks_push_reminder_stays_silent_outside_specful_repositories() {
+    let blocks = harness_hook_blocks();
+    let claude_push = blocks[0]["hooks"]["PreToolUse"][1]["hooks"][0]["command"]
+        .as_str()
+        .expect("Claude Code push command");
+    let codex_push = blocks[1]["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+        .as_str()
+        .expect("Codex push command");
+    assert_eq!(
+        claude_push, codex_push,
+        "Claude Code and Codex push hooks must match"
+    );
+
+    let push_payload = json!({"tool_input": {"command": "git push"}}).to_string();
+
+    let plain_repo = tempfile::tempdir().expect("create plain git repo");
+    run_git(plain_repo.path(), &["init"]);
+    fs::create_dir_all(plain_repo.path().join("docs/adr")).expect("create docs/adr");
+    fs::write(
+        plain_repo.path().join("docs/adr/0001-plain.md"),
+        "# Plain\n",
+    )
+    .expect("write adr");
+    run_git(plain_repo.path(), &["add", "."]);
+    run_git(plain_repo.path(), &["commit", "-m", "initial"]);
+
+    let plain_out = run_hook_command(claude_push, plain_repo.path(), &push_payload);
+    assert!(
+        plain_out.is_empty(),
+        "push hook must stay silent in a non-Specful repo even without an upstream, got: {plain_out:?}"
+    );
+
+    let specful_repo = tempfile::tempdir().expect("create specful git repo");
+    run_git(specful_repo.path(), &["init"]);
+    fs::create_dir_all(specful_repo.path().join(".specful")).expect("create .specful");
+    fs::write(
+        specful_repo.path().join(".specful/config.yaml"),
+        "project-key: TST\n",
+    )
+    .expect("write config");
+    fs::create_dir_all(specful_repo.path().join("nested")).expect("create nested dir");
+    fs::write(specful_repo.path().join("nested/file.txt"), "one\n").expect("write file");
+    run_git(specful_repo.path(), &["add", "."]);
+    run_git(specful_repo.path(), &["commit", "-m", "initial"]);
+    run_git(
+        specful_repo.path(),
+        &["remote", "add", "origin", "https://example.invalid/r.git"],
+    );
+    run_git(
+        specful_repo.path(),
+        &["update-ref", "refs/remotes/origin/HEAD", "HEAD"],
+    );
+
+    fs::write(specful_repo.path().join("nested/file.txt"), "two\n").expect("update code");
+    run_git(specful_repo.path(), &["add", "."]);
+    run_git(specful_repo.path(), &["commit", "-m", "code only"]);
+    let code_only_out = run_hook_command(claude_push, specful_repo.path(), &push_payload);
+    assert!(
+        code_only_out.is_empty(),
+        "push hook must stay silent when outgoing commits do not touch Specful paths, got: {code_only_out:?}"
+    );
+
+    fs::create_dir_all(specful_repo.path().join("docs/adr")).expect("create docs/adr");
+    fs::write(
+        specful_repo.path().join("docs/adr/0001-choice.md"),
+        "# Choice\n",
+    )
+    .expect("write adr");
+    run_git(specful_repo.path(), &["add", "."]);
+    run_git(specful_repo.path(), &["commit", "-m", "add adr"]);
+
+    for cwd in [specful_repo.path(), &specful_repo.path().join("nested")] {
+        let out = run_hook_command(claude_push, cwd, &push_payload);
+        assert!(
+            out.contains("specful-review"),
+            "push hook should remind from {}, got: {out:?}",
+            cwd.display()
+        );
+    }
+}
