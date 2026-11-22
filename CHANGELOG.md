@@ -7,6 +7,79 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/unkos-dev/specful/compare/v0.5.7...v0.6.0) - 2026-11-22
+
+### Breaking changes
+
+- bundle offline profiles, enforce stricter boundary validation, and add pre-edit hook reminders ([#303](https://github.com/unkos-dev/specful/pull/303))
+
+  - Bundle the canonical ADR, Design, and Requirement profiles under
+  `profiles/`, expose them offline via `specful profile <kind>` (requiring
+  no `.specful/config.yaml`), and copy all three into `specful-adr`,
+  `specful-design`, `specful-requirement`, and `specful-review` under
+  `references/profiles/` with automated byte-parity tests against
+  `profiles/` and `site/src/content/docs/profiles/`.
+  - Tighten `specful validate` with five objective checks:
+  single-paragraph Requirement `## Statement`, foreign canonical level-two
+  heading rejection across artifact kinds, whole-section bare-filler
+  rejection (`Not applicable`, `N/A`, `NA`, `None`, `TBD`, `TODO`, `TBA`),
+  Markdown task checkbox rejection outside code, and `governed-by`
+  lifecycle enforcement (allowing `accepted` and provisional `proposed`
+  ADRs; rejecting `superseded` and `deprecated`).
+  - Sharpen authoring skills with path discovery cues and blurred-vs-clean
+  contrasts, make `specful-review` lenses self-contained offline (removing
+  broken `templates/*.md` citations), add an optional Claude Code pre-edit
+  `PreToolUse` (`Edit|Write`) advisory reminder to `harness-hooks.md`, and
+  update CLI, validation, charter, and `SPECFUL-DESIGN-0002` docs.
+
+  Coding agents regularly blur Requirement, Design, and ADR shapes during
+  ordinary edits because they edit `docs/specs/` and `docs/adr/` without
+  invoking authoring skills, while skills and review lenses previously
+  pointed to external URLs and adopter-local `templates/*.md` paths that
+  `specful init` never creates. Making the canonical profiles offline and
+  version-matched, catching objective boundary violations mechanically in
+  `specful validate`, and offering an earlier pre-edit reminder keeps
+  artifact shapes crisp before changes land.
+
+  Upgrading from 0.5.x may surface existing documents that fail the five
+  stricter `specful validate` checks; no `profile-version` bump or config
+  migration is required:
+
+  - **Multi-block Requirement `## Statement`:** condense `## Statement`
+  into one normative paragraph (move lists, tables, examples, or
+  subheadings to `## Acceptance criteria` or `## More information`).
+  - **Foreign canonical `##` headings:** move content under another
+  artifact type's canonical level-two heading (for example `## Considered
+  options` in a Requirement or `## Acceptance criteria` in a Design) into
+  the appropriate artifact, or rename a custom Design section so it does
+  not collide with another profile's canonical heading.
+  - **Bare filler sections:** replace sections consisting solely of `Not
+  applicable`, `N/A`, `NA`, `None`, `TBD`, `TODO`, or `TBA` with real
+  content, state a concrete reason in required Requirement/Design sections
+  (for example `Not applicable: stateless module.`), or remove
+  empty/unused optional sections (`## More information`, `## Pros and cons
+  of the options`).
+  - **Markdown task checkboxes outside code:** replace `- [ ]` / `- [x]`
+  checklist items in permanent artifacts with plain list items or move
+  work tracking into a plan.
+  - **`governed-by` citations to `superseded` or `deprecated` ADRs:**
+  review each flagged Requirement or Design and either update
+  `governed-by` to the governing replacement ADR (named in the diagnostic
+  when `superseded-by` is set) or remove the citation.
+
+  Refresh installed skills with `gh skill install unkos-dev/specful --all
+  --scope user --pin <TAG> --force`, replacing `<TAG>` with the release
+  tag matching the installed binary, to pick up the bundled offline
+  profiles and updated review lenses.
+
+### Dependencies
+
+- *(deps)* update rust crate saphyr-parser to 0.4.0 ([#309](https://github.com/unkos-dev/specful/pull/309))
+- *(deps)* update rust crate jsonschema to 0.62.0 ([#308](https://github.com/unkos-dev/specful/pull/308))
+- *(deps)* update rust crate clap to v4.6.9 ([#307](https://github.com/unkos-dev/specful/pull/307))
+- *(deps)* update rust crate clap to v4.6.8 ([#302](https://github.com/unkos-dev/specful/pull/302))
+- *(deps)* update rust crate jsonschema to 0.61.0 ([#286](https://github.com/unkos-dev/specful/pull/286))
+
 ## [0.5.7](https://github.com/unkos-dev/specful/compare/v0.5.6...v0.5.7) - 2026-11-08
 
 ### Fixed
