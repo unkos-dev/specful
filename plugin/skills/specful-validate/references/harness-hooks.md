@@ -1,26 +1,39 @@
 # Harness hooks
 
-Use agent hooks for an optional substantive review reminder before a push. Run `specful validate` through Lefthook
-pre-push and CI, following the copyable examples in
-[Validation integration](https://unkos-dev.github.io/specful/reference/validation-integration/).
-Do not add automatic validation to `PostToolUse` or `Stop`.
+Use agent hooks for two optional reminders: a pre-edit profile reminder when an agent edits Specful artifacts directly,
+and a substantive review reminder before a push. Run `specful validate` through Lefthook pre-push and CI, following the
+copyable examples in [Validation integration](https://unkos-dev.github.io/specful/reference/validation-integration/). Do
+not add automatic validation to `PostToolUse` or `Stop`.
 
-The examples below ask for `specful-review` before a shell command containing `git push` when outgoing commits change
-`docs/specs`, `docs/adr`, or `.specful`. They add context to the agent; they do not run a review, enforce its verdict,
-or replace the Git pre-push check. The adopting repository decides whether substantive review is required.
+The pre-edit example matches Claude Code `Edit` and `Write` calls targeting `docs/adr/*.md` (excluding
+`docs/adr/README.md`), `docs/specs/**/design/*.md` (excluding `index.md`), and `docs/specs/**/requirements/*.md`
+(excluding `index.md`). The push examples ask for `specful-review` before a shell command containing `git push` when
+outgoing commits change `docs/specs`, `docs/adr`, or `.specful`. Both hooks add advisory context to the agent; they do
+not block edits, run a review, enforce a verdict, or replace the Git pre-push check. The adopting repository decides
+whether substantive review is required.
 
-Merge the relevant entry into existing harness configuration, preserving unrelated hooks. These command examples use
-`sh`, `git`, `grep`, and `head`; the reminder itself does not invoke the Specful binary.
+Merge the relevant entries into existing harness configuration, preserving unrelated hooks. These command examples use
+POSIX `sh`, `git`, `grep`, and `head`; the reminders do not invoke `jq` or the Specful binary.
 
 ## Claude Code
 
-Add the entry to the project's `.claude/settings.json`, or to the user configuration if that scope is intended. Project
-hooks require workspace trust.
+Add the entries you want to the project's `.claude/settings.json`, or to the user configuration if that scope is
+intended. Project hooks require workspace trust.
 
 ```json
 {
   "hooks": {
     "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "p=$(grep -Eo '\"file_path\"[[:space:]]*:[[:space:]]*\"[^\"]*\"' | head -n1); [ -n \"$p\" ] || exit 0; p=${p#*:}; p=${p#*'\"'}; p=${p%'\"'}; case \"$p\" in */docs/adr/README.md|docs/adr/README.md|*/index.md|index.md) exit 0 ;; *.md) ;; *) exit 0 ;; esac; d=${p%/*}; case \"$d\" in */docs/adr|docs/adr) m='Editing a Specful ADR. Load the specful-adr skill and read its bundled profile (references/profiles/adr.md) or run specful profile adr so this record stays a decision record rather than a Requirement or Design.' ;; */docs/specs/design|docs/specs/design|*/docs/specs/*/design|docs/specs/*/design) m='Editing a Specful Design. Load the specful-design skill and read its bundled profile (references/profiles/design.md) or run specful profile design so this document stays a current-state Design rather than a Requirement or ADR.' ;; */docs/specs/requirements|docs/specs/requirements|*/docs/specs/*/requirements|docs/specs/*/requirements) m='Editing a Specful Requirement. Load the specful-requirement skill and read its bundled profile (references/profiles/requirement.md) or run specful profile requirement so this document stays a single normative obligation rather than a Design or ADR.' ;; *) exit 0 ;; esac; printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"%s\"}}' \"$m\"",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "Bash",
         "hooks": [
@@ -62,9 +75,13 @@ configuration must be trusted.
 
 ## Scope and limitations
 
-The reminder compares against the branch's configured push target, falling back to the first remote's default branch. If
-neither resolves, it asks for review without claiming to know the outgoing range. An explicit push to another target can
-differ from this comparison; resolve the actual review target before reviewing.
+A `PreToolUse` hook returning `additionalContext` lets the pending `Edit` or `Write` call proceed; the agent reads the
+reminder on its next step. Treat it as an advisory reminder rather than a blocking gate. It does not cover edits
+performed through other tools (such as `Bash`, scripts, or external editors).
+
+The push reminder compares against the branch's configured push target, falling back to the first remote's default
+branch. If neither resolves, it asks for review without claiming to know the outgoing range. An explicit push to another
+target can differ from this comparison; resolve the actual review target before reviewing.
 
 The command-text match is a convenience reminder for shell-driven pushes. Aliases and GUI pushes may not trigger it. Git
 pre-push runs validation when Git performs the push; CI checks the committed corpus.

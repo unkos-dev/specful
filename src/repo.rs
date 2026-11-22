@@ -579,12 +579,33 @@ fn validate_integrity(
             }
         }
         for target in &artifact.governed_by {
-            if !adrs.contains_key(target.as_str()) {
-                findings.push(Finding::new(
+            match adrs.get(target.as_str()) {
+                None => findings.push(Finding::new(
                     &artifact.path,
                     None,
                     format!("governed-by target {target} does not exist"),
-                ));
+                )),
+                Some(adr) => match adr.status.as_deref() {
+                    Some("superseded") => {
+                        let message = match adr.superseded_by.first() {
+                            Some(successor) => format!(
+                                "governed-by target {target} is superseded by {successor}; review whether {successor} governs this artifact or remove the citation"
+                            ),
+                            None => format!(
+                                "governed-by target {target} is superseded; review whether its replacement governs this artifact or remove the citation"
+                            ),
+                        };
+                        findings.push(Finding::new(&artifact.path, None, message));
+                    }
+                    Some("deprecated") => findings.push(Finding::new(
+                        &artifact.path,
+                        None,
+                        format!(
+                            "governed-by target {target} is deprecated; remove the citation or cite a governing ADR"
+                        ),
+                    )),
+                    Some("accepted" | "proposed") | None | Some(_) => {}
+                },
             }
         }
     }

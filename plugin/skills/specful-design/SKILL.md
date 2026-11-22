@@ -1,8 +1,8 @@
 ---
 name: specful-design
 description: >-
-  Use when writing or updating a Specful Design: documenting how a subject of the system works, or connecting a
-  Design to the Requirements it satisfies.
+  Use when creating, writing, or updating a Specful Design under `docs/specs/**/design/*.md`: documenting how a subject
+  of the system works, or connecting a Design to the Requirements it satisfies.
 compatibility: Requires the specful CLI on PATH.
 ---
 
@@ -12,6 +12,10 @@ A Design describes how a subject of the system works now, written as though it h
 Requirement (what the software must do) and not an ADR (why a decision was made); if the change is about what or why,
 load `specful-requirement` or `specful-adr` instead. History and transitions never appear in the prose: a transition is
 a plan, and what used to be true is Git history.
+
+Read the bundled [Design profile](references/profiles/design.md) (or run `specful profile design`) and the
+[Requirement versus ADR](references/profiles/adr.md#requirement-versus-adr) boundary before authoring or updating a
+Design.
 
 ## Workflow
 
@@ -29,4 +33,11 @@ a plan, and what used to be true is Git history.
 5. Mechanical validation does not judge substantive quality. Use `specful-review` when the adopting repository requires
    substantive review or the user asks for it.
 
-For the full Design profile and field-by-field guidance, see <https://unkos-dev.github.io/specful/>.
+## Blurred versus clean
+
+- **Blurred:** `## Structure` compares PostgreSQL against SQLite and explains why SQLite was rejected during migration.
+  **Clean:** `## Structure` describes the current PostgreSQL storage layout in present tense and cites the governing ADR
+  through `governed-by`.
+- **Blurred:** `## Data and state` contains `N/A` and `## Failure and recovery` introduces new `MUST` rules with `- [ ]`
+  follow-up tasks. **Clean:** Inapplicable sections state a concrete reason (`Not applicable: stateless transform`),
+  normative obligations live in a Requirement, and work items live in a plan.

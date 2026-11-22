@@ -12,6 +12,7 @@ Choose the command for the job:
 | --- | --- | --- |
 | `init` | Set up the convention in a repository | Yes |
 | `new` | Allocate an ID and create a draft artifact | Yes |
+| `profile` | Print the canonical Markdown profile for an artifact kind | No |
 | `index` | Refresh navigation after artifact changes | Yes |
 | `index --check` | Detect stale navigation without regenerating it | No |
 | `validate` | Check corpus structure, identities and relationships | No |
@@ -22,7 +23,8 @@ For pre-push and CI examples, see [Validation integration](/specful/reference/va
 
 `validate` and `index` accept an optional positional root; `new`, `show` and `trace` use `--root <ROOT>`. When omitted,
 these commands search from the current directory upward for the nearest `.specful/config.yaml`. `init` also accepts an
-optional positional root, but defaults to the current directory without searching ancestors.
+optional positional root, but defaults to the current directory without searching ancestors. `profile` requires no
+repository or `.specful/config.yaml` and runs offline from any directory.
 
 ## `specful init`
 
@@ -87,9 +89,10 @@ specful validate [--json] [ROOT]
 | --- | --- |
 | Configuration and identity | Duplicate IDs, wrong project key, allocation counters behind existing IDs |
 | Artifact layout and metadata | Wrong directory or filename, unsupported profile, malformed frontmatter |
-| Document structure | Missing or empty required sections, title mismatch, template placeholders |
-| Requirement statement form | A Statement section without an uppercase BCP 14 keyword such as `MUST` |
-| Recorded relationships | A `satisfies` target that is not an existing Requirement, or a missing `governed-by` ADR |
+| Document structure | Missing, empty, or bare-filler sections, foreign canonical H2s, H1 mismatch, placeholders |
+| Task checklists | Markdown task checkboxes (`- [ ]`, `- [x]`) outside code blocks or code spans |
+| Requirement statement form | A Statement that is not a single paragraph or lacks an uppercase BCP 14 keyword |
+| Recorded relationships | Missing target, or `governed-by` citing a deprecated or superseded ADR |
 | ADR supersession | Missing reciprocal links, inconsistent superseded status, self-links or cycles |
 | Generated navigation | Missing, stale or orphaned indexes and catalog entries |
 
@@ -198,3 +201,18 @@ cited-by: PROJECT-REQ-0001 (docs/specs/system/requirements/0001-offline-replay.m
 $ specful trace PROJECT-ADR-0002
 (uncited)
 ```
+
+## `specful profile`
+
+Print the canonical Markdown profile for an artifact kind.
+
+```sh
+specful profile <adr|requirement|design>
+```
+
+| Argument | Meaning |
+|---|---|
+| `<KIND>` | Positional. One of `adr`, `requirement`, `design`. |
+
+Prints the built-in profile document to standard output and exits with status 0. The command requires no
+`.specful/config.yaml` and runs offline from any directory, before or after `specful init`.

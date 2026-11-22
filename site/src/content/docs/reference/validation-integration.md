@@ -16,9 +16,9 @@ Actions for CI. Repositories using other tools can run the same command.
 | IDs are unique and match the project key and filenames | Unambiguous document identity |
 | Configuration is valid; counters exceed existing IDs | Avoid allocating an ID already in use |
 | Directories, filenames and frontmatter follow the profiles | Artifacts can be recognised and read |
-| Titles agree; required sections have content; placeholders are gone | Catch incomplete or malformed documents |
-| Requirement Statements contain an uppercase keyword such as `MUST` | Explicit obligation wording |
-| `satisfies` and `governed-by` targets exist with the correct type | No dangling Requirement or ADR references |
+| Titles agree; sections have real content; no bare filler, foreign H2s, or checkboxes | Catch malformed documents |
+| Requirement Statements are one paragraph with an uppercase BCP 14 keyword | Clear, single-obligation wording |
+| `satisfies` targets exist; `governed-by` rejects deprecated or superseded ADRs | No dangling or retired ADR links |
 | ADR replacement links are reciprocal, match status and have no cycles | A consistent chain of replacement decisions |
 | Generated indexes and catalog match authored documents | Current navigation and ID lookups |
 
@@ -116,11 +116,13 @@ Make the CI job a required status check in your branch protection or ruleset if 
 
 ## Harness hooks
 
-Agent hooks can request substantive review before a push. Automatic validation runs through Git pre-push and CI, so it
-does not interrupt every edit or agent turn.
+Agent hooks can surface optional reminders without running automatic validation on every edit or agent turn. Automatic
+validation belongs in Git pre-push and CI.
 
-An optional pre-push reminder can ask the agent to run `specful-review` when outgoing commits change Specful artifacts.
 The skill's
 [harness hooks reference](https://github.com/unkos-dev/specful/blob/main/plugin/skills/specful-validate/references/harness-hooks.md)
-contains copyable Claude Code and Codex examples. The reminder requests a substantive review; it neither runs the CLI
-checks nor enforces a review verdict. Lefthook performs mechanical validation when Git runs the push.
+contains copyable examples for an optional Claude Code pre-edit advisory reminder (nudging the agent to load the
+matching authoring skill and bundled profile when editing Specful artifacts directly) and for Claude Code and Codex
+pre-push reminders asking for `specful-review` when outgoing commits change Specful artifacts. These reminders add
+advisory context; they neither block edits, run CLI checks, nor enforce a review verdict. Lefthook performs mechanical
+validation when Git runs the push.

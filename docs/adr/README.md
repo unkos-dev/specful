@@ -8,35 +8,14 @@ current design description, or serve as an implementation diary.
 
 ## Relationship to MADR
 
-The profile is derived from the MADR 4.0.0 complete template and is tighter than MADR on every axis it touches, so a
-canonical MADR record does not validate unchanged. Section headings are sentence case and compared exactly, so
-`Context and Problem Statement` fails where `Context and problem statement` passes. Decision drivers and Consequences
-are required where MADR marks them optional. MADR's Confirmation section is not part of this profile: a record that
-still carries one validates, but the section is not read. `recorded-on`, with `decided-on` when the decision predates
-the record, replaces MADR's single `date` field. `decision-makers` is a list rather than free text. MADR's `consulted`
-and `informed` participant roles are not part of this profile; a record carrying either fails validation. `status` has
-no `rejected` value. No frontmatter key outside the profile is accepted other than an `x-` extension key. A MADR record
-enters the profile by being re-recorded rather than converted in place; see
-[adopting into an existing repository](https://unkos-dev.github.io/specful/adoption/#adopting-into-an-existing-repository).
+The Specful ADR profile derives from the MADR 4.0.0 complete template and is tighter than MADR on every axis it touches;
+see [Relationship to MADR](../../profiles/adr.md#relationship-to-madr) in [`profiles/adr.md`](../../profiles/adr.md) for
+the canonical comparison and re-recording rule.
 
 ## Authoring template
 
-New ADRs start from [`templates/adr.md`](../../templates/adr.md). The guided template is based on MADR's complete
-explanatory template rather than a bare or minimal variant. This retains the semantic guidance needed by authors and
-coding agents without requiring that guidance to remain in completed records.
-
-Every completed ADR contains:
-
-- an identifier, title, status, recorded date, and decision-maker metadata;
-- Context and problem statement;
-- Decision drivers;
-- Considered options;
-- Decision outcome;
-- Consequences.
-
-Pros and cons of the options and More information are conditional sections. They are included only when they add
-material decision evidence. More information never restates a `satisfies`, `governed-by`, `supersedes`, or
-`superseded-by` relationship the frontmatter already carries.
+New ADRs start from [`templates/adr.md`](../../templates/adr.md). See [Sections](../../profiles/adr.md#sections) in
+[`profiles/adr.md`](../../profiles/adr.md) for the required and optional sections and authoring guidance.
 
 ## Identifiers
 
@@ -113,9 +92,12 @@ An ADR has exactly one of four statuses:
 - `deprecated`: no longer applicable and has no direct replacement;
 - `superseded`: replaced by another ADR.
 
-Only an accepted ADR may be treated as architectural authority. Specful does not define `draft` or `rejected` statuses.
-Incomplete or abandoned proposals may be deleted. When rejecting an option is itself a durable architectural choice,
-that choice is recorded as the outcome of an accepted ADR.
+Only an accepted ADR may be treated as architectural authority. `specful validate` allows a Requirement or Design to
+cite a `proposed` ADR in `governed-by` so one change can introduce a proposal alongside dependent artifacts, while that
+citation remains provisional and carries no architectural authority until the maintainer accepts the ADR. Citations to
+`deprecated` or `superseded` ADRs fail validation. Specful does not define `draft` or `rejected` statuses. Incomplete or
+abandoned proposals may be deleted. When rejecting an option is itself a durable architectural choice, that choice is
+recorded as the outcome of an accepted ADR.
 
 Status transitions move forward:
 
@@ -332,10 +314,14 @@ A structurally complete ADR:
 - contains non-whitespace content in every required section;
 - contains no unresolved Specful template placeholder;
 - contains none of the instructional comments supplied by the template;
-- omits an optional section rather than retaining it empty.
+- omits an optional section rather than retaining it empty;
+- contains no foreign canonical level-two heading belonging to a Requirement or Design;
+- contains no Markdown task checkbox outside code;
+- contains no required section, `### Consequences`, or present optional section consisting solely of a listed
+  bare-filler token (`Not applicable`, `N/A`, `NA`, `None`, `TBD`, `TODO`, or `TBA`).
 
-Specful validation enforces only these objective conditions. It recognizes its own template residue explicitly and does
-not attempt to classify arbitrary prose as filler or judge its engineering quality.
+Specful validation enforces only these objective conditions. It recognizes its own template residue and listed
+bare-filler tokens explicitly and does not judge prose quality or engineering rigour.
 
 ### Advisory review
 

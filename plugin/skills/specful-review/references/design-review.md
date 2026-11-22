@@ -1,8 +1,7 @@
 # Design review lens
 
-Apply this lens only when a Design is in scope. The canonical rules are the public
-[Design profile](https://unkos-dev.github.io/specful/profiles/design/), the repository's `templates/design.md`, and the
-named Design itself.
+Apply this lens only when a Design is in scope. The canonical rules are the bundled [Design profile](profiles/design.md)
+and the named Design itself.
 
 Inspect the coherent subject and follow only material claims into the smallest relevant implementation, tests,
 configuration, interfaces, or public documentation. Check whether:

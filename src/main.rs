@@ -45,7 +45,7 @@ enum Command {
     New {
         /// Artifact kind to create.
         #[arg(value_enum)]
-        kind: NewKindArg,
+        kind: ArtifactKindArg,
         /// Artifact title; also derives the filename slug.
         #[arg(long)]
         title: String,
@@ -55,6 +55,12 @@ enum Command {
         /// Repository root; defaults to the nearest ancestor containing .specful/config.yaml.
         #[arg(long)]
         root: Option<PathBuf>,
+    },
+    /// Print the canonical Markdown profile for an artifact kind.
+    Profile {
+        /// Artifact kind to print.
+        #[arg(value_enum)]
+        kind: ArtifactKindArg,
     },
     /// Show the catalog record for an identifier.
     Show {
@@ -75,18 +81,28 @@ enum Command {
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
-enum NewKindArg {
+enum ArtifactKindArg {
     Adr,
     Requirement,
     Design,
 }
 
-impl From<NewKindArg> for specful::authoring::NewKind {
-    fn from(kind: NewKindArg) -> Self {
+impl From<ArtifactKindArg> for specful::authoring::NewKind {
+    fn from(kind: ArtifactKindArg) -> Self {
         match kind {
-            NewKindArg::Adr => Self::Adr,
-            NewKindArg::Requirement => Self::Requirement,
-            NewKindArg::Design => Self::Design,
+            ArtifactKindArg::Adr => Self::Adr,
+            ArtifactKindArg::Requirement => Self::Requirement,
+            ArtifactKindArg::Design => Self::Design,
+        }
+    }
+}
+
+impl From<ArtifactKindArg> for specful::body::ArtifactKind {
+    fn from(kind: ArtifactKindArg) -> Self {
+        match kind {
+            ArtifactKindArg::Adr => Self::Adr,
+            ArtifactKindArg::Requirement => Self::Requirement,
+            ArtifactKindArg::Design => Self::Design,
         }
     }
 }
@@ -192,6 +208,10 @@ fn main() -> ExitCode {
                     ExitCode::FAILURE
                 }
             }
+        }
+        Command::Profile { kind } => {
+            print!("{}", specful::builtin_profile(kind.into()));
+            ExitCode::SUCCESS
         }
         Command::Show { id, root } => {
             let root = match resolve_root(root) {

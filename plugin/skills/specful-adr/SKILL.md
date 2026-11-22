@@ -1,8 +1,8 @@
 ---
 name: specful-adr
 description: >-
-  Use when recording, correcting, or superseding a Specful ADR (architecture decision record), including moving
-  misplaced content into a Design or Requirement.
+  Use when creating, editing, correcting, or superseding a Specful ADR (architecture decision record) under
+  `docs/adr/*.md`, including moving misplaced content into a Design or Requirement.
 compatibility: Requires the specful CLI on PATH.
 ---
 
@@ -13,10 +13,13 @@ Requirement (what the software must do) and not a Design (how the system works);
 load `specful-requirement` or `specful-design` instead. Keep it at decision level: no task sequences, file inventories,
 or progress notes.
 
+Read the bundled [ADR profile](references/profiles/adr.md) (or run `specful profile adr`) for the canonical sections,
+lifecycle rules, and the [Requirement versus ADR](references/profiles/adr.md#requirement-versus-adr) boundary.
+
 ## Workflow
 
-1. Read `docs/adr/` and its index for the numbering, statuses, and the decisions already on record; a new ADR that
-   contradicts an accepted one supersedes it rather than silently disagreeing.
+1. Read `docs/adr/` and `.specful/generated/catalog.json` for numbering, statuses, and decisions already on record; a
+   new ADR that contradicts an accepted one supersedes it rather than silently disagreeing.
 2. For a new decision, scaffold with `specful new adr --title <TITLE>`. Never hand-allocate an identifier; the command
    owns the counter. A decision recorded before the profile existed enters it the same way: scaffold a new record, carry
    the original decision date in `decided-on` and the re-recording date in `recorded-on`. Under More information,
@@ -28,7 +31,9 @@ or progress notes.
    honestly rather than as strawmen for a preferred answer; record negative consequences with the same care as positive
    ones. An ADR with no credible alternative or no downside is advertising, not a decision record.
 4. Lifecycle belongs to the maintainer: a new record starts proposed, and only the maintainer accepts, deprecates, or
-   supersedes. A change to the architectural choice, its scope, or its operative conditions requires supersession.
+   supersedes. A change to the architectural choice, its scope, or its operative conditions requires supersession. When
+   superseding an ADR, run `specful trace <OLD-ADR-ID>` to find every Requirement and Design citing it in `governed-by`
+   and review whether each citation should move to the replacement or be removed.
 5. Correct an existing record in place when the decision stays the same, including accepted, deprecated, and superseded
    records. Any section and factual metadata may be corrected, including rationale, alternatives, consequences, dates,
    and participant names. Preserve the identifier, lifecycle state, and supersession relationships; do not reset dates
@@ -41,4 +46,10 @@ or progress notes.
 6. Run `specful index`, then `specful validate`; commit the regenerated views with the change. Use `specful-review` when
    the adopting repository requires substantive review or the user asks for it.
 
-For the full ADR profile and field-by-field guidance, see <https://unkos-dev.github.io/specful/>.
+## Blurred versus clean
+
+- **Blurred:** `Decision outcome` states "The sync service MUST retry failed writes three times with exponential
+  backoff." **Clean:** `Decision outcome` records the chosen retry architecture and why it beat alternatives; any
+  binding retry obligation lives in a Requirement citing this ADR through `governed-by`.
+- **Blurred:** An ADR embeds module layouts, API field tables, and rollout checklists under `Decision outcome`.
+  **Clean:** Current module structure and interfaces live in a Design citing this ADR, and rollout steps live in a plan.

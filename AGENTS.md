@@ -3,10 +3,10 @@
 ## Project structure
 
 Specful is a Rust 2024 edition CLI and library. The command entry point is `src/main.rs`; `src/lib.rs` exposes reusable
-modules. Integration tests live in `tests/`, with repository-shaped fixtures in `tests/fixtures/`. Keep JSON Schemas and
-their language-neutral cases together under `schemas/<profile>/`. Public artifact guidance is in `docs/`, and reusable
-source files are in `templates/`. Schema behaviour changes require corresponding conformance cases. Generated indexes
-and catalogs are disposable views, not hand-edited source.
+modules. Integration tests live in `tests/`, with repository-shaped fixtures in `tests/fixtures/`. Canonical artifact
+profiles live under `profiles/`, JSON Schemas and their language-neutral cases live together under `schemas/<profile>/`,
+public artifact guidance is in `docs/`, and reusable source files are in `templates/`. Schema behaviour changes require
+corresponding conformance cases. Generated indexes and catalogs are disposable views, not hand-edited source.
 
 ## Build, test, and development commands
 
