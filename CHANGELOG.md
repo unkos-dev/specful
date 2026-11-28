@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.6.1](https://github.com/unkos-dev/specful/compare/v0.6.0...v0.6.1) - 2026-11-28
+
+### Fixed
+
+- *(hooks)* keep harness reminders silent outside Specful repositories ([#311](https://github.com/unkos-dev/specful/pull/311))
+
+### Dependencies
+
+- *(deps)* update rust crate clap to v4.6.10 ([#327](https://github.com/unkos-dev/specful/pull/327))
+
 ## [0.6.0](https://github.com/unkos-dev/specful/compare/v0.5.7...v0.6.0) - 2026-11-22
 
 ### Breaking changes
